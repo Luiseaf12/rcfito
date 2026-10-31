@@ -1,0 +1,30 @@
+/* Layout adapter for the reference's tw: utility prefix; semantic UI tokens
+   remain supplied by the consumer. Keep the same mobile breakpoint as its shell. */
+@layer utilities {
+  [data-ui-catalog] .catalog-sort-mobile { display: none !important; }
+  [data-ui-catalog] .catalog-table { table-layout: fixed !important; }
+  [data-ui-catalog] .catalog-table [data-slot="table-head"] button { white-space: normal !important; }
+  [data-ui-catalog] .catalog-table [data-slot="table-cell"] { overflow-wrap: anywhere; }
+  [data-ui-catalog] .catalog-toolbar { min-width: 0; }
+  [data-ui-catalog] [data-slot="button"] { max-width: 100% !important; min-width: 0; white-space: normal !important; }
+  .catalog-dialog { min-width: 0; }
+  .catalog-dialog [data-slot="dialog-close"] { min-width: 44px; min-height: 44px; }
+  .catalog-dialog [data-slot="dialog-header"] { padding-right: 3rem; }
+}
+@layer utilities {
+  [data-ui-catalog] .catalog-table [data-slot][hidden] { display: none !important; }
+}
+@media (max-width: 760px) {
+  [data-ui-catalog] .catalog-table [data-slot="table-cell"]::before {
+    content: attr(data-label); display: block; color: var(--muted-foreground); font-size: 0.875rem; margin-bottom: 0.25rem;
+  }
+  [data-ui-catalog] .catalog-table [data-slot="table-cell"][colspan]::before { content: none; }
+  @layer utilities {
+    [data-ui-catalog] .catalog-sort-mobile { display: flex !important; }
+    [data-ui-catalog] .catalog-table [data-slot="table-header"] { display: none !important; }
+    [data-ui-catalog] .catalog-table [data-slot="table-row"] { display: block !important; }
+    [data-ui-catalog] .catalog-table [data-slot="table-cell"] { display: block !important; }
+    .catalog-form-actions { flex-direction: column !important; }
+    .catalog-form-actions button { width: 100% !important; }
+  }
+}

@@ -1,0 +1,14 @@
+name: rcfito-frontend
+services:
+  web:
+    container_name: rcfito-web
+    build: .
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5180:8080"
+    networks:
+      - backend
+networks:
+  backend:
+    external: true
+    name: rcfito-backend

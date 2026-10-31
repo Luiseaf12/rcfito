@@ -1,0 +1,35 @@
+name: rcfito-supabase
+
+services:
+  studio:
+    container_name: rcfito-studio
+  api-gw:
+    container_name: rcfito-gateway
+  auth:
+    container_name: rcfito-auth
+  rest:
+    container_name: rcfito-rest
+  meta:
+    container_name: rcfito-meta
+  functions:
+    container_name: rcfito-functions
+    environment:
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
+  db:
+    container_name: rcfito-db
+  realtime:
+    container_name: rcfito-realtime
+    profiles: [optional-realtime]
+  storage:
+    container_name: rcfito-storage
+    profiles: [optional-storage]
+  imgproxy:
+    container_name: rcfito-imgproxy
+    profiles: [optional-storage]
+  supavisor:
+    container_name: rcfito-pooler
+    profiles: [optional-pooler]
+
+networks:
+  default:
+    name: rcfito-backend

@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "project": "rcfito",
+  "standardVersion": "4.3.0",
+  "documents": {
+    "agents": "AGENTS.md",
+    "readme": "README.md",
+    "architecture": "ARCHITECTURE.md",
+    "product": "docs/PRODUCT.md",
+    "frontend": "docs/FRONTEND.md",
+    "security": "docs/SECURITY.md",
+    "testing": "docs/TESTING.md",
+    "operations": "docs/OPERATIONS.md",
+    "plans": "docs/PLANS.md",
+    "standards": "docs/STANDARDS.md"
+  },
+  "linkCheckFiles": [
+    "AGENTS.md",
+    "README.md",
+    "ARCHITECTURE.md",
+    "docs/PRODUCT.md",
+    "docs/FRONTEND.md",
+    "docs/SECURITY.md",
+    "docs/TESTING.md",
+    "docs/OPERATIONS.md",
+    "docs/PLANS.md",
+    "docs/STANDARDS.md"
+  ],
+  "exceptions": []
+}

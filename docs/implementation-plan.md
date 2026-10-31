@@ -1,0 +1,92 @@
+# Primera entrega: catálogos y proyectos de siembra
+
+Fecha: 2026-10-31. Estado: en verificación de entrega/publicación.
+Fuente: [PRODUCT](PRODUCT.md). El Propietario autorizó «Adelante», el uso de
+subagentes, la preparación de `.gitignore`, commit/push y publicación en ChatGPT
+Sites. La entrega implementa catálogos y proyectos de siembra; la definición
+pendiente de ejecución de aplicaciones permanece fuera de esta primera entrega.
+
+## Resultado observable
+
+Una interfaz React permite recorrer catálogos con Ver/Editar conforme a permisos,
+administrar una temporada por agrícola y mantener sus lotes, subdivisiones y
+siembras sucesivas sin alterar el historial. La aplicación utiliza un adaptador
+de Supabase Auth/Data API/RPC para el entorno configurado. Una demostración con
+datos ficticios incluida para la revisión publicada se identifica como tal
+y conserva sus datos únicamente en ese navegador.
+
+## Responsabilidades
+
+| Responsable | Archivos y entrega |
+| --- | --- |
+| Agente principal | Scaffold, UI compartida, shell, autenticación/adaptadores, integración, verificaciones, Git y Sites. |
+| Subagente de backend | Migraciones, contratos RPC/RLS, pruebas de fronteras y guía de Supabase. |
+| Subagente de interfaz | Pantallas de catálogos y proyectos sobre contratos y controles compartidos. |
+| Subagente de diseño/revisión | Fichas de flujo previas, criterios UX y revisión independiente del resultado. |
+
+Cada archivo tiene un responsable de escritura. Las revisiones regresan al autor
+para corregir; no se atribuye conformidad a una delegación sin inspeccionar su
+resultado integrado.
+
+## Secuencia y criterios de aceptación
+
+1. Registrar fichas de [catálogos](flows/catalogs.md),
+   [proyectos](flows/sowing-projects.md) y [navegación](flows/navigation.md).
+   Preparar contratos de datos y separar presentación, coordinación y persistencia.
+2. Instalar React y controles shadcn aplicables; definir tema local de lectura
+   clara, navegación compartida y estados accesibles. No copiar marca o datos de
+   mdron.
+3. Implementar catálogos con búsqueda al escribir, filtros, páginas, Ver, Editar,
+   captura propia, baja lógica y eliminación protegida de registros sin uso.
+4. Implementar temporada por agrícola, lotes propios, subdivisión única por defecto,
+   planeación/realización/cierre de siembras, copia de distribución e historial.
+5. Probar guardado y recuperación, relaciones y superficies, secuencia de etapas,
+   bloqueo de temporada siguiente y acceso del lector solo a agrícolas asignadas.
+6. Revisar tipos/build/estándares y el recorrido en navegador a 375/1440 px,
+   teclado y texto 200 %. Registrar límites de la evidencia de Supabase real.
+7. Revisar secretos/artefactos excluidos, confirmar el árbol validado y subirlo a
+   `Luiseaf12/rcfito`. Preparar versión del mismo código para ChatGPT Sites y
+   verificar el resultado nativo de publicación. Conservar la audiencia privada
+   predeterminada del Site.
+
+## Integración local y publicación
+
+Supabase permanecerá en el equipo del Propietario según la arquitectura elegida.
+Publicar el frontend en Sites no hace accesible por sí mismo un endpoint local.
+La entrega debe distinguir entre demostración ficticia y conexión configurada;
+no anunciar persistencia remota, autenticación ni RLS verificados si falta el
+endpoint de Supabase accesible y la prueba correspondiente.
+
+No se utilizará D1 ni otra base como sustitución del backend elegido. Las claves
+privilegiadas solo se usan en servidor; nunca entran al bundle, capturas, fuente
+publicada o Git. El `.gitignore` protege `.env`, archivos locales, dependencias,
+builds y respaldos, manteniendo únicamente ejemplos ficticios de configuración.
+
+## Riesgos y recuperación
+
+- Una copia de temporada crea identidades nuevas de lotes/subdivisiones y no
+  copia siembras ni conteos. Si falla, la operación no deja una temporada parcial.
+- Después de confirmar un guardado, una relectura fallida ofrece actualizar;
+  no repite una creación ya persistida.
+- Etapas cerradas y configuración usada conservan sus datos históricos. Cambiar
+  un catálogo o una temporada nueva no debe modificar la vista anterior.
+- La publicación conserva versiones. Recuperar una versión anterior del frontend
+  no revierte por sí mismo datos ni migraciones de la base.
+
+## Evidencia de cierre
+
+| Control | Estado |
+| --- | --- |
+| Fichas y criterios previos | Redactados antes de implementar; mapa real de componentes y alcance registrados. |
+| Tipos y build de React | `npm run typecheck` y `npm run build` aprobados. |
+| Build Docker y dependencias | Imagen `rcfito-web:0.1.0` construida con bases fijadas por digest. Audit producción: 0; tooling: 6 alertas pendientes de revisión. |
+| Integridad y enlaces documentales | `npm run docs:check` aprobado; repetir ante cambios documentales finales. |
+| Pruebas de dominio | `npm test`: 15/15 aprobadas el 2026-10-31. |
+| RLS, transacciones y migraciones en Supabase aislado | 48 comprobaciones SQL y 12 Auth/REST/Edge/RLS aprobadas; stack de QA detenido y datos retirados. No acredita operación. |
+| Navegador demo | A 1440 px: alta/búsqueda/detalle/descarte de catálogo, temporada duplicada, lote de 5 ha/default, planeación y siembra real; lector limitado. A 375 px: sin overflow general y buscador ajustado. |
+| Teclado, texto 200 % y contraste | Escape cierra menú móvil; resto de teclado completo, zoom 200 % y contraste medido pendientes. |
+| Revisión independiente de seguridad y flujo | Código revisado y defectos comunicados/corregidos; permisos/transacciones además probados en backend aislado. Navegador contra instalación de operación pendiente. |
+| Commit/push y versión desplegada en Sites | Pendiente. |
+
+Los resultados se completan solo después de ejecutar el control. El índice de
+pendientes del proyecto permanece en [PLANS](PLANS.md).
