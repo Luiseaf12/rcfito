@@ -2,7 +2,7 @@
 
 Fecha: 2026-11-01. El Propietario autorizó implementar la propuesta de chat y
 CLI, reutilizando la configuración de IA existente. Commit/push y publicación
-conservan el destino y audiencia de OPERATIONS. Estado: en verificación final.
+conservan el destino y audiencia de OPERATIONS. Estado: implementado y publicado en Sites versión 25; frontend Docker actualizado.
 
 ## Usuario, entrada y objetivo
 
@@ -72,4 +72,4 @@ con micrófono físico y reconocimiento real quedan como límites de esta eviden
 
 Selección de segundo lote homónimo verificada en navegador: una interpretación
 y dos consultas, sin inferencia al elegir. Suite final: 265 pruebas aprobadas.
-Despliegue de la revisión validada pendiente de confirmación nativa.
+Sites confirmó succeeded para la versión 25; frontend Docker actualizado desde la misma revisión limpia 2e530ff. Nueve comprobaciones HTTPS posteriores aprobaron. Evidencia de publicación en [operación](../OPERATIONS.md#consultas-por-chat-audio-y-cli).
