@@ -574,5 +574,13 @@ objetos caducados se sobrescriben; no se considera un archivo de conversación.
 CLI login/refresh/logout conserva su sesión solo en `.artifacts/query-cli/` con
 permisos privados. No copiar esa carpeta al publicar ni incluirla en Git.
 
-Publicación de la revisión validada: pendiente de resultado nativo de Sites y
-actualización del frontend Docker. [Ficha](flows/application-chat.md).
+Sites versión 25 confirmó `succeeded` para la fuente
+`2e530ff6d3919a48d6749b61f600009654d03fb7`, integrada con las mejoras remotas de
+reportes y sesión. Audiencia pública y entorno revisión 1 conservados; frontend
+Docker actualizado desde la misma revisión limpia. Nueve comprobaciones HTTPS y
+bundle/rutas Docker aprobados. [RCFito](https://rcfito.paxxa.chatgpt.site/#/consultas).
+
+Versión nativa:
+`appgprj_6ae67ae019e88191a7012093bb19c505~appgver_9ca87611ecf8819182be50fd487ef94f`.
+Despliegue: `appgdep_6ae7688f0a1881919576944c60a1b2d7`.
+[Ficha](flows/application-chat.md).

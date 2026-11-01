@@ -39,7 +39,7 @@ Fecha de revisión: 2026-10-31.
 
 | RCF-027 | Documentar y aplicar dos decimales en reportes. | cerrada | Agente principal | Commit 672dd1b en GitHub y Sites versión 24; 228 pruebas, ocho comprobaciones de formato, tipos/build/checker, QA demo/móvil y tres checks HTTP aprobados. Cálculos y conteos conservados. | [Regla](FRONTEND.md#decimales-en-reportes) y [verificación](TESTING.md#decimales-en-reportes) |
 
-| RCF-028 | Consultas de aplicaciones por chat, audio y CLI compartido. | en verificación | Agente principal y especialistas frontend/backend | Código, 265 pruebas, 75 SQL y 19 HTTP nuevas, QA de navegador y migración operativa 7/0 completados. Publicar la revisión validada en Sites y frontend Docker conservando audiencia. | [Ficha de consultas](flows/application-chat.md) |
+| RCF-028 | Consultas de aplicaciones por chat, audio y CLI compartido. | cerrada | Agente principal y especialistas frontend/backend | Fuente integrada 2e530ff en GitHub y Sites versión 25; Docker actualizado. 265 pruebas, 75 SQL, 19 HTTP nuevas, QA ficticio de texto/audio/homónimos y nueve HTTPS aprobados; migración operativa 7/0 con respaldo. Voz/proveedor reales no ejercidos. | [Ficha](flows/application-chat.md) y [publicación](OPERATIONS.md#consultas-por-chat-audio-y-cli) |
 
 Estados y cierre: [DOCUMENTATION](../.project-standards/DOCUMENTATION.md#planes-decisiones-y-deuda).
 Una tarea registrada no autoriza implementarla. Conservar su ID y actualizar su
