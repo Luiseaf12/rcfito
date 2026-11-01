@@ -1,0 +1,7 @@
+services:
+  web:
+    volumes:
+      - type: bind
+        source: ./.artifacts/production-supabase/frontend-config.json
+        target: /usr/share/nginx/html/rcfito-config.json
+        read_only: true

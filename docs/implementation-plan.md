@@ -1,6 +1,6 @@
 # Primera entrega: catálogos y proyectos de siembra
 
-Fecha: 2026-10-31. Estado: en verificación de entrega/publicación.
+Fecha: 2026-10-31. Estado: primera entrega publicada; conexión real local en curso.
 Fuente: [PRODUCT](PRODUCT.md). El Propietario autorizó «Adelante», el uso de
 subagentes, la preparación de `.gitignore`, commit/push y publicación en ChatGPT
 Sites. La entrega implementa catálogos y proyectos de siembra; la definición
@@ -57,6 +57,14 @@ La entrega debe distinguir entre demostración ficticia y conexión configurada;
 no anunciar persistencia remota, autenticación ni RLS verificados si falta el
 endpoint de Supabase accesible y la prueba correspondiente.
 
+La ampliación autorizada inicia ahora Supabase real en este equipo y el frontend
+Docker en `http://127.0.0.1:5180`. La conexión local usa JSON público en ejecución
+y proxy `/supabase`; no requiere dominio. La primera cuenta se habilita mediante
+un asistente loopback temporal donde el Propietario elige la contraseña. La
+migración está aplicada; falta verificar login y guardado/relectura con la cuenta
+real para cerrar esa integración. Otros dispositivos siguen pendientes del
+endpoint HTTPS exterior; Sites contra loopback en el mismo equipo no se probó.
+
 No se utilizará D1 ni otra base como sustitución del backend elegido. Las claves
 privilegiadas solo se usan en servidor; nunca entran al bundle, capturas, fuente
 publicada o Git. El `.gitignore` protege `.env`, archivos locales, dependencias,
@@ -85,8 +93,9 @@ builds y respaldos, manteniendo únicamente ejemplos ficticios de configuración
 | RLS, transacciones y migraciones en Supabase aislado | 48 comprobaciones SQL y 12 Auth/REST/Edge/RLS aprobadas; stack de QA detenido y datos retirados. No acredita operación. |
 | Navegador demo | A 1440 px: alta/búsqueda/detalle/descarte de catálogo, temporada duplicada, lote de 5 ha/default, planeación y siembra real; lector limitado. A 375 px: sin overflow general y buscador ajustado. |
 | Teclado, texto 200 % y contraste | Escape cierra menú móvil; resto de teclado completo, zoom 200 % y contraste medido pendientes. |
-| Revisión independiente de seguridad y flujo | Código revisado y defectos comunicados/corregidos; permisos/transacciones además probados en backend aislado. Navegador contra instalación de operación pendiente. |
+| Revisión independiente de seguridad y flujo | Código revisado y defectos comunicados/corregidos; permisos/transacciones además probados en backend aislado. En operación se abre el acceso real y se verifican rechazos sin sesión; login/captura pendientes. |
 | Commit/push y versión desplegada en Sites | Commit `86711d964da6d943e5553a755e2253aa72b787c4` subido a GitHub; despliegue privado exitoso y abierto en navegador. [Registro](OPERATIONS.md#primera-publicación-confirmada). |
+| Ampliación: arranque real local | Siete servicios sanos y frontend en 5180 con persistencia/configuración privada; migración una aplicada/cero pendientes, acceso real en navegador, Auth 200 y rechazos 401/404 confirmados. `npm test`: 17/17; helper inicial: 18 casos simulados y 15 de regresión. Primera cuenta/login/captura en verificación; HTTPS exterior pendiente. |
 
 Los resultados se completan solo después de ejecutar el control. El índice de
 pendientes del proyecto permanece en [PLANS](PLANS.md).

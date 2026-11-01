@@ -6,8 +6,10 @@ Las órdenes de aplicación y su reporte quedan para una entrega posterior.
 Reglas y alcance: [PRODUCT](docs/PRODUCT.md).
 
 [Abrir la versión privada en ChatGPT Sites](https://rcfito.paxxa.chatgpt.site).
-Inicia con una demostración identificada; la conexión al Supabase de operación
-requiere configurar el servidor y su acceso HTTPS.
+Inicia con una demostración identificada. La instalación real de este equipo se
+abre en [RCFito local](http://127.0.0.1:5180); su primera cuenta está en preparación.
+El acceso desde otros dispositivos requiere un endpoint HTTPS accesible. La
+conexión de Sites al loopback de este mismo equipo no se ha verificado.
 
 React + TypeScript + Vite 8, controles shadcn/Radix y API de Supabase. El frontend
 puede explorarse con datos ficticios guardados solo en el navegador, o conectarse
@@ -37,9 +39,12 @@ npm run docs:check
 ## Backend y publicación
 
 [Preparación de Supabase](docs/backend-deployment.md) describe la migración,
-primer administrador, función privada de altas y pruebas aisladas. La instalación
-de operación y su endpoint HTTPS todavía están pendientes. Publicar el frontend
-en Sites no hace accesible un servidor local automáticamente.
+primer administrador, función privada de altas y pruebas aisladas. Los siete
+servicios Supabase y el frontend Docker están iniciados en este equipo, con datos
+persistentes y conexión local mediante `/supabase`. Falta completar la primera
+cuenta y verificar captura desde el navegador; la migración ya está aplicada y
+la pantalla de acceso real se abre con esa conexión. El endpoint HTTPS remoto sigue
+pendiente; publicar en Sites no hace accesible el servidor local automáticamente.
 
 El frontend tiene [Dockerfile](Dockerfile) y [Compose](compose.frontend.yaml)
 propios. Los comandos, publicación en Sites y portabilidad están en

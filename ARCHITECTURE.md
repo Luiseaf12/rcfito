@@ -12,6 +12,7 @@ Lucide. Versiones exactas en [package.json](package.json) y su lockfile.
 | Coordinación | [WorkspaceProvider](src/data/workspace-context.tsx): sesión, consultas, mutaciones, modo y recuperación. |
 | Modelo y dominio demo | [model](src/domain/model.ts), [rules](src/domain/rules.ts), [demo](src/domain/demo.ts): DTO, reglas puras y fixtures ficticios. |
 | Datos reales | [Adaptador Supabase](src/data/supabase.ts): Auth, tablas y RPC; traduce nombres/estados del backend al DTO. |
+| Conexión de arranque | [Configuración](src/data/connection-config.ts) y [main](src/main.tsx): carga opcional de `rcfito-config.json` con URL y clave pública antes de montar la aplicación. |
 | Backend | [Migración](supabase/migrations/20261031233122_catalogs_and_sowing_projects.sql), RLS y funciones transaccionales; [alta privada](supabase/functions/admin-create-user/index.ts). |
 | Despliegue | [Frontend Compose](compose.frontend.yaml), [adaptación Supabase](infra/supabase/compose.rcfito.yaml) e [identidad Sites](.openai/hosting.json). |
 
@@ -41,9 +42,11 @@ guardados compuestos. El alta de cuentas valida JWT y perfil administrador antes
 de usar la clave privada. Consultar [SECURITY](docs/SECURITY.md).
 
 Se ejecutaron 48 verificaciones SQL y 12 comprobaciones con Auth/REST/Edge/RLS
-reales en entornos aislados. El frontend demo se probó en navegador por separado;
-no se acredita navegador conectado a la instalación de operación. Esta
-instalación y su URL HTTPS exterior están pendientes.
+reales en entornos aislados. La instalación de operación ya tiene sus siete
+servicios activos y persistencia local. La migración registra una aplicada y
+cero pendientes; el navegador abre el acceso real y la API rechaza la consulta
+anónima. Falta completar la primera cuenta y verificar login/captura con ella.
+Su URL HTTPS exterior sigue pendiente. El frontend demo se probó por separado.
 
 ## Organización propuesta de Docker
 
@@ -58,10 +61,19 @@ Realtime, Storage y pooler quedan como perfiles opcionales. La adaptación usa l
 configuración oficial versionada y la red `rcfito-backend`.
 Guía: [backend-deployment](docs/backend-deployment.md).
 
-El Site alojará el frontend privado con demo local y opción de conexión. El
-navegador necesita una URL HTTPS de Supabase accesible desde su dispositivo;
-Sites no vuelve público `localhost` ni sustituye la base por D1. Configuración,
-respaldos y datos persistentes se transfieren aparte al migrar de servidor;
+La instalación local sirve el frontend en `http://127.0.0.1:5180`. La composición
+[local](compose.local.yaml) monta únicamente un JSON de URL/clave pública; Nginx
+envía `/supabase/auth/v1`, `/supabase/rest/v1` y `/supabase/functions/v1` a la puerta
+API por la red Docker. No reenvía Studio ni rutas administrativas. El JSON se
+carga en ejecución y la normalización conserva el prefijo `/supabase`.
+
+El Site aloja el frontend privado con demo y opción de conexión. Para acceso
+desde otros dispositivos, el navegador necesita una URL HTTPS de Supabase
+accesible. La conexión de Sites a loopback en este mismo equipo depende de los
+permisos del navegador y no se verificó. Sites no vuelve público `localhost` ni
+sustituye la base por D1.
+
+Configuración, respaldos y datos persistentes se transfieren aparte al migrar de servidor;
 ver [OPERATIONS](docs/OPERATIONS.md).
 
 ## Verificación y evolución

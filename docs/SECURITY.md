@@ -31,6 +31,21 @@ se conserva [.env.example](../.env.example) con valores vacíos. El `.env`
 preexistente del usuario se conserva sin lectura/modificación. Los scripts de
 backend usan sus carpetas propias y Compose selecciona entorno explícito.
 
+La instalación real local guarda secretos y datos en
+`.artifacts/production-supabase`. El frontend monta solamente
+`frontend-config.json`, que contiene URL y clave pública; no monta el `.env`
+privado. Nginx limita el proxy `/supabase` a Auth, REST y Edge Functions. Tanto el
+frontend:5180 como la puerta API:55451 están ligados a loopback; HTTP local no
+autoriza acceso remoto sin HTTPS.
+
+El asistente inicial:5181 atiende solo `127.0.0.1`, comprueba origen/host y token
+de formulario, y conserva la contraseña elegida únicamente en memoria durante
+el alta. Usa la clave de servicio solo en su proceso local, exige que aún no
+exista administrador activo y limita su duración. No introducir la contraseña
+en el chat, comandos, Git o documentación. Las altas siguientes requieren la
+sesión real del administrador y la función privada. El registro de migraciones
+local rechaza hashes alterados o tablas sin procedencia gestionada.
+
 El modo demo usa fixtures ficticios y localStorage. Su cambio de rol es una
 simulación de UX, no autenticación ni aislamiento de datos reales. Un Site
 privado controla quién abre el frontend; no sustituye Auth ni RLS.
@@ -63,7 +78,17 @@ aislados: rechazo de anónimo/lector, asignaciones y JWT de perfil desactivado.
 El stack de QA quedó detenido y sus datos ficticios retirados; otros stacks no
 se modificaron. Comandos y alcance: [TESTING](TESTING.md).
 
-La instalación de operación, HTTPS exterior, secretos, primera cuenta y orígenes
-permitidos de la URL publicada están pendientes. El navegador demo y los tests
-HTTP se verificaron por separado; no se declara un recorrido de navegador contra
-la instalación de operación.
+La instalación de operación local está iniciada con secretos privados y sus
+siete servicios sanos. Primera cuenta, login y captura desde el navegador están
+en curso; no se declara ese recorrido completo. Se confirmó una migración
+aplicada sin pendientes, Auth salud 200, registro público deshabilitado, REST
+anónimo 401 y rutas ajenas al proxy permitido 404. La comparación privada del
+JSON/bundle no encontró claves de servicio, contraseñas de BD/Studio ni secretos
+JWT. La consulta de conteos previa a la primera cuenta encontró cero usuarios,
+agrícolas y proyectos: no se cargaron fixtures en operación.
+
+El asistente inicial corrigió su política de referente a `same-origin` para que
+el envío del formulario conserve origen verificable; no admite un origen `null`.
+La regresión del helper se comprobó con peticiones simuladas; falta confirmar
+el alta del Propietario. HTTPS exterior y SMTP de recuperación siguen pendientes.
+El navegador demo y los tests HTTP aislados se verificaron por separado.

@@ -17,26 +17,40 @@ build: `npm run build` y `npm run preview`.
 ## Docker y Supabase
 
 [backend-deployment](backend-deployment.md) describe configuración versionada,
-migraciones, primera cuenta y altas privadas. La composición base tiene siete
-servicios y grupo `rcfito-supabase`. La instalación de operación y su endpoint
-HTTPS no se han iniciado ni configurado.
+migraciones, primera cuenta y altas privadas. La instalación de operación local
+ya inició siete servicios sanos en el grupo `rcfito-supabase`, con configuración
+privada y persistencia en `.artifacts/production-supabase`. La migración está
+aplicada sin pendientes y el navegador abre la pantalla de acceso real. La
+primera cuenta, login y captura desde navegador están en curso. HTTPS exterior
+no está configurado.
 
 El frontend se administra por separado como `rcfito-frontend`/`rcfito-web`:
 
 ```sh
-docker network create rcfito-backend
-docker compose --env-file .env.example -f compose.frontend.yaml up -d --build
+node scripts/frontend-local.mjs
+docker compose --env-file .env.example -f compose.frontend.yaml -f compose.local.yaml up -d --build
 ```
 
-Crear la red solo si aún no existe; la composición Supabase también la usa.
-El frontend queda en `http://127.0.0.1:5180`, enlazado a loopback; el acceso
-exterior requiere proxy/HTTPS. El `.env` preexistente del usuario no se modifica:
-frontend selecciona explícitamente el ejemplo vacío y backend genera su
-configuración privada en una carpeta propia ignorada.
+Estos comandos requieren el backend local ya preparado e iniciado según su
+guía. El helper produce solo URL `/supabase` y clave pública; Compose monta ese
+JSON en lectura. No monta secretos en Nginx. La interfaz queda en
+[RCFito local](http://127.0.0.1:5180), enlazada a loopback, y dirige Auth/REST/Edge
+al backend por su proxy del mismo origen.
+
+El `.env` preexistente del usuario no se modifica: frontend selecciona
+explícitamente el ejemplo vacío y backend selecciona su entorno privado propio.
+Para la primera cuenta se inicia un asistente temporal en loopback:5181 y el
+Propietario elige la contraseña allí; ver [primera cuenta](backend-deployment.md#primera-cuenta-y-altas-posteriores).
+No repetir la preparación sobre la instalación existente ni usar comandos de
+limpieza de QA contra sus volúmenes.
 
 El servidor de operación permanecerá en este equipo y deberá estar encendido
-durante el uso. Sites aloja el frontend, no la base local; cada dispositivo
-necesita una URL HTTPS de Supabase accesible para operar con datos reales.
+durante el uso. Este arranque permite operar desde ese equipo. Sites aloja el
+frontend, no la base local. Otros dispositivos necesitan un endpoint HTTPS
+accesible: el `127.0.0.1` del celular no señala este servidor. Un Site abierto en
+este mismo equipo podría requerir permisos de acceso a red local del navegador;
+ese recorrido no se ha verificado y el acceso recomendado ahora es la URL local.
+El dominio y acceso remoto quedan pendientes por separado.
 
 ## GitHub y Sites
 

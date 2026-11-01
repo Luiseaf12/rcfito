@@ -6,7 +6,7 @@ Node.js 24 y npm. Ejecutar `npm ci` antes de checks de aplicación.
 
 | Comando | Alcance |
 | --- | --- |
-| `npm test` | Reglas puras: permisos demo, relaciones, historial y transiciones. |
+| `npm test` | Reglas puras y conexión: permisos demo, relaciones, historial, transiciones y conservación del prefijo API. |
 | `npm run typecheck` | Tipos de la aplicación TypeScript. |
 | `npm run build` | Tipos y build Vite de producción a `dist/`. |
 | `npm run docs:check` | Versión, hashes, mapa, enlaces de entradas y excepciones del estándar. |
@@ -32,6 +32,37 @@ exclusivo de prueba y `--cleanup` lo detiene y retira sus datos. Detalles en
 | Sites | Publicación privada exitosa confirmada por API nativa; inicio abierto en navegador. [Registro](OPERATIONS.md#primera-publicación-confirmada). |
 | Dependencias | `npm audit --omit=dev`: cero vulnerabilidades. Auditoría total: 6 de tooling (2 bajas y 4 moderadas), pendientes de revisión; no se aplicó actualización forzada. |
 
+## Inicio real local: verificación en curso
+
+Después de la primera entrega se inició la instalación de operación local,
+separada de los entornos efímeros anteriores:
+
+- Siete servicios del grupo `rcfito-supabase` sanos, con configuración privada y
+  datos persistentes en `.artifacts/production-supabase`.
+- Frontend Docker compilado en `http://127.0.0.1:5180`, con proxy `/supabase` y
+  montaje exclusivo de configuración pública. En navegador muestra el acceso
+  real de Supabase por esa configuración de arranque.
+- Migración operativa aplicada con el helper; `--check` posterior: una aplicada,
+  cero pendientes.
+- `/supabase/auth/v1/health`: 200; settings de Auth: `disable_signup=true`;
+  consulta REST anónima de agrícolas: 401. Rutas de PostgreSQL, proyecto/Studio
+  y raíz `/supabase/` fuera del proxy permitido: 404.
+- JSON público y bundle contrastados privadamente: sin clave de servicio,
+  contraseñas BD/Studio ni secretos JWT. Conteos de operación antes de la
+  primera cuenta: cero usuarios Auth, agrícolas y proyectos; sin fixtures.
+- `npm test`: 17/17 aprobadas (15 de dominio y 2 de
+  [conexión](../test/connection.test.ts)), según verificación del agente principal.
+- Helper inicial: 18 casos simulados y 15 de regresión aprobados. Se corrigió
+  `Referrer-Policy` del formulario para conservar origen en el envío; siguen
+  rechazándose origen ausente/no permitido y `null`. No acredita un alta real.
+
+Primera cuenta elegida por el Propietario, login y guardado/relectura desde
+navegador están en verificación; no se infieren de servicios sanos ni de tests
+aislados. Para cerrarlos registrar autenticación real, captura, recarga y consulta
+con permisos. El acceso desde otros dispositivos no se verifica mientras falte
+un endpoint HTTPS accesible. Sites contra loopback en el mismo equipo tampoco
+se ha probado.
+
 ## Navegador de demostración
 
 Casos ejecutados por el agente principal a 1440 px en el frontend local:
@@ -56,9 +87,10 @@ medido sigue pendiente hasta registrar la evidencia final. Fichas detalladas:
 
 ## Límites de cobertura
 
-El navegador probó la demostración. El backend HTTP se probó en un entorno
-independiente; no se acredita navegador → instalación de operación → respuesta.
-No hay endpoint HTTPS de operación configurado. Sites confirmó su despliegue
+El navegador documentado probó la demostración. El backend HTTP se probó en un
+entorno independiente. En operación local se verificaron la pantalla de acceso,
+salud y rechazos de acceso sin sesión; login y captura siguen pendientes.
+No hay endpoint HTTPS exterior configurado. Sites confirmó su despliegue
 privado; esa publicación sirve la interfaz y no publica el Supabase local.
 
 El checker documental comprueba destinos locales, no anchors ni URLs externas.

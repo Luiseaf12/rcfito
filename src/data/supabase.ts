@@ -1,23 +1,29 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { catalogKinds, emptyWorkspace, type CatalogRecord, type SowingStage, type WorkspaceCommand, type WorkspaceData } from '@/domain/model'
+import { normalizeConnection, type Connection } from './connection-config'
 
-export type Connection = { url: string; key: string }
+export type { Connection } from './connection-config'
 const configKey = 'rcfito.supabase.v1'
+let runtimeConnection: Connection | null = null
+export async function loadRuntimeConnection(): Promise<void> {
+  const response = await fetch(`${import.meta.env.BASE_URL}rcfito-config.json`, { cache: 'no-store' })
+  if (!response.ok) throw new Error('No se pudo consultar la conexión de esta instalación.')
+  const config = await response.json()
+  if (config.mode === 'demo') { runtimeConnection = null; return }
+  if (config.mode !== 'supabase' || typeof config.url !== 'string' || typeof config.key !== 'string') {
+    throw new Error('La configuración de esta instalación está incompleta.')
+  }
+  runtimeConnection = normalizeConnection(config, window.location.href)
+}
 export function readConnection(): Connection | null {
-  try { const saved=JSON.parse(localStorage.getItem(configKey)??'null'); if(saved?.mode==='demo')return null;if(saved?.url&&saved?.key) return saved } catch { /* Ignore invalid browser preferences. */ }
+  try { const saved=JSON.parse(localStorage.getItem(configKey)??'null'); if(saved?.mode==='demo')return null;if(saved?.url&&saved?.key) return normalizeConnection(saved) } catch { /* Ignore invalid browser preferences. */ }
+  if (runtimeConnection) return runtimeConnection
   const url=import.meta.env.VITE_SUPABASE_URL, key=import.meta.env.VITE_SUPABASE_ANON_KEY
   return url&&key ? {url,key} : null
 }
 export function saveConnection(value: Connection | null) {
   if(!value) { localStorage.setItem(configKey,JSON.stringify({mode:'demo'})); return }
-  const url=new URL(value.url)
-  if(!['https:','http:'].includes(url.protocol)) throw new Error('Usa una URL HTTP o HTTPS válida.')
-  if(url.protocol!=='https:'&&!['localhost','127.0.0.1','[::1]'].includes(url.hostname)) throw new Error('Para un servidor externo utiliza HTTPS.')
-  if(!value.key.trim()) throw new Error('La clave pública es obligatoria.')
-  let role=''
-  try { role=JSON.parse(atob(value.key.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))).role } catch { /* New publishable keys are not JWTs. */ }
-  if(value.key.startsWith('sb_secret_')||role==='service_role') throw new Error('Usa únicamente la clave pública publishable o anon. Las claves privadas no pertenecen al navegador.')
-  localStorage.setItem(configKey,JSON.stringify({url:url.origin,key:value.key.trim()}))
+  localStorage.setItem(configKey,JSON.stringify(normalizeConnection(value)))
 }
 export const connect = (config:Connection) => createClient(config.url,config.key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}})
 type Raw = Record<string, unknown>

@@ -3,9 +3,13 @@
 ## Estado
 
 La migración y la función de altas están implementadas. La instalación de
-operación y su endpoint HTTPS exterior se preparan por separado del frontend
-publicado en Sites. Un sitio alojado no convierte `localhost` de este equipo en
-un servidor accesible desde otros dispositivos.
+operación local ya inició sus siete servicios sanos con datos persistentes. El
+frontend Docker está en `http://127.0.0.1:5180`, con conexión del mismo origen
+mediante `/supabase`. La migración está aplicada y la pantalla de acceso real se
+abre en navegador. Primera cuenta, login y captura real siguen en verificación.
+HTTPS exterior queda pendiente para otros dispositivos. La conexión de Sites a
+loopback desde este mismo equipo no se ha probado y puede depender de permisos
+del navegador.
 
 ## Configuración de operación
 
@@ -22,7 +26,14 @@ El grupo `rcfito-supabase` inicia siete servicios: `rcfito-db`, `rcfito-auth`,
 perfiles opcionales, desactivados para el alcance actual. El frontend es el
 otro grupo Compose, definido por su propio runbook.
 
-Para generar una configuración nueva, con las URLs HTTPS reales:
+Para una instalación local **nueva**:
+
+```sh
+node scripts/backend-prepare.mjs --local
+```
+
+La instalación actual ya está preparada; no repetir este comando. Para una
+instalación nueva con acceso exterior se usan las URLs HTTPS reales:
 
 ```sh
 node scripts/backend-prepare.mjs --api-url https://api.ejemplo.invalid --site-url https://sitio.ejemplo.invalid
@@ -34,37 +45,57 @@ oficiales y conserva `.env` fuera de Git. Nunca imprime claves. Rechaza una
 configuración privada existente para evitar rotar secretos accidentalmente.
 En Windows necesita Bash de Git y OpenSSL; Linux necesita Bash, OpenSSL y Node.
 
-Desde esa carpeta se administra el grupo con archivos explícitos:
+Desde la raíz del repositorio se administra el grupo con entorno y archivos
+explícitos; así Compose no lee el `.env` preexistente del usuario:
 
 ```sh
-docker compose -f docker-compose.yml -f compose.rcfito.yaml config --quiet
-docker compose -f docker-compose.yml -f compose.rcfito.yaml up -d
+docker compose --env-file .artifacts/production-supabase/.env -f .artifacts/production-supabase/docker-compose.yml -f .artifacts/production-supabase/compose.rcfito.yaml config --quiet
+docker compose --env-file .artifacts/production-supabase/.env -f .artifacts/production-supabase/docker-compose.yml -f .artifacts/production-supabase/compose.rcfito.yaml up -d --wait
 ```
 
 La puerta API se enlaza a `127.0.0.1:55451`; PostgreSQL no publica puerto.
-Configurar el proxy HTTPS hacia la puerta API o la red `rcfito-backend`, con
-acceso administrativo de Studio restringido. Configurar SMTP para recuperación
-de cuentas antes de habilitar esa función. La aplicación usa únicamente la clave
-publicable, nunca la clave de servicio.
+El frontend local reenvía únicamente Auth, REST y funciones bajo `/supabase` por
+la red `rcfito-backend`; no expone Studio. El arranque y JSON público del frontend
+están en [OPERATIONS](OPERATIONS.md#docker-y-supabase). Para acceso exterior,
+configurar proxy HTTPS y restringir Studio. Configurar SMTP antes de habilitar
+recuperación de cuentas. La aplicación usa únicamente la clave publicable.
 
-Después de que Auth inicialice su esquema, aplicar una sola vez cada migración
-pendiente de `supabase/migrations` con un cliente PostgreSQL administrativo
-contra esta instalación, respetando su orden. La migración contiene una
-transacción; no se instala en el arranque para evitar ejecutar SQL antes de que
-exista `auth.users`. Conservar un registro de las migraciones aplicadas.
+Después de que Auth inicialice su esquema:
+
+```sh
+node scripts/backend-local.mjs --check
+node scripts/backend-local.mjs migrate
+node scripts/backend-local.mjs --check
+```
+
+`--check` solo consulta. `migrate` aplica las pendientes de `supabase/migrations`
+en orden, con bloqueo y transacción; registra versión/hash en el ledger privado
+`rcfito_meta.migrations`. Una migración aplicada con igual hash se omite. Un hash
+distinto, versión desconocida o tablas sin registro gestionado detienen la
+operación; no hay opción de forzar adopción. El helper exige el contenedor
+`rcfito-db` y el grupo `rcfito-supabase` antes de ejecutar SQL. No instala SQL en
+el arranque de Docker ni toca los stacks de QA.
+
+Verificado en la instalación local: `migrate` aplicó una migración y el
+`--check` posterior registró una aplicada y cero pendientes.
 
 ## Primera cuenta y altas posteriores
 
-Crear la primera cuenta mediante la API administrativa de Auth desde un entorno
-privado; después habilitar su perfil con SQL administrativo:
+Después de aplicar migraciones, iniciar el asistente privado:
 
-```sql
-update public.profiles set role = 'admin'
-where id = '<uuid-de-la-cuenta-creada-en-auth>';
+```sh
+node scripts/backend-admin.mjs --email CORREO_AUTORIZADO
 ```
 
-El UUID es un marcador que debe sustituirse, no un usuario ficticio a crear en
-producción. El alta pública queda deshabilitada. Las altas posteriores usan
+Sustituir `CORREO_AUTORIZADO` por la cuenta indicada por el Propietario. Abrir
+`http://127.0.0.1:5181` en este equipo y elegir/confirmar allí una contraseña de
+12 a 256 caracteres. No pasar la contraseña por comandos, chat ni archivos. El
+asistente usa la API administrativa local, habilita el perfil administrador y
+rechaza nuevas altas si ya existe uno activo. Es temporal (30 minutos), solo
+atiende loopback y bloquea nuevas capturas después de completar el alta; cerrar
+el proceso al terminar. Esta cuenta aún no se declara creada ni probada.
+
+El alta pública queda deshabilitada. Las altas posteriores usan
 `admin-create-user` con el JWT del administrador activo; la función verifica
 Auth y perfil antes de usar la clave de servicio. El cuerpo es:
 
@@ -109,8 +140,12 @@ Verificación del 2026-10-31: 48 comprobaciones SQL aprobadas y 12 comprobacione
 de integración con Auth, REST y Edge Functions reales aprobadas. La integración
 se repitió con la migración final y `--fresh --cleanup`; el proyecto de QA quedó
 detenido y sus datos ficticios retirados. Los contenedores de otros proyectos
-se conservaron. La composición de operación pasó `docker compose config --quiet`
-con configuración ficticia; no se inició ni se acredita un despliegue de operación.
+se conservaron. Esa evidencia corresponde al stack aislado. Posteriormente se
+iniciaron los siete servicios de operación local y el frontend Docker, se aplicó
+la migración y se abrió el acceso real. Auth salud devuelve 200, el registro
+público está desactivado, REST anónimo devuelve 401 y las rutas ajenas al proxy
+permitido devuelven 404. Cuenta administradora y login/captura siguen en
+verificación. Detalle: [TESTING](TESTING.md#inicio-real-local-verificación-en-curso).
 
 ## Migración a otro servidor
 

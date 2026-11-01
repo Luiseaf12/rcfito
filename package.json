@@ -11,7 +11,7 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview --host 127.0.0.1",
     "typecheck": "tsc -b",
-    "test": "tsx --test test/domain.test.ts",
+    "test": "tsx --test test/domain.test.ts test/connection.test.ts",
     "standards:check": "node .project-standards/check.mjs",
     "docs:check": "npm run standards:check"
   },
