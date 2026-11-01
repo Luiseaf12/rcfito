@@ -1,7 +1,7 @@
 # Aplicaciones: indicar, realizar y conservar diferencias
 
 Fecha: 2026-10-31. Estado: ficha previa a UI, dominio/SQL/HTTP aislados aprobados
-y recorridos demo comprobados; Docker actualizado, publicación de Sites en curso.
+y recorridos demo comprobados; Docker actualizado y Sites versión 8 publicados.
 Fuente de negocio: [PRODUCT](../PRODUCT.md#aplicaciones-alcance-confirmado).
 Controles: [FRONTEND](../FRONTEND.md) y componentes compartidos existentes.
 Esta ficha describe el resultado requerido; los contratos técnicos corresponden
@@ -143,7 +143,9 @@ de dosis a seis decimales, selector de 44 px y edición de grupos de proyecto ce
 La migración aditiva ya se aplicó en operación después de un respaldo privado:
 ledger con dos aplicadas/cero pendientes, sin fixtures. El frontend Docker
 actualizado quedó sano; en 5180 el navegador mostró sesión administradora y lista
-real vacía, sin errores ni inserciones. La publicación de Sites sigue pendiente.
+real vacía, sin errores ni inserciones. Sites confirmó `succeeded` para la versión
+8; nueve comprobaciones HTTPS posteriores aprobaron sin crear datos. El commit
+y resultado nativo se conservan en [OPERATIONS](../OPERATIONS.md#despliegue-de-aplicaciones-y-grupos).
 El navegador demo no acredita captura del módulo contra operación. Se comprobó reuso del grupo, cancelación, rechazo de motivo
 vacío y ausencia de desbordamiento general a 375 px. El lector demo a ese ancho
 no ofrece Nueva indicación;

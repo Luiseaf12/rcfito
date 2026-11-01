@@ -134,7 +134,7 @@ medido sigue pendiente hasta registrar la evidencia final. Fichas detalladas:
 [catálogos](flows/catalogs.md), [proyectos](flows/sowing-projects.md) y
 [navegación](flows/navigation.md).
 
-## Aplicaciones y grupos: cierre en curso
+## Aplicaciones y grupos: entrega publicada
 
 Evidencia del 2026-10-31:
 
@@ -162,8 +162,10 @@ En demo a 375 px se comprobó el lector sin Nueva indicación. Build, 54 pruebas
 tipos y docs aprobaron en el checkout aislado de esta entrega. El frontend Docker
 quedó sano y el navegador en 5180 mostró sesión administradora, lista real de
 aplicaciones vacía y ausencia de errores, sin insertar datos. Las nueve
-comprobaciones HTTPS del Site aprobaron antes de publicar aplicaciones; el
-resultado nativo de esa publicación sigue pendiente. Teclado completo y texto
+comprobaciones HTTPS del Site aprobaron antes y después de publicar aplicaciones,
+sin crear datos. GitHub recibió el commit validado, su workflow aprobó y Sites
+confirmó `succeeded` para la versión 8, conservando audiencia pública y R2;
+[registro exacto](OPERATIONS.md#despliegue-de-aplicaciones-y-grupos). Teclado completo y texto
 200 % no están acreditados. La lectura real comprobada no equivale a ejecutar
 captura de aplicaciones contra operación. Las capturas de esta ampliación
 usan únicamente datos demo. Matriz: [aplicaciones](flows/applications.md#éxito-y-evidencia).
@@ -209,5 +211,5 @@ escritura del registro sin secreto. Se reinició solo `rcfito-quick-tunnel`, cam
 la URL y la tarea la registró sin ejecutar `once` ni republicar Sites; las nueve
 comprobaciones volvieron a aprobar. La bitácora del monitor confirmó el cambio.
 No se reinició la PC ni se modificaron datos de negocio para esta prueba.
-Los 34 tests y tipos/build se comprobaron sobre una revisión aislada que conserva
-fuera de esta publicación los cambios de aplicaciones agrícolas en curso.
+Los 34 tests y tipos/build de esa publicación automática se comprobaron sobre una
+revisión aislada, anterior a la entrega de aplicaciones documentada arriba.

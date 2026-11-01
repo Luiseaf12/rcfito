@@ -187,10 +187,21 @@ La interfaz del módulo y el backend aislado pasaron su revisión funcional. Bui
 54 pruebas, tipos y docs aprobaron en el checkout aislado de la entrega. El
 frontend Docker actualizado quedó sano; el navegador en 5180 mostró sesión
 administradora y lista real de aplicaciones vacía, sin errores ni inserciones.
-Falta publicar el commit consolidado en Sites, conservando su audiencia pública
-vigente. Las nueve comprobaciones HTTPS previas aprobaron; no sustituyen el
-resultado nativo del despliegue nuevo. Actualizar aquí la revisión y ese resultado;
-el detalle de QA está en [TESTING](TESTING.md#aplicaciones-y-grupos-cierre-en-curso).
+Publicación confirmada desde el commit
+`03b661b1bfaafd2031fe7c3de4e46324cae22d67` en GitHub. El workflow
+[Estándar compartido](https://github.com/Luiseaf12/rcfito/actions/runs/41263640681)
+aprobó. Sites devolvió `succeeded` el `2026-11-01T02:04:39Z` para el despliegue
+`appgdep_6ae69e321420819192fcac7a67f002a9`, versión 8:
+`appgprj_6ae67ae019e88191a7012093bb19c505~appgver_ac9fbda520d48191a9b0afe9730124c6`.
+URL: [RCFito](https://rcfito.paxxa.chatgpt.site). Se conservaron la audiencia
+pública vigente, el registro R2 y la revisión 1 de variables del entorno.
+
+Las nueve comprobaciones HTTPS de `site-connection-check.mjs` aprobaron antes y
+después de publicar, sin crear datos: Auth, proxy, registro vigente y rechazos.
+Se cerraron el servidor demo de QA y su pestaña temporal; la interfaz de operación
+queda disponible en 5180. RCF-004 queda cerrado. Las escrituras de aplicaciones
+se probaron en demo/backend aislado; en operación se verificó lectura autenticada
+vacía. Detalle y límites: [TESTING](TESTING.md#aplicaciones-y-grupos-entrega-publicada).
 
 ## Respaldo y cambio de servidor
 

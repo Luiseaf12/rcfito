@@ -12,8 +12,8 @@ verificados. El acceso HTTPS de prueba y sus límites vigentes se registran en
 El Propietario autorizó desarrollo, subagentes, commit/push y publicación en
 Sites. El Propietario autorizó ahora desarrollar captura de aplicaciones,
 agrupaciones guardadas, detalle y conteos por etapa, con subagentes. Esta
-ampliación está implementada y se probó en demo y backend aislado; su despliegue
-en Sites continúa en curso. El frontend Docker ya consulta la lista real vacía
+ampliación está implementada, publicada en Docker/Sites y probada en demo y
+backend aislado. El frontend Docker ya consulta la lista real vacía
 con sesión administradora; no se insertaron aplicaciones para esa comprobación.
 El reporte completo queda para otra entrega. Al realizar una aplicación se
 podrán cambiar productos, dosis y gasto de agua, conservando por separado lo
@@ -146,7 +146,7 @@ las referencias históricas de siembras y aplicaciones.
 ### Agrupaciones de siembras
 
 Implementadas en la ampliación autorizada, con frontend Docker comprobado y
-publicación final de Sites en curso.
+publicación final de Sites confirmada.
 No forman parte de la primera entrega histórica de catálogos y proyectos.
 
 El usuario puede guardar grupos con nombre para reutilizarlos al indicar
@@ -162,7 +162,7 @@ el grupo. Las órdenes pendientes de una etapa deben cancelarse antes de cerrarl
 
 ### Aplicaciones: alcance confirmado
 
-Alcance implementado y en cierre de despliegue. La [ficha previa](flows/applications.md)
+Alcance implementado y publicado. La [ficha previa](flows/applications.md)
 define recorrido y criterios; registra por separado dominio, SQL/HTTP aislados y
 navegador demo. El frontend Docker actualizado se comprobó con lectura real vacía
 y sesión administradora; captura contra operación no ejercida en QA.

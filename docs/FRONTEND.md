@@ -48,10 +48,11 @@ desbordamiento horizontal general y se ajustó el buscador. Teclado completo,
 contraste medido y texto al 200 % siguen pendientes hasta su evidencia final.
 La primera entrega sí se verificó contra Supabase de operación. Para la ampliación
 se probaron en demo alta, realización habitual/excepcional, comparación y grupo
-manual; los 40 checks HTTP se ejecutaron en un backend aislado. El frontend de
+manual; los 40 checks HTTP se ejecutaron en un backend aislado. El frontend
 Docker actualizado del módulo ya muestra lista real vacía y sesión administradora
 en 5180, sin inserciones. En demo a 375 px se comprobó el lector sin Nueva
-indicación. Sites sigue en publicación; no se equiparan esas pruebas a captura
+indicación. La publicación en Sites y sus nueve comprobaciones HTTPS posteriores
+aprobaron; no se equiparan esas pruebas a captura
 real de aplicaciones.
 
 El [estándar FRONTEND](../.project-standards/FRONTEND.md) sigue vigente.

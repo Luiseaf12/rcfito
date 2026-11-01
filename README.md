@@ -2,9 +2,10 @@
 
 Control de siembras por agrícola, campo y temporada. La primera entrega incluye
 catálogos, usuarios/asignaciones y proyectos con lotes, subdivisiones y etapas.
-La ampliación de aplicaciones y grupos está en verificación final: indicaciones,
+La ampliación de aplicaciones y grupos incluye indicaciones,
 realización habitual o con cambios, cancelación e historial por etapa. El reporte
-completo queda para otra entrega; publicación de esta ampliación en curso.
+completo queda para otra entrega. La captura de aplicaciones y grupos ya está
+publicada en Docker y ChatGPT Sites.
 Reglas y alcance: [PRODUCT](docs/PRODUCT.md).
 
 [Abrir RCFito en ChatGPT Sites](https://rcfito.paxxa.chatgpt.site).
@@ -57,7 +58,8 @@ operaciones separadas.
 
 La ampliación se probó en demo y backend aislado. El frontend Docker actualizado
 se comprobó con sesión administradora y lista real de aplicaciones vacía, sin
-insertar datos. La revisión de Sites sigue en publicación. Evidencia y límites
+insertar datos. Sites confirmó la publicación; las nueve comprobaciones HTTPS
+posteriores aprobaron. Evidencia y límites
 en [TESTING](docs/TESTING.md).
 
 El frontend tiene [Dockerfile](Dockerfile) y [Compose](compose.frontend.yaml)

@@ -20,7 +20,7 @@ continua sigue pendiente.
 
 [PRODUCT](docs/PRODUCT.md) conserva los contratos de negocio. La ampliación de
 aplicaciones/grupos está implementada y probada en demo/backend aislado;
-frontend Docker actualizado y comprobado; publicación en Sites en curso. El reporte completo sigue fuera
+frontend Docker actualizado y comprobado; publicación en Sites confirmada. El reporte completo sigue fuera
 de alcance. El caso habitual confirma lo indicado; una opción explícita permite
 cambiar productos/dosis/agua reales, conservando ambas versiones por destino.
 

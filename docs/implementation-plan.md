@@ -107,7 +107,7 @@ pendientes del proyecto permanece en [PLANS](PLANS.md).
 ## Ampliación: aplicaciones y grupos
 
 Fecha: 2026-10-31. Estado: diseño previo e implementación verificados por capas;
-frontend Docker comprobado y publicación de Sites en curso.
+frontend Docker comprobado y publicación de Sites confirmada.
 Autoridad: el Propietario solicitó implementar la captura con subagentes y
 aclaró que cambiar productos, dosis o agua será excepcional. Contrato de producto
 en [PRODUCT](PRODUCT.md#aplicaciones-alcance-confirmado); recorrido y matriz en
@@ -145,9 +145,9 @@ y secretos sin modificarlos como efecto de QA.
 | UI: orden, realización habitual/excepcional, comparación, cancelación y grupos | Demo en 5174: indicación de un destino, realización normal, excepción de producto A a 1 ml/ha frente a B a 2 g/ha y agua de 1 a 2 L/ha; ambas mezclas conservadas, grupo creado/reutilizado y cancelación con rechazo de motivo vacío comprobados. Lector demo a 375 px sin Nueva indicación comprobado. |
 | Recuperación: doble envío, fallo de relectura, concurrencia y borrador | Pendiente. |
 | Escritorio/móvil, teclado, foco y texto 200 % | Recorridos demo de escritorio y ancho 375 px sin desbordamiento general aprobados. Teclado/foco/200 % completos pendientes. |
-| Tipos/build/estándares y revisión independiente | Typecheck y revisión de código aprobados; dosis hasta seis decimales, selector de 44 px y grupos cerrados sin Editar corregidos. Build/tipos/docs aprobados en checkout aislado y frontend Docker sano; Sites pendiente. |
+| Tipos/build/estándares y revisión independiente | Typecheck y revisión de código aprobados; dosis hasta seis decimales, selector de 44 px y grupos cerrados sin Editar corregidos. Build/tipos/docs aprobados en checkout aislado y frontend Docker sano; Sites versión 8 confirmado y nueve checks HTTPS posteriores aprobados. |
 | Esquema de operación | Respaldo privado PostgreSQL previo, migración aditiva aplicada: dos aplicadas/cero pendientes, sin fixtures en operación. No acredita frontend actualizado. |
-| Commit/push/publicación de esta ampliación | Pendiente de integración validada y resultado nativo; conservar audiencia del Site. |
+| Commit/push/publicación de esta ampliación | Commit `03b661b1bfaafd2031fe7c3de4e46324cae22d67` subido; workflow aprobado y Sites versión 8 con `succeeded`, audiencia pública/R2 conservados. [Registro](OPERATIONS.md#despliegue-de-aplicaciones-y-grupos). |
 
 Actualizar estos estados solo con evidencia ejecutada. El cierre de la primera
 entrega no acredita esta ampliación ni el reporte completo de RCF-011.

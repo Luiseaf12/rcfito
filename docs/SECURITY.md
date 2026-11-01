@@ -95,7 +95,10 @@ entornos aislados, con revisión independiente. En operación se generó un resp
 privado y se aplicó la migración aditiva (dos aplicadas/cero pendientes), sin
 fixtures. El frontend Docker actualizado mostró sesión administradora y lista
 real vacía en 5180, sin insertar datos. La lectura está comprobada; los recorridos
-de captura de aplicaciones siguen siendo demo o integración aislada. Capturas de QA solo
+de captura de aplicaciones siguen siendo demo o integración aislada. Sites
+publicó la versión 8 con audiencia pública conservada; nueve comprobaciones
+HTTPS posteriores aprobaron sin crear datos. La audiencia del frontend no
+sustituye Auth/RLS ni el secreto privado de actualización del registro. Capturas de QA solo
 con datos demo; no incluir datos o cuentas reales en Git.
 
 La instalación de operación local está iniciada con secretos privados y sus

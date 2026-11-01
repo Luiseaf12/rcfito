@@ -59,8 +59,9 @@ prueba se proporciona mediante Quick Tunnel; el endpoint estable sigue pendiente
 El frontend demo se probó por separado.
 La ampliación de aplicaciones se verificó en navegador demo y backend aislado;
 el frontend Docker actualizado se comprobó en 5180 con sesión administradora y
-lista real vacía, sin insertar aplicaciones. Sites sigue en publicación; no se
-atribuye captura de órdenes contra operación a los recorridos demo.
+lista real vacía, sin insertar aplicaciones. Sites confirmó la versión 8 y las
+nueve comprobaciones HTTPS posteriores aprobaron. No se atribuye captura de
+órdenes contra operación a los recorridos demo.
 
 ## Organización propuesta de Docker
 
@@ -101,7 +102,7 @@ ver [OPERATIONS](docs/OPERATIONS.md).
 
 [TESTING](docs/TESTING.md) registra comandos y límites;
 [implementation-plan](docs/implementation-plan.md) conserva alcance, responsables
-y criterios. Aplicaciones/grupos están en cierre de publicación; el reporte completo
+y criterios. Aplicaciones/grupos están publicados; el reporte completo
 permanece fuera del alcance actual.
 Nuevos flujos conservan las fronteras de reglas/casos de uso, acceso a datos y
 presentación del [estándar de ingeniería](.project-standards/ENGINEERING.md).
