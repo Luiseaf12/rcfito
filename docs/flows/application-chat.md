@@ -27,7 +27,7 @@ productos informa que se deben acotar filtros, sin ofrecer una página repetida.
 Las elecciones conservan el alcance explícito de «todas las temporadas» cuando
 ese sea el pedido del usuario.
 
-Estado: publicado en Sites versión26 y frontend Docker actualizado. La prueba inicia con
+Estado: publicado en Sites versión27 y frontend Docker actualizado. La prueba inicia con
 Ensenada ficticia como último contexto usado y ejecuta después solo la pregunta
 literal, incluyendo otra agrícola, temporada cerrada y aplicaciones no realizadas
 para detectar mezclas incorrectas. El pipeline CLI→handler→Auth/REST→SQL pasó con
@@ -35,8 +35,8 @@ dos productos corregidos, tablas de filtros/resultados y cero tokens. 281 prueba
 integradas,124 SQL de consultas y129 HTTP acumuladas aprobadas; advisors sin
 WARN/ERROR. La migración operativa quedó aplicada con respaldo, ocho aplicadas y
 cero pendientes. La prueba usa datos ficticios, sin escrituras de aplicaciones
-en operación. Sites confirmó succeeded para la fuente4b0a400; se conservaron
-audiencia y configuración. Once comprobaciones posteriores de Sites/Docker
+en operación. Sites confirmó succeeded para la fuente9f943df; se conservaron
+audiencia y configuración. Doce comprobaciones posteriores de Sites/Docker
 aprobaron bundle, tablas y protección de rutas. La verificación visual posterior
 con servicios ficticios confirmó la frase literal, procedencias y totales en
 escritorio y móvil de 375 px. Las tablas conservan un ancho legible con

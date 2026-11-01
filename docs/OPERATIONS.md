@@ -617,3 +617,17 @@ rechazo de consultas anónimas. No se ejecutó inferencia real para esta prueba.
 Versión nativa:
 `appgprj_6ae67ae019e88191a7012093bb19c505~appgver_cfd7c892272881918da5b451e57bc8e2`.
 Despliegue: `appgdep_6ae774fb57908191966de675183e20ec`.
+
+La revisión visual posterior comprobó la frase literal con servicios ficticios
+en escritorio y móvil de375 px, sin consumo de proveedor. Las tablas conservan
+ancho mínimo legible y desplazamiento horizontal interno, sin desbordamiento del
+documento. Build y check documental aprobados después del ajuste.
+
+Sites versión27 confirmó `succeeded` para la fuente
+`9f943df2ea2ea6472aa04d75309ec6c9bac557c2`; Docker usa el mismo build. Audiencia
+pública y entorno revisión1 conservados. Doce comprobaciones posteriores
+aprobaron bundle, tablas, CSS móvil y protección de endpoints.
+
+Versión nativa:
+`appgprj_6ae67ae019e88191a7012093bb19c505~appgver_9dd70f652a608191958d46859ac054e2`.
+Despliegue: `appgdep_6ae776da2ce881919574998505cbe9d2`.
