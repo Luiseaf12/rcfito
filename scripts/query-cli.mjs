@@ -3,16 +3,17 @@ import { resolve, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import { createInterface } from 'node:readline/promises';
-import { validateApplicationQuery } from '../server/application-queries.mjs';
+import { validateApplicationQuery, formatApplicationQueryTables } from '../server/application-queries.mjs';
 
 const cliRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const cliSessionDirectory = join(cliRoot, '.artifacts', 'query-cli');
 const cliSessionPath = join(cliSessionDirectory, 'session.json');
 const cliDefaultUrl = 'https://rcfito.paxxa.chatgpt.site';
-const cliHelp = `Consultas de RCFito (solo lectura; no consumen IA)
+const cliHelp = `Consultas de RCFito (solo lectura; consultas estructuradas sin IA)
 
 npm run consultas -- login [--url https://sitio]
 npm run consultas -- pendientes --proyecto-id <UUID> --json
+npm run consultas -- preguntar "cuánto de cada producto se ha aplicado en malla 5"
 npm run consultas -- uso-producto --producto "Nombre o sinónimo" --lote "Lote" --estado realizadas --desde AAAA-MM-DD --hasta AAAA-MM-DD --json
 npm run consultas -- historial --etapa-id <UUID> --limite 10 --desplazamiento 0
 npm run consultas -- detalle --folio <folio>
@@ -24,7 +25,9 @@ Filtros: --agricola[-id], --proyecto[-id], --campo[-id], --lote[-id],
 --desde, --hasta, --estado (todas/indicadas/realizadas/canceladas),
 --limite (1..30), --desplazamiento (0..1000), --json, --url.
 Login pide contraseña oculta y conserva la sesión en una carpeta privada ignorada.
-También admite RCFITO_ACCESS_TOKEN en el entorno. Nunca pases tokens por argumentos.`;
+También admite RCFITO_ACCESS_TOKEN en el entorno. Nunca pases tokens por argumentos.
+La pregunta habitual de consumo por malla se resuelve sin IA. Otras preguntas
+pueden usar el modelo configurado. Se muestran filtros asumidos y resultados.`;
 
 function cliUrl(value) {
   let url; try { url = new URL(value); } catch { throw new Error('La URL del sitio no es válida.'); }
@@ -34,6 +37,21 @@ function cliUrl(value) {
 
 export function parseQueryCli(args) {
   if (!args.length || args.includes('--help') || args.includes('-h')) return { command: 'help' };
+  if (args[0] === 'preguntar' || args[0] === 'pregunta' || args[0].includes(' ')) {
+    const explicit = ['preguntar', 'pregunta'].includes(args[0]);
+    const message = args[explicit ? 1 : 0];
+    if (typeof message !== 'string' || !message.trim() || message.length > 4000 || /\u0000/.test(message)) throw new Error('Escribe una pregunta de hasta 4,000 caracteres entre comillas.');
+    let json = false, url; const seen = new Set();
+    for (let index = explicit ? 2 : 1; index < args.length; index++) {
+      const flag = args[index];
+      if (seen.has(flag)) throw new Error('Hay una opción repetida.');
+      seen.add(flag);
+      if (flag === '--json') json = true;
+      else if (flag === '--url') { if (!args[index + 1]) throw new Error('Falta la URL.'); url = cliUrl(args[++index]); }
+      else throw new Error('Las preguntas aceptan solo --json y --url; el contexto se resuelve con tus permisos.');
+    }
+    return { command: 'preguntar', message: message.trim(), json, url };
+  }
   const aliases = { pendientes: 'pendientes', historial: 'historial', 'uso-producto': 'uso_producto', detalle: 'detalle', cambios: 'cambios', login: 'login', logout: 'logout' };
   const command = aliases[args[0]];
   if (!command) throw new Error('Comando no disponible. Usa --help.');
@@ -61,7 +79,7 @@ export function parseQueryCli(args) {
       query[field] = Number(value);
     } else query[field] = value;
   }
-  return { command, json, url, ...(!['login', 'logout'].includes(command) ? { query: validateApplicationQuery(query) } : {}) };
+  return { command, json, url, completeProducts: command === 'uso_producto' && !seen.has('--limite') && !seen.has('--desplazamiento'), ...(!['login', 'logout'].includes(command) ? { query: validateApplicationQuery(query) } : {}) };
 }
 
 async function cliSafeDirectory() {
@@ -166,15 +184,20 @@ export async function runQueryCli(args, dependencies = {}) {
   const site = cliUrl(session.site);
   if (parsed.url && parsed.url !== site) throw new Error('La URL no coincide con la sesión guardada. Inicia sesión en ese sitio.');
   async function queryRequest() {
-    return fetchJson(site + '/api/application-query', { method: 'POST', headers: { authorization: 'Bearer ' + session.access_token, 'content-type': 'application/json' }, body: JSON.stringify({ query: parsed.query }) });
+    const question = parsed.command === 'preguntar';
+    const payload = question ? { message: parsed.message } : { query: parsed.query, ...(parsed.query.operation === 'uso_producto' ? { resolveContext: true, completeProducts: parsed.completeProducts } : {}) };
+    return fetchJson(site + (question ? '/api/application-chat' : '/api/application-query'), { method: 'POST', headers: { authorization: 'Bearer ' + session.access_token, 'content-type': 'application/json' }, body: JSON.stringify(payload) });
   }
   let result = await queryRequest();
   if (result.response.status === 401 && !token && typeof session.refresh_token === 'string') {
     session = await loginOrRefresh(site, { refresh_token: session.refresh_token }, true); result = await queryRequest();
   }
   if (!result.response.ok) throw new Error(typeof result.body.error === 'string' ? result.body.error : 'No se pudo ejecutar la consulta.');
-  if (!result.body.result || typeof result.body.answer !== 'string') throw new Error('La respuesta de consulta está incompleta.');
-  output(parsed.json ? JSON.stringify(result.body, null, 2) : result.body.answer + '\nCorte: ' + result.body.result.as_of + (result.body.cached ? ' · resultado reutilizado vigente' : ''));
+  if (typeof result.body.answer !== 'string') throw new Error('La respuesta de consulta está incompleta.');
+  if (!result.body.result) { output(parsed.json ? JSON.stringify(result.body, null, 2) : result.body.answer); return; }
+  const report = result.body.result;
+  const text = report.query && report.summary && Array.isArray(report.rows) ? formatApplicationQueryTables(report) : result.body.answer;
+  output(parsed.json ? JSON.stringify(result.body, null, 2) : text + '\nCorte: ' + report.as_of + (result.body.cached ? ' · resultado reutilizado vigente' : ''));
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

@@ -78,11 +78,13 @@ propios. Los comandos, publicación en Sites y portabilidad están en
 La pantalla **Consultas** (`/consultas`) acepta preguntas escritas y notas de
 voz, con transcripción editable. Reutiliza la configuración de IA existente;
 administradores y lectores consultan únicamente su ámbito autorizado. El CLI
-ejecuta las mismas rutinas sin consumir IA:
+ejecuta las mismas rutinas. Las consultas estructuradas y la pregunta habitual
+de consumo por malla no consumen IA; otras preguntas pueden usar el modelo:
 
 ```sh
 npm run consultas -- login
 npm run consultas -- pendientes --json
+npm run consultas -- preguntar "cuánto de cada producto se ha aplicado en malla 5"
 npm run consultas -- uso-producto --producto "Producto de ejemplo" --estado realizadas --json
 npm run consultas -- detalle --folio "FOLIO-DE-EJEMPLO"
 npm run consultas -- logout

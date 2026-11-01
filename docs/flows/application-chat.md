@@ -1,5 +1,44 @@
 # Consultas de aplicaciones por chat, audio y CLI
 
+## Contexto implícito y tabla de consumo por malla
+
+2026-11-01: el Propietario solicita probar «cuánto de cada producto se ha
+aplicado en malla 5». El caso autorizado usa la última agrícola utilizada por
+el usuario (Ensenada en su ejemplo), su temporada activa y el lote único que
+corresponda a esa malla. No se fija una agrícola por nombre en el código.
+
+La agrícola explícita prevalece sobre el contexto recordado; la temporada
+explícita prevalece sobre el proyecto activo. El último uso se conserva por
+usuario/instalación y se vuelve a validar contra RLS. Sin contexto recordado se
+acepta una única agrícola autorizada o la única con temporada activa entre las
+autorizadas; varias candidatas con temporada activa exigen elección. La tabla
+identifica esa procedencia. No se presenta una temporada cerrada como actual.
+
+«Malla» busca primero un lote coincidente. Si corresponde a un campo con un
+solo lote en la temporada, se usa ese lote y se explica su procedencia. Varias
+coincidencias conservan los botones de aclaración. El número 5 no coincide con15.
+
+«Aplicado» consulta realizadas, con correcciones y superficies históricas. La
+pregunta habitual tiene una interpretación determinista sin inferencia; tanto
+chat como CLI reutilizan la misma rutina. La respuesta muestra tablas de filtros
+aplicados/procedencia y de productos/total aplicado, separando L y kg. La lista
+se pagina internamente sin omitir productos silenciosamente; el límite de 300
+productos informa que se deben acotar filtros, sin ofrecer una página repetida.
+Las elecciones conservan el alcance explícito de «todas las temporadas» cuando
+ese sea el pedido del usuario.
+
+Estado: verificado y en preparación de publicación. La prueba inicia con
+Ensenada ficticia como último contexto usado y ejecuta después solo la pregunta
+literal, incluyendo otra agrícola, temporada cerrada y aplicaciones no realizadas
+para detectar mezclas incorrectas. El pipeline CLI→handler→Auth/REST→SQL pasó con
+dos productos corregidos, tablas de filtros/resultados y cero tokens. 281 pruebas
+integradas,124 SQL de consultas y129 HTTP acumuladas aprobadas; advisors sin
+WARN/ERROR. La migración operativa quedó aplicada con respaldo, ocho aplicadas y
+cero pendientes. La prueba usa datos ficticios, sin escrituras de aplicaciones
+en operación. Publicación y revisión visual de tablas pendientes.
+
+## Contrato general del chat y audio
+
 Fecha: 2026-11-01. El Propietario autorizó implementar la propuesta de chat y
 CLI, reutilizando la configuración de IA existente. Commit/push y publicación
 conservan el destino y audiencia de OPERATIONS. Estado: implementado y publicado en Sites versión 25; frontend Docker actualizado.
@@ -16,8 +55,9 @@ administración. Las consultas no modifican aplicaciones ni recomiendan dosis.
 1. Abrir Consultas y elegir, opcionalmente, agrícola/proyecto para acotar el ámbito.
 2. Escribir una pregunta o grabar/adjuntar una nota de voz. Escuchar o descartar
    el archivo; transcribirlo y revisar el texto antes de enviar la pregunta.
-3. El servidor valida sesión y perfil activo; la IA prepara una consulta
-   estructurada. Una rutina de lectura filtra y calcula bajo RLS, con límites.
+3. El servidor valida sesión y perfil activo; el caso habitual se interpreta
+   directamente y otros mensajes usan IA para preparar una consulta estructurada.
+   Una rutina de lectura filtra y calcula bajo RLS, con límites.
 4. Leer respuesta, filtros, corte de datos y fuentes; abrir la aplicación citada
    o hacer una pregunta de seguimiento conservando solo la consulta previa.
 

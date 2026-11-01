@@ -44,6 +44,7 @@ try {
   const fixtureEnd = applications.indexOf('-- Captura asistida:');
   if (fixtureEnd < 0) throw new Error('Falta el límite de fixtures de aplicaciones.');
   sql(applications.slice(0, fixtureEnd) + readFileSync(resolve(root, 'supabase/tests/application-queries.sql'), 'utf8'));
+  sql(applications.slice(0, fixtureEnd) + readFileSync(resolve(root, 'supabase/tests/application-query-context.sql'), 'utf8'));
   console.log(`Consultas verificadas con ${migrations.length} migraciones en PostgreSQL efímero, sin puertos ni datos de operación. Auth simulado; verificar Auth/REST por separado.`);
 } finally {
   if (started) removeOwnedContainer();

@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { APPLICATION_AUDIO_MAX_BYTES, applicationQueryFilters, askApplicationChat, buildQueryFromChoice, executeApplicationQuery, transcribeApplicationAudio, validateApplicationAudio, type ApplicationQueryChoice, type ApplicationQueryFilters } from '../src/data/application-chat'
+import { APPLICATION_AUDIO_MAX_BYTES, applicationQueryFilterSourceLabel, applicationQueryFilters, askApplicationChat, buildQueryFromChoice, executeApplicationQuery, formatApplicationProductTotal, transcribeApplicationAudio, validateApplicationAudio, type ApplicationQueryChoice, type ApplicationQueryFilters } from '../src/data/application-chat'
 
 const orderId = '10000000-0000-4000-8000-000000000001'
 const projectId = '10000000-0000-4000-8000-000000000002'
@@ -61,6 +61,57 @@ test('rechaza metadatos de fuentes inválidos sin mostrar una muestra como compl
   }
 })
 
+test('normaliza filtros aplicados y supuestos sin inventar contexto cuando faltan', async t => {
+  const filters = [
+    { key: 'agricultural_unit', label: 'Agrícola', value: 'Agrícola ficticia', source: 'last_used' },
+    { key: 'project', label: 'Temporada', value: 'Proyecto ficticio 2026', source: 'active_season' },
+    { key: 'lot', label: 'Lote', value: 'Malla ficticia 5', source: 'unique_match' },
+    { key: 'status', label: 'Estado', value: 'Realizadas', source: 'explicit' },
+  ]
+  const assumptions = ['Se utilizó la última agrícola consultada por esta cuenta.']
+  t.mock.method(globalThis, 'fetch', async () => Response.json({ answer: 'Resultado ficticio.', result: { ...result, filters: filters.map(filter => ({ ...filter, extra: 'campo-descartado' })), assumptions } }))
+  const response = await askApplicationChat('Pregunta ficticia', 'sesion-ficticia')
+  assert.deepEqual(response.result?.filters, filters)
+  assert.deepEqual(response.result?.assumptions, assumptions)
+  assert.equal(applicationQueryFilterSourceLabel('last_used'), 'Última agrícola utilizada')
+  assert.equal(applicationQueryFilterSourceLabel('active_season'), 'Temporada activa')
+  assert.equal(applicationQueryFilterSourceLabel('unique_match'), 'Coincidencia única')
+  assert.equal(applicationQueryFilterSourceLabel('explicit'), 'Indicado explícitamente')
+  t.mock.method(globalThis, 'fetch', async () => Response.json({ answer: 'Resultado anterior.', result }))
+  const previous = await askApplicationChat('Pregunta ficticia', 'sesion-ficticia')
+  assert.equal(previous.result?.filters, undefined)
+  assert.equal(previous.result?.assumptions, undefined)
+})
+
+test('rechaza filtros sin procedencia válida, metadatos excesivos y supuestos ajenos al contrato', async t => {
+  for (const metadata of [
+    { filters: [{ key: 'lot', label: 'Lote', value: 'Ficticio', source: 'adivinado' }] },
+    { filters: [{ key: 'lot', label: '', value: 'Ficticio', source: 'unique_match' }] },
+    { filters: Array.from({ length: 31 }, () => ({ key: 'lot', label: 'Lote', value: 'Ficticio', source: 'unique_match' })) },
+    { assumptions: ['x'.repeat(601)] }, { assumptions: [4] },
+  ]) {
+    t.mock.method(globalThis, 'fetch', async () => Response.json({ answer: 'Resultado ficticio.', result: { ...result, ...metadata } }))
+    await assert.rejects(askApplicationChat('Pregunta ficticia', 'sesion-ficticia'), /filtros aplicados no válidos|criterios asumidos no válidos/)
+  }
+})
+
+test('admite hasta 300 productos agrupados y rechaza un resultado que exceda el límite', async t => {
+  const rows = Array.from({ length: 300 }, (_, index) => ({ product_name: `Producto ficticio ${index + 1}`, unit: index % 2 ? 'g' : 'ml', quantity: 1500, destination_count: 2 }))
+  t.mock.method(globalThis, 'fetch', async () => Response.json({ answer: 'Resultado ficticio.', result: { ...result, query: { operation: 'uso_producto', status: 'performed' }, rows } }))
+  assert.equal((await askApplicationChat('Pregunta ficticia', 'sesion-ficticia')).result?.rows.length, 300)
+  rows.push({ product_name: 'Fuera de límite', unit: 'g', quantity: 10, destination_count: 1 })
+  await assert.rejects(askApplicationChat('Pregunta ficticia', 'sesion-ficticia'), /resultado incompleto/)
+})
+
+test('las cantidades de producto muestran L o kg separados con dos decimales', () => {
+  assert.equal(formatApplicationProductTotal(1500, 'ml'), '1.50 L')
+  assert.equal(formatApplicationProductTotal(1500, 'g'), '1.50 kg')
+  assert.equal(formatApplicationProductTotal(250, 'g'), '0.25 kg')
+  assert.equal(formatApplicationProductTotal(0, 'ml'), '0.00 L')
+  assert.equal(formatApplicationProductTotal(1234567.8, 'ml'), '1,234.57 L')
+  for (const [quantity, unit] of [[NaN, 'ml'], [-1, 'g'], [1000, 'kg'], ['1000', 'ml']]) assert.equal(formatApplicationProductTotal(quantity, unit), 'No disponible')
+})
+
 test('una elección explícita sustituye solo su nombre ambiguo y conserva los demás filtros', () => {
   const query: ApplicationQueryFilters = { operation: 'historial', agricultural_unit: 'Agrícola ficticia', project: 'Temporada ficticia', field: 'Campo ficticio', lot: 'Lote repetido', product: 'Producto ficticio', folio: 'FOLIO-FICTICIO', from: '2026-10-01', to: '2026-10-31', limit: 20, offset: 0 }
   const mappings = [
@@ -101,6 +152,38 @@ test('resolver una elección llama a la rutina determinista y normaliza la misma
   assert.deepEqual(response.query, query)
   assert.equal(response.usage?.inputTokens, 0)
   assert.deepEqual(calls, ['/api/application-query'])
+})
+
+test('las opciones de una aclaración conservan todas las temporadas y la paginación explícita', async t => {
+  const query = buildQueryFromChoice({ operation: 'uso_producto', status: 'performed', lot: 'Lote repetido', limit: 30, offset: 30 }, { kind: 'lot', id: orderId, name: 'Lote repetido' })
+  const options = { resolveContext: false, completeProducts: false }
+  t.mock.method(globalThis, 'fetch', async (url: unknown, input?: RequestInit) => {
+    assert.equal(url, '/api/application-query')
+    assert.deepEqual(JSON.parse(String(input?.body)), { query, ...options })
+    return Response.json({ answer: 'Página explícita de todas las temporadas.', query, result: { ...result, query }, queryOptions: { ...options, extra: 'no-conservar' } })
+  })
+  const response = await executeApplicationQuery(query, 'sesion-ficticia', undefined, options)
+  assert.deepEqual(response.queryOptions, options)
+  assert.equal(response.query?.offset, 30)
+})
+
+test('una aclaración con contexto asumido conserva la resolución de contexto y lista completa', async t => {
+  const options = { resolveContext: true, completeProducts: true }
+  t.mock.method(globalThis, 'fetch', async (url: unknown, input?: RequestInit) => {
+    if (url === '/api/application-chat') return Response.json({ answer: 'Precisa el lote.', queryOptions: options, result: { ...result, choices: [{ kind: 'lot', id: orderId, name: 'Lote ficticio' }] } })
+    assert.deepEqual(JSON.parse(String(input?.body)), { query: { operation: 'uso_producto', lot_id: orderId }, ...options })
+    return Response.json({ answer: 'Lista completa resuelta.', queryOptions: options })
+  })
+  const response = await askApplicationChat('Pregunta ficticia', 'sesion-ficticia')
+  assert.deepEqual(response.queryOptions, options)
+  assert.deepEqual((await executeApplicationQuery({ operation: 'uso_producto', lot_id: orderId }, 'sesion-ficticia', undefined, response.queryOptions)).queryOptions, options)
+})
+
+test('las opciones de alcance requieren booleanos exactos, sin coerción de texto o números', async t => {
+  for (const queryOptions of [{ resolveContext: 'false', completeProducts: false }, { resolveContext: false, completeProducts: 0 }, { resolveContext: true }]) {
+    t.mock.method(globalThis, 'fetch', async () => Response.json({ answer: 'Respuesta ficticia.', queryOptions }))
+    await assert.rejects(askApplicationChat('Pregunta ficticia', 'sesion-ficticia'), /opciones de alcance/)
+  }
 })
 
 test('normaliza las opciones autorizadas sin conservar campos inesperados', async t => {

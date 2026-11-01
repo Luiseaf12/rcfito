@@ -244,3 +244,22 @@ clasificaciones activas para relaciones nuevas; permite conservar una inactiva y
 guardada y retirar/cambiar la relación. Una clasificación referenciada se da de
 baja lógica; no se elimina en cascada. La migración no asigna datos ni modifica
 snapshots de aplicaciones existentes. Flujo: [clasificaciones](flows/ingredient-classifications.md).
+## Resolución de contexto para consultas
+
+`application_query_resolve(p_query jsonb, p_last_unit_id uuid default null)` es
+una RPC invoker/STABLE de lectura con RLS. Devuelve consulta normalizada,
+`filters`, `revision`, `as_of` y, cuando corresponde, `clarification`/`choices`.
+La agrícola/proyecto explícitos prevalecen; después se usa la última agrícola
+validada y su única temporada activa. Sin preferencia se admite la única
+agrícola autorizada o la única con temporada activa; otras opciones se aclaran.
+
+La referencia malla puede identificar un lote o un campo con lote único en la
+temporada. No se omiten lotes retirados al comprobar unicidad ni se usa búsqueda
+parcial del número. La RPC de cantidades sigue siendo `application_query` y usa
+sus snapshots/correcciones. Resolver contexto y cifras deben conservar la misma
+revisión; una modificación concurrente exige repetir la consulta.
+
+Cada filtro contiene `key`, `label`, `value` y `source` (`explicit`, `last_used`,
+`active_season` o `unique_match`). La lista de productos puede completarse por
+páginas de30 hasta300, con resultado parcial explícito al alcanzar el límite.
+No cambia los permisos de tablas ni concede escritura al chat.

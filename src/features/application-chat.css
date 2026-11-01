@@ -34,6 +34,24 @@
   margin: 0;
 }
 
+.application-chat .chat-data-table :is(th, td) {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.application-chat .chat-data-table :is(th, td):not(:first-child) {
+  min-width: 6rem;
+}
+
+.application-chat .chat-data-table td.tabular-nums {
+  white-space: nowrap;
+}
+
+.application-chat .chat-data-table:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: -2px;
+}
+
 .application-chat .chat-metrics dt {
   color: var(--muted-foreground);
   font-size: 0.8rem;

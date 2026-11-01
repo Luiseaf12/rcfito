@@ -594,3 +594,18 @@ terminados y pidió cerrarlos. Esa confirmación es la evidencia de actualizaci�
 del estado; no se ejecutó una nueva instalación, cambio de proveedor o prueba
 de disponibilidad durante esta revisión documental. Los registros históricos
 conservan sus resultados y los límites propios de Quick Tunnel.
+## Contexto y totales de productos por malla
+
+2026-11-01: añadida la rutina invoker de resolución de contexto de consultas.
+Respaldo privado previo de490,019 bytes; operación confirmó ocho migraciones
+aplicadas y cero pendientes, sin fixtures. No se modificaron aplicaciones.
+
+La pregunta habitual «cuánto de cada producto se ha aplicado en malla 5» no
+requiere inferencia. El último contexto autorizado por usuario se guarda como
+referencia de agrícola en `rcfito/query-context/v1/`, sin JWT ni conversación.
+Las consultas estructuradas y el chat comparten resolución, cifras, filtros y
+tablas. Se revalida el contexto después de cambios de asignaciones/estado.
+
+281 pruebas integradas,124 SQL de consultas y129 HTTP acumuladas aprobadas en
+aislamiento; incluye el pipeline literal del CLI con Auth/REST reales. La
+publicación de esta ampliación está pendiente de confirmación nativa.

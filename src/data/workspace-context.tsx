@@ -5,7 +5,7 @@ import { applyCommand, scopeWorkspace } from '@/domain/rules'
 import { completeCatalogs, emptyWorkspace, type UserProfile, type WorkspaceCommand, type WorkspaceData } from '@/domain/model'
 import { connect, loadWorkspace, readConnection, saveConnection, writeCommand, type Connection } from './supabase'
 import { interpretApplicationMessage } from './application-ai'
-import { askApplicationChat, executeApplicationQuery as executeQuery, transcribeApplicationAudio as transcribeAudio, type ApplicationQueryFilters, type ApplicationChatResponse } from './application-chat'
+import { askApplicationChat, executeApplicationQuery as executeQuery, transcribeApplicationAudio as transcribeAudio, type ApplicationQueryFilters, type ApplicationChatResponse, type ApplicationQueryOptions } from './application-chat'
 import type { ExtractedApplication } from '@/domain/application-import'
 import { readAiSettings, testAiConnection, persistAiSettings, type AiSettingsStatus, type AiSettingsInput, type AiSettingsTestResult, type AiSettingsSaveInput } from './ai-settings'
 
@@ -15,7 +15,7 @@ const initialDemo=()=>{try {const parsed=JSON.parse(localStorage.getItem(demoKey
 type WorkspaceContextValue={data:WorkspaceData;profile:UserProfile;isAdmin:boolean;mode:'demo'|'supabase';loading:boolean;error:string|null;warning:string|null;authenticated:boolean;connection:Connection|null;mutate:(c:WorkspaceCommand)=>Promise<void>;refresh:()=>Promise<void>;configure:(c:Connection|null)=>void;signIn:(email:string,password:string)=>Promise<void>;signOut:()=>Promise<void>;setDemoRole:(role:'admin'|'reader')=>void;resetDemo:()=>void;createUser:(input:CreateUserInput)=>Promise<void>;interpretApplication:(message:string,signal?:AbortSignal)=>Promise<ExtractedApplication>;loadAiSettings:(signal?:AbortSignal)=>Promise<AiSettingsStatus>;testAiSettings:(input:AiSettingsInput,signal?:AbortSignal)=>Promise<AiSettingsTestResult>;saveAiSettings:(input:AiSettingsSaveInput,signal?:AbortSignal)=>Promise<AiSettingsStatus>}
 type ChatWorkspaceContextValue = WorkspaceContextValue & {
   queryApplications: (message: string, context?: ApplicationQueryFilters, previousQuery?: ApplicationQueryFilters | null, signal?: AbortSignal) => Promise<ApplicationChatResponse>
-  executeApplicationQuery: (query: ApplicationQueryFilters, signal?: AbortSignal) => Promise<ApplicationChatResponse>
+  executeApplicationQuery: (query: ApplicationQueryFilters, signal?: AbortSignal, options?: ApplicationQueryOptions) => Promise<ApplicationChatResponse>
   transcribeApplicationAudio: (file: File, signal?: AbortSignal) => Promise<string>
 }
 const Context=createContext<ChatWorkspaceContextValue|null>(null)
@@ -84,7 +84,7 @@ export function WorkspaceProvider({children}:{children:ReactNode}) {
   },[client,connection?.managed])
   const queryApplications=useCallback(async(message:string,context:ApplicationQueryFilters={},previousQuery?:ApplicationQueryFilters|null,signal?:AbortSignal)=>askApplicationChat(message,await queryToken(),context,previousQuery,signal),[queryToken])
   const transcribeApplicationAudio=useCallback(async(file:File,signal?:AbortSignal)=>transcribeAudio(file,await queryToken(),signal),[queryToken])
-  const executeApplicationQuery=useCallback(async(query:ApplicationQueryFilters,signal?:AbortSignal)=>executeQuery(query,await queryToken(),signal),[queryToken])
+  const executeApplicationQuery=useCallback(async(query:ApplicationQueryFilters,signal?:AbortSignal,options?:ApplicationQueryOptions)=>executeQuery(query,await queryToken(),signal,options),[queryToken])
   const value:ChatWorkspaceContextValue={data:client?data:scopeWorkspace(data,profile),profile,isAdmin:profile.role==='admin',mode:client?'supabase':'demo',loading,error,warning,authenticated:client?Boolean(session):true,connection,mutate,refresh,configure,signIn,signOut,setDemoRole,resetDemo,createUser,interpretApplication,loadAiSettings,testAiSettings,saveAiSettings,queryApplications,transcribeApplicationAudio,executeApplicationQuery}
   return <Context.Provider value={value}>{children}</Context.Provider>
 }

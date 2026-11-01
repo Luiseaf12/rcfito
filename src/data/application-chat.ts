@@ -1,3 +1,5 @@
+import { reportNumber } from '../lib/report-format'
+
 export type ApplicationQueryOperation = 'pendientes' | 'historial' | 'uso_producto' | 'detalle' | 'cambios'
 export type ApplicationQueryFilters = {
   operation?: ApplicationQueryOperation
@@ -29,6 +31,9 @@ export type ApplicationQueryChoice = {
   project_name?: string
   season?: string
 }
+export type ApplicationQueryFilterSource = 'explicit' | 'last_used' | 'active_season' | 'unique_match'
+export type ApplicationQueryFilter = { key: string; label: string; value: string; source: ApplicationQueryFilterSource }
+export type ApplicationQueryOptions = { resolveContext: boolean; completeProducts: boolean }
 export type ApplicationQueryResult = {
   revision: string
   as_of: string
@@ -43,11 +48,14 @@ export type ApplicationQueryResult = {
   truncated: boolean
   clarification?: string
   choices?: ApplicationQueryChoice[]
+  filters?: ApplicationQueryFilter[]
+  assumptions?: string[]
 }
 export type ApplicationChatResponse = {
   answer: string
   result?: ApplicationQueryResult
   query?: ApplicationQueryFilters
+  queryOptions?: ApplicationQueryOptions
   usage?: { inputTokens: number; outputTokens: number; toolCalls: number }
   cached?: boolean
 }
@@ -59,6 +67,35 @@ const stringKeys = ['agricultural_unit', 'project', 'field', 'lot', 'product', '
 const idKeys = ['agricultural_unit_id', 'project_id', 'field_id', 'lot_id', 'stage_id', 'product_id', 'order_id'] as const
 const operations: ApplicationQueryOperation[] = ['pendientes', 'historial', 'uso_producto', 'detalle', 'cambios']
 const object = (value: unknown): value is Record<string, unknown> => Boolean(value) && typeof value === 'object' && !Array.isArray(value)
+const filterSourceLabels: Record<ApplicationQueryFilterSource, string> = {
+  explicit: 'Indicado explícitamente',
+  last_used: 'Última agrícola utilizada',
+  active_season: 'Temporada activa',
+  unique_match: 'Coincidencia única',
+}
+
+export function applicationQueryFilterSourceLabel(source: ApplicationQueryFilterSource): string {
+  return filterSourceLabels[source]
+}
+
+/** Display-only unit conversion; totals remain separate for each product and unit. */
+export function formatApplicationProductTotal(quantity: unknown, unit: unknown): string {
+  if (typeof quantity !== 'number' || !Number.isFinite(quantity) || quantity < 0 || !['g', 'ml'].includes(String(unit))) return 'No disponible'
+  return `${reportNumber.format(quantity / 1000)} ${unit === 'g' ? 'kg' : 'L'}`
+}
+
+function queryFilter(value: unknown): ApplicationQueryFilter {
+  if (!object(value) || typeof value.key !== 'string' || !value.key.trim() || value.key.length > 80
+    || typeof value.label !== 'string' || !value.label.trim() || value.label.length > 200
+    || typeof value.value !== 'string' || !value.value.trim() || value.value.length > 600
+    || typeof value.source !== 'string' || !Object.hasOwn(filterSourceLabels, value.source)) throw new Error('La consulta devolvió filtros aplicados no válidos.')
+  return { key: value.key, label: value.label, value: value.value, source: value.source as ApplicationQueryFilterSource }
+}
+
+function queryOptions(value: unknown): ApplicationQueryOptions {
+  if (!object(value) || typeof value.resolveContext !== 'boolean' || typeof value.completeProducts !== 'boolean') throw new Error('Las opciones de alcance de la consulta no son válidas.')
+  return { resolveContext: value.resolveContext, completeProducts: value.completeProducts }
+}
 const choiceFields = {
   agricultural_unit: ['agricultural_unit_id', 'agricultural_unit'],
   project: ['project_id', 'project'],
@@ -141,12 +178,15 @@ async function responseBody(response: Response): Promise<Record<string, unknown>
 }
 
 function queryResult(value: unknown): ApplicationQueryResult {
-  if (!object(value) || typeof value.revision !== 'string' || value.revision.length > 200 || typeof value.as_of !== 'string' || !Number.isFinite(Date.parse(value.as_of)) || !object(value.summary) || !Array.isArray(value.rows) || value.rows.length > 30 || !value.rows.every(object) || !Array.isArray(value.sources) || value.sources.length > 100 || typeof value.incomplete_count !== 'number' || !Number.isInteger(value.incomplete_count) || value.incomplete_count < 0 || typeof value.truncated !== 'boolean') throw new Error('La consulta devolvió un resultado incompleto. Intenta nuevamente.')
+  if (!object(value) || typeof value.revision !== 'string' || value.revision.length > 200 || typeof value.as_of !== 'string' || !Number.isFinite(Date.parse(value.as_of)) || !object(value.summary) || !Array.isArray(value.rows) || value.rows.length > 300 || !value.rows.every(object) || !Array.isArray(value.sources) || value.sources.length > 100 || typeof value.incomplete_count !== 'number' || !Number.isInteger(value.incomplete_count) || value.incomplete_count < 0 || typeof value.truncated !== 'boolean') throw new Error('La consulta devolvió un resultado incompleto. Intenta nuevamente.')
   if (value.source_count !== undefined && (typeof value.source_count !== 'number' || !Number.isSafeInteger(value.source_count) || value.source_count < 0)
     || value.sources_scope !== undefined && (typeof value.sources_scope !== 'string' || value.sources_scope.length > 80 || /[\u0000-\u001f]/.test(value.sources_scope))
     || value.sources_truncated !== undefined && typeof value.sources_truncated !== 'boolean') throw new Error('La consulta devolvió un alcance de fuentes no válido.')
   if (value.choices !== undefined && (!Array.isArray(value.choices) || value.choices.length > 30)) throw new Error('La consulta devolvió opciones de selección no válidas.')
   const choices = Array.isArray(value.choices) ? value.choices.map(queryChoice) : undefined
+  if (value.filters !== undefined && (!Array.isArray(value.filters) || value.filters.length > 30)) throw new Error('La consulta devolvió filtros aplicados no válidos.')
+  const filters = Array.isArray(value.filters) ? value.filters.map(queryFilter) : undefined
+  if (value.assumptions !== undefined && (!Array.isArray(value.assumptions) || value.assumptions.length > 20 || !value.assumptions.every(item => typeof item === 'string' && item.trim() && item.length <= 600))) throw new Error('La consulta devolvió criterios asumidos no válidos.')
   const sources: ApplicationQuerySource[] = value.sources.map(source => {
     if (!object(source) || typeof source.order_id !== 'string' || !uuidPattern.test(source.order_id) || typeof source.folio !== 'string' || source.folio.length > 200 || source.target_id != null && (typeof source.target_id !== 'string' || !uuidPattern.test(source.target_id))) throw new Error('La consulta devolvió una referencia no válida.')
     return { order_id: source.order_id, folio: source.folio, ...(typeof source.target_id === 'string' ? { target_id: source.target_id } : {}) }
@@ -159,6 +199,8 @@ function queryResult(value: unknown): ApplicationQueryResult {
     ...(typeof value.sources_truncated === 'boolean' ? { sources_truncated: value.sources_truncated } : {}),
     ...(typeof value.clarification === 'string' ? { clarification: value.clarification.slice(0, 4000) } : {}),
     ...(choices ? { choices } : {}),
+    ...(filters ? { filters } : {}),
+    ...(Array.isArray(value.assumptions) ? { assumptions: [...value.assumptions] as string[] } : {}),
   }
 }
 
@@ -177,6 +219,7 @@ function normalizeChatResponse(body: Record<string, unknown>): ApplicationChatRe
   if (typeof body.answer !== 'string' || !body.answer.trim() || body.answer.length > 20_000) throw new Error('El chat no devolvió una respuesta completa. Tu pregunta se conserva.')
   const result: ApplicationChatResponse = { answer: body.answer }
   if (body.query !== undefined) result.query = applicationQueryFilters(body.query)
+  if (body.queryOptions !== undefined) result.queryOptions = queryOptions(body.queryOptions)
   if (body.result !== undefined) result.result = queryResult(body.result)
   if (typeof body.cached === 'boolean') result.cached = body.cached
   const usage = body.usage
@@ -185,12 +228,12 @@ function normalizeChatResponse(body: Record<string, unknown>): ApplicationChatRe
 }
 
 /** Explicit choices and CLI-style requests execute a bounded routine without another model call. */
-export async function executeApplicationQuery(query: ApplicationQueryFilters, accessToken: string, signal?: AbortSignal): Promise<ApplicationChatResponse> {
+export async function executeApplicationQuery(query: ApplicationQueryFilters, accessToken: string, signal?: AbortSignal, options?: ApplicationQueryOptions): Promise<ApplicationChatResponse> {
   const normalized = applicationQueryFilters(query)
   if (!normalized.operation) throw new Error('Indica qué consulta deseas ejecutar.')
   const response = await fetch('/api/application-query', {
     method: 'POST', cache: 'no-store', headers: { 'content-type': 'application/json', authorization: `Bearer ${accessToken}` },
-    body: JSON.stringify({ query: normalized }),
+    body: JSON.stringify({ query: normalized, ...(options === undefined ? {} : queryOptions(options)) }),
     signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(65_000)]) : AbortSignal.timeout(65_000),
   })
   return normalizeChatResponse(await responseBody(response))

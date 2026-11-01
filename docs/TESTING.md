@@ -499,3 +499,22 @@ Advisors sin WARN/ERROR. El stack aislado quedó detenido y sus fixtures retirad
 La verificación del proveedor usa respuestas ficticias: no acredita inferencia
 o reconocimiento de voz reales. QA navegador y despliegue se registran en
 [la ficha](flows/application-chat.md) y [operación](OPERATIONS.md).
+## Contexto implícito y totales por malla
+
+2026-11-01: 281 pruebas integradas, tipos/build y checker aprobados. El caso
+literal «cuánto de cada producto se ha aplicado en malla 5» está cubierto en el
+CLI y handler compartido: última agrícola por usuario, temporada activa, lote
+único, productos/total y procedencia de filtros. Incluye listas de35 y305
+productos, aislamiento entre usuarios y cambios de revisión durante paginación.
+
+SQL:124 comprobaciones de consultas (75 anteriores y49 de contexto). Integración
+completa:129 comprobaciones HTTP/Auth/REST/Edge/RLS, con30 del módulo consultas.
+El pipeline CLI→handler→Auth/REST→resolver→consulta se ejerció sin simulación de
+base/Auth: última Ensenada ficticia, Malla5 y Malla15, temporadas anteriores,
+realización corregida80g/40ml, indicadas999 y canceladas888 excluidas. La pregunta
+mostró dos productos, filtros last_used/active_season/unique_match y cero tokens.
+Advisors sin WARN/ERROR; stack aislado detenido y fixtures retirados.
+
+Los resultados y nombres de esa prueba son ficticios, sin inferencia real ni
+escrituras de aplicaciones en operación. QA de tablas/despliegue se registra en
+[la ficha](flows/application-chat.md#contexto-implícito-y-tabla-de-consumo-por-malla).

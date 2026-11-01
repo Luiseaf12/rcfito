@@ -202,3 +202,16 @@ revalidación obligatoria; los objetos pueden persistir hasta sobrescribirse.
 IA. Su sesión privada soporta login, renovación y logout. Presentación en
 `src/features/application-chat.tsx`, adaptador en `src/data/application-chat.ts`
 y coordinación en WorkspaceProvider. [Ficha de consultas](docs/flows/application-chat.md).
+## Contexto implícito de consumo por malla
+
+El motor de consultas interpreta directamente la pregunta habitual por malla,
+recupera una referencia privada de última agrícola del usuario y llama a
+`application_query_resolve`. La RPC resuelve agrícola, temporada activa y lote
+único con RLS y devuelve filtros legibles. Otra agrícola o temporada explícitas
+prevalecen. Las RPC de cantidades existentes mantienen el cálculo histórico.
+
+CLI acepta `preguntar "..."` o la pregunta entre comillas como único argumento.
+Chat y CLI muestran las mismas filas y procedencia de filtros; la UI utiliza
+tablas shadcn y el CLI una tabla de texto/JSON. El modo de resolución y lista
+completa acompaña cada respuesta y se conserva al seleccionar coincidencias.
+[Contrato](docs/flows/application-chat.md#contexto-implícito-y-tabla-de-consumo-por-malla).

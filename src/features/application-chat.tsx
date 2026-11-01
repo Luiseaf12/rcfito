@@ -2,7 +2,7 @@ import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { AudioLines, ArrowUp, ChevronDown, ClipboardList, FileAudio, LoaderCircle, MessageCircle, Mic, Paperclip, Square, Trash2, X } from 'lucide-react'
 import { useWorkspace } from '@/data/workspace-context'
-import { APPLICATION_AUDIO_MAX_BYTES, APPLICATION_AUDIO_MAX_SECONDS, buildQueryFromChoice, validateApplicationAudio, type ApplicationChatResponse, type ApplicationQueryChoice, type ApplicationQueryFilters } from '@/data/application-chat'
+import { APPLICATION_AUDIO_MAX_BYTES, APPLICATION_AUDIO_MAX_SECONDS, applicationQueryFilterSourceLabel, buildQueryFromChoice, formatApplicationProductTotal, validateApplicationAudio, type ApplicationChatResponse, type ApplicationQueryChoice, type ApplicationQueryFilters, type ApplicationQueryOptions } from '@/data/application-chat'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
@@ -16,6 +16,7 @@ import { Message, MessageContent, MessageFooter, MessageHeader } from '@/compone
 import { MessageScroller, MessageScrollerButton, MessageScrollerContent, MessageScrollerItem, MessageScrollerProvider, MessageScrollerViewport } from '@/components/ui/message-scroller'
 import { Attachment, AttachmentActions, AttachmentContent, AttachmentDescription, AttachmentMedia, AttachmentTitle } from '@/components/ui/attachment'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { errorMessage } from './shared'
 import { reportNumber } from '@/lib/report-format'
 import './application-chat.css'
@@ -60,7 +61,24 @@ function ResponseRows({ response }: { response: ApplicationChatResponse }) {
   </CollapsibleContent></Collapsible>
 }
 
-function ResponseEvidence({ response, choiceDisabled, onChoose }: { response: ApplicationChatResponse; choiceDisabled: boolean; onChoose: (query: ApplicationQueryFilters, choice: ApplicationQueryChoice) => void }) {
+function AppliedQueryFilters({ response }: { response: ApplicationChatResponse }) {
+  const result = response.result
+  if (!result?.filters?.length && !result?.assumptions?.length) return null
+  return <div className="flex min-w-0 flex-col gap-3">
+    {Boolean(result.filters?.length) && <Table className="chat-data-table" aria-label="Filtros aplicados a esta respuesta" tabIndex={0}><TableCaption className="caption-top">Filtros aplicados a esta respuesta</TableCaption><TableHeader><TableRow><TableHead scope="col">Filtro</TableHead><TableHead scope="col">Valor</TableHead><TableHead scope="col">Procedencia</TableHead></TableRow></TableHeader><TableBody>{result.filters!.map((filter, index) => <TableRow key={`${filter.key}:${index}`}><TableCell>{filter.label}</TableCell><TableCell>{filter.value}</TableCell><TableCell>{applicationQueryFilterSourceLabel(filter.source)}</TableCell></TableRow>)}</TableBody></Table>}
+    {Boolean(result.assumptions?.length) && <ul className="chat-product-lines muted" aria-label="Criterios asumidos de la consulta">{result.assumptions!.map((assumption, index) => <li key={index}>{assumption}</li>)}</ul>}
+  </div>
+}
+
+function ProductUsageTable({ response }: { response: ApplicationChatResponse }) {
+  const result = response.result
+  if (!result || result.query.operation !== 'uso_producto' || result.clarification) return null
+  const heading = result.query.status === 'performed' ? 'Total aplicado' : result.query.status === 'indicated' ? 'Cantidad indicada' : result.query.status === 'cancelled' ? 'Cantidad cancelada' : 'Cantidad calculada'
+  const showDestinations = result.rows.some(row => typeof row.destination_count === 'number' && Number.isSafeInteger(row.destination_count) && row.destination_count >= 0)
+  return <Table className="chat-data-table" aria-label="Cantidades por producto" tabIndex={0}><TableCaption className="caption-top">Cantidades por producto{result.truncated ? ' · Resultado parcial' : ''}</TableCaption><TableHeader><TableRow><TableHead scope="col">Producto</TableHead><TableHead scope="col" className="text-right">{heading}</TableHead>{showDestinations && <TableHead scope="col" className="text-right">Destinos</TableHead>}</TableRow></TableHeader><TableBody>{result.rows.length === 0 ? <TableRow><TableCell colSpan={showDestinations ? 3 : 2}>No hay cantidades válidas para mostrar con estos filtros.</TableCell></TableRow> : result.rows.map((row, index) => <TableRow key={`${recordText(row.product_id)}:${recordText(row.unit)}:${index}`}><TableCell>{recordText(row.product_name) || recordText(row.name) || 'Producto registrado'}</TableCell><TableCell className="text-right tabular-nums">{formatApplicationProductTotal(row.quantity, row.unit)}</TableCell>{showDestinations && <TableCell className="text-right tabular-nums">{typeof row.destination_count === 'number' && Number.isSafeInteger(row.destination_count) && row.destination_count >= 0 ? number(row.destination_count, 0) : 'No disponible'}</TableCell>}</TableRow>)}</TableBody></Table>
+}
+
+function ResponseEvidence({ response, choiceDisabled, onChoose }: { response: ApplicationChatResponse; choiceDisabled: boolean; onChoose: (query: ApplicationQueryFilters, choice: ApplicationQueryChoice, options: ApplicationQueryOptions) => void }) {
   const result = response.result
   if (!result) return null
   const query = response.query ?? result.query
@@ -82,10 +100,12 @@ function ResponseEvidence({ response, choiceDisabled, onChoose }: { response: Ap
       {query.to && <Badge variant="outline">Hasta {query.to}</Badge>}
       {query.stage_number && <Badge variant="outline">Etapa {query.stage_number}</Badge>}
     </div>
-    {Boolean(result.choices?.length) && <div role="group" aria-label="Elegir una coincidencia de la consulta" className="chat-choice-list"><p className="muted">Selecciona la coincidencia que deseas consultar.</p>{result.choices!.map((choice, index) => <Button key={`${choice.kind}:${choice.id}`} type="button" variant="outline" disabled={choiceDisabled} className="chat-choice-button" title={`Identificador completo: ${choice.id}`} onClick={() => onChoose(result.query, choice)}><span className="flex min-w-0 flex-col items-start gap-1"><strong>Opción {index + 1}: {choice.name}</strong><span>{[choice.project_name, choice.season, `ID ${choice.id.slice(-8)}`].filter(Boolean).join(' · ')}</span></span></Button>)}</div>}
+    {Boolean(result.choices?.length) && <div role="group" aria-label="Elegir una coincidencia de la consulta" className="chat-choice-list"><p className="muted">Selecciona la coincidencia que deseas consultar.</p>{result.choices!.map((choice, index) => <Button key={`${choice.kind}:${choice.id}`} type="button" variant="outline" disabled={choiceDisabled} className="chat-choice-button" title={`Identificador completo: ${choice.id}`} onClick={() => onChoose(result.query, choice, response.queryOptions ?? { resolveContext: Boolean(result.filters), completeProducts: query.operation === 'uso_producto' && query.limit === 30 })}><span className="flex min-w-0 flex-col items-start gap-1"><strong>Opción {index + 1}: {choice.name}</strong><span>{[choice.project_name, choice.season, `ID ${choice.id.slice(-8)}`].filter(Boolean).join(' · ')}</span></span></Button>)}</div>}
+    <AppliedQueryFilters response={response} />
+    <ProductUsageTable response={response} />
     {metrics.length > 0 && <dl className="chat-metrics">{metrics.map(metric => <div key={metric.label}><dt>{metric.label}</dt><dd>{metric.value}</dd></div>)}</dl>}
     {result.incomplete_count > 0 && <p className="muted">Se omitieron {number(result.incomplete_count, 0)} registros incompletos. No se estimaron sus cantidades.</p>}
-    {result.truncated && <p className="muted">Hay más registros. Acota el periodo o pide la siguiente página para revisar el detalle.</p>}
+    {result.truncated && <p className="muted">{response.queryOptions?.completeProducts ? 'La lista alcanzó el límite de 300 productos. Acota los filtros para consultar los restantes.' : 'Hay más registros. Acota el periodo o pide la siguiente página para revisar el detalle.'}</p>}
     <ResponseRows response={response} />
     {result.sources_truncated && <p className="muted">Muestra de fuentes{result.sources_scope === 'displayed_products' ? ' para los productos de esta página' : ''}: se incluyen {number(result.sources.length, 0)} referencias{result.source_count !== undefined ? ` de ${number(result.source_count, 0)}` : ''}. Los enlaces agrupan las referencias de una misma orden.</p>}
     {sources.length > 0 && <div className="flex flex-wrap gap-2" aria-label="Aplicaciones usadas como fuente">{sources.map(source => <Button asChild variant="outline" key={source.order_id}><Link to={`/aplicaciones/${encodeURIComponent(source.order_id)}`}><ClipboardList data-icon="inline-start" aria-hidden="true" />Ver {source.folio || 'aplicación'}</Link></Button>)}</div>}
@@ -188,14 +208,14 @@ export function ApplicationChatPage() {
     if (!available) { setError('El chat requiere una sesión real en la conexión gestionada de esta instalación.'); return }
     await runConversationQuery(message.trim(), signal => queryApplications(message.trim(), context, previousQuery, signal), true)
   }
-  async function chooseQuery(query: ApplicationQueryFilters, choice: ApplicationQueryChoice) {
+  async function chooseQuery(query: ApplicationQueryFilters, choice: ApplicationQueryChoice, options: ApplicationQueryOptions) {
     if (busyRef.current || recording) return
     setError(null)
     if (!available) { setError('La consulta requiere una sesión real en la conexión gestionada.'); return }
     try {
       const selected = buildQueryFromChoice(query, choice)
       const label = [choice.name, choice.project_name, choice.season, `ID ${choice.id.slice(-8)}`].filter(Boolean).join(' · ')
-      await runConversationQuery(`Seleccioné: ${label}.`, signal => executeApplicationQuery(selected, signal), false)
+      await runConversationQuery(`Seleccioné: ${label}.`, signal => executeApplicationQuery(selected, signal, options), false)
     } catch (cause) { setError(errorMessage(cause)) }
   }
   async function runConversationQuery(question: string, run: (signal: AbortSignal) => Promise<ApplicationChatResponse>, clearComposer: boolean) {
@@ -349,7 +369,7 @@ export function ApplicationChatPage() {
       <CardContent className="chat-thread-content">
         <MessageScrollerProvider autoScroll><MessageScroller><MessageScrollerViewport role="log" aria-label="Conversación sobre aplicaciones" aria-live="polite" aria-relevant="additions" aria-busy={busy === 'query'} tabIndex={0}><MessageScrollerContent>
           {messages.length === 0 && <MessageScrollerItem messageId="empty"><Empty><EmptyHeader><EmptyMedia variant="icon"><MessageCircle aria-hidden="true" /></EmptyMedia><EmptyTitle>Consulta lo que ya está registrado</EmptyTitle><EmptyDescription>Puedes preguntar por una agrícola, temporada, lote, producto o folio. Si hay varias coincidencias, el chat te pedirá precisar.</EmptyDescription></EmptyHeader><div className="flex flex-wrap justify-center gap-2">{suggestions.map(suggestion => <Button key={suggestion} variant="outline" disabled={locked} onClick={() => { setMessage(suggestion); textInput.current?.focus(); }}>{suggestion}</Button>)}</div></Empty></MessageScrollerItem>}
-          {messages.map(item => <MessageScrollerItem key={item.id} messageId={item.id} scrollAnchor={item.role === 'user'}><Message align={item.role === 'user' ? 'end' : 'start'}><MessageContent><MessageHeader>{item.role === 'user' ? 'Tú' : 'RCFito'}{item.demo && ' · Ejemplo ficticio'}</MessageHeader><Bubble align={item.role === 'user' ? 'end' : 'start'} variant={item.role === 'user' ? 'default' : 'outline'}><BubbleContent className="whitespace-pre-wrap">{item.text}</BubbleContent></Bubble>{item.response && <ResponseEvidence response={item.response} choiceDisabled={locked || !available || item.id !== messages.at(-1)?.id || item.contextKey !== contextKey} onChoose={(query, choice) => void chooseQuery(query, choice)} />}<MessageFooter>{item.role === 'assistant' && (item.demo ? 'Cálculo local de demostración' : 'Consulta de registros guardados')}</MessageFooter></MessageContent></Message></MessageScrollerItem>)}
+          {messages.map(item => <MessageScrollerItem key={item.id} messageId={item.id} scrollAnchor={item.role === 'user'}><Message align={item.role === 'user' ? 'end' : 'start'}><MessageContent><MessageHeader>{item.role === 'user' ? 'Tú' : 'RCFito'}{item.demo && ' · Ejemplo ficticio'}</MessageHeader><Bubble align={item.role === 'user' ? 'end' : 'start'} variant={item.role === 'user' ? 'default' : 'outline'}><BubbleContent className="whitespace-pre-wrap">{item.text}</BubbleContent></Bubble>{item.response && <ResponseEvidence response={item.response} choiceDisabled={locked || !available || item.id !== messages.at(-1)?.id || item.contextKey !== contextKey} onChoose={(query, choice, options) => void chooseQuery(query, choice, options)} />}<MessageFooter>{item.role === 'assistant' && (item.demo ? 'Cálculo local de demostración' : 'Consulta de registros guardados')}</MessageFooter></MessageContent></Message></MessageScrollerItem>)}
           {busy === 'query' && <MessageScrollerItem messageId="pending"><Message><MessageContent><MessageHeader>RCFito</MessageHeader><Bubble variant="muted"><BubbleContent><span className="shimmer">Consultando los registros autorizados…</span></BubbleContent></Bubble></MessageContent></Message></MessageScrollerItem>}
         </MessageScrollerContent></MessageScrollerViewport><MessageScrollerButton /></MessageScroller></MessageScrollerProvider>
       </CardContent>

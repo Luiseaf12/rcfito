@@ -1,4 +1,4 @@
-import { ApplicationQueryError, applicationQueryPlanSchema, validateApplicationQuery, queryReadJson, createApplicationQueryRunner, formatApplicationQueryAnswer } from './application-queries.mjs';
+import { ApplicationQueryError, applicationQueryPlanSchema, validateApplicationQuery, queryReadJson, createApplicationQueryRunner, formatApplicationQueryAnswer, parseQuickProductQuestion } from './application-queries.mjs';
 
 const chatInstructions = `Interpreta preguntas de consulta sobre aplicaciones agrícolas registradas. Devuelve solamente el plan del esquema.
 Operaciones: pendientes (indicadas, fecha programada), historial (por destino, fecha real en realizadas y de indicación en otros estados), uso_producto (cantidades de producto, realizadas por defecto), detalle y cambios (requieren folio u orden).
@@ -140,22 +140,33 @@ export function createApplicationChatService({ fetch: chatFetch = fetch, now = D
       if (kind === 'audio') return await transcribe(request, env, signal);
       if (!/^application\/json(?:\s*;|$)/i.test(request.headers.get('content-type') ?? '')) throw new ApplicationQueryError(415, 'Envía la consulta en formato JSON.');
       const body = await queryReadJson(request, 32 * 1024, signal);
-      let query, usage = { inputTokens: 0, outputTokens: 0, toolCalls: 0 };
+      let query, lastAgriculturalUnitId, resolveContext = false, completeProducts = false, usage = { inputTokens: 0, outputTokens: 0, toolCalls: 0 };
       if (kind === 'query') {
-        if (!chatExactObject(body, ['query'])) throw new ApplicationQueryError(400, 'La solicitud de consulta no es válida.');
+        if (!chatExactObject(body, ['query', 'resolveContext', 'completeProducts']) || ['resolveContext', 'completeProducts'].some(name => body[name] !== undefined && typeof body[name] !== 'boolean')) throw new ApplicationQueryError(400, 'La solicitud de consulta no es válida.');
         query = validateApplicationQuery(body.query);
+        resolveContext = body.resolveContext === true || body.resolveContext !== false && query.operation === 'uso_producto';
+        completeProducts = body.completeProducts === true || body.completeProducts === undefined && query.operation === 'uso_producto' && query.limit === 30 && query.offset === 0;
       } else {
         if (!chatExactObject(body, ['message', 'context', 'previousQuery']) || typeof body.message !== 'string' || !body.message.trim() || body.message.length > 4000 || /\u0000/.test(body.message)) throw new ApplicationQueryError(400, 'Escribe una pregunta de hasta 4,000 caracteres.');
         const context = body.context == null ? {} : validateApplicationQuery(body.context, true);
         const previous = body.previousQuery == null ? null : validateApplicationQuery(body.previousQuery);
-        const planned = await plan(body.message.trim(), context, previous, await configured(env), signal);
-        usage = planned.usage;
-        if (planned.clarification) return chatJson({ answer: planned.clarification, usage, cached: false });
-        query = planned.query;
+        lastAgriculturalUnitId = previous?.agricultural_unit_id;
+        const quick = parseQuickProductQuestion(body.message);
+        if (quick) {
+          query = validateApplicationQuery({ ...quick, ...context });
+          completeProducts = true;
+        } else {
+          const planned = await plan(body.message.trim(), context, previous, await configured(env), signal);
+          usage = planned.usage;
+          if (planned.clarification) return chatJson({ answer: planned.clarification, usage, cached: false });
+          query = planned.query;
+          completeProducts = /(?:cada\s+producto|todos\s+los\s+productos)/i.test(body.message);
+        }
+        resolveContext = query.operation === 'uso_producto' && !/todas\s+las\s+(?:agr[ií]colas|temporadas)/i.test(body.message);
       }
-      const result = await runner.run(query, auth);
+      const result = await runner.run(query, auth, { resolveContext, completeProducts, lastAgriculturalUnitId });
       usage.toolCalls = 1;
-      return chatJson({ ...result, answer: formatApplicationQueryAnswer(result.result), usage });
+      return chatJson({ ...result, answer: formatApplicationQueryAnswer(result.result, { completeProducts }), usage, queryOptions: { resolveContext, completeProducts } });
     } catch (error) {
       if (error instanceof ApplicationQueryError) return chatJson({ error: error.message }, error.status, error.status === 429 ? { 'retry-after': '60' } : {});
       return chatJson({ error: error?.name === 'TimeoutError' || error?.name === 'AbortError' ? 'La consulta tardó demasiado. Conserva tu pregunta o audio y vuelve a intentar.' : 'El servicio de consultas no está disponible. Conserva tu pregunta o audio y vuelve a intentar.' }, 503);

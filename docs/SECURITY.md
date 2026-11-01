@@ -234,3 +234,18 @@ CLI guarda sesión en `.artifacts/query-cli/`, ignorada, con permisos POSIX
 0700/0600 o ACL del usuario Windows. Rechaza enlaces en la ruta, oculta contraseña,
 no recibe tokens por argumentos y renueva únicamente contra el origen de login.
 El `.env` del usuario no se lee ni modifica. [Ficha](flows/application-chat.md).
+## Preferencia de agrícola y consultas con contexto
+
+El prefijo privado R2 `rcfito/query-context/v1/` conserva una referencia de última
+agrícola por usuario/instalación. No conserva preguntas, conversaciones ni JWT.
+Una referencia recordada o aportada por la consulta previa vuelve a comprobarse
+bajo RLS; perder la asignación produce aclaración, sin recuperar datos de caché.
+Una consulta directa sin resolver contexto solo establece preferencia cuando
+devuelve un destino autorizado de esa agrícola. La resolución explícita valida
+el acceso incluso si todavía no hay aplicaciones.
+
+La pregunta habitual de consumo por malla tiene una interpretación determinista
+acotada; no consume proveedor. Otras preguntas mantienen el esquema validado y
+la configuración existente. Las elecciones de coincidencias conservan el modo
+de alcance del pedido original, incluso todas las temporadas. El agregado de
+páginas exige una misma revisión y se limita a300 productos con aviso visible.

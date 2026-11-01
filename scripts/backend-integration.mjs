@@ -480,7 +480,7 @@ try {
   assert(createdUnits.status === 200 && createdUnits.data.length === 1 && createdUnits.data[0].id === ids.unitA, 'La cuenta creada consulta solo la agrícola asignada');
   await verifyApplications(adminToken, readerToken, noAccessToken, create.data);
   await verifyApplicationChanges(adminToken, readerToken, noAccessToken, create.data);
-  await verifyApplicationQueries({ request, check, adminToken, readerToken, noAccessToken, readerId: reader.id, unitA: ids.unitA, unitB: ids.unitB, projectA: create.data });
+  await verifyApplicationQueries({ request, check, adminToken, readerToken, noAccessToken, readerId: reader.id, unitA: ids.unitA, unitB: ids.unitB, projectA: create.data, base, publicKey });
   await verifyProductSynonyms(adminToken, readerToken, noAccessToken);
   const classificationId = randomUUID(), classifiedIngredientId = randomUUID();
   const classification = { id: classificationId, code: `QA-CLASS-${suffix}`, name: `Clasificación ficticia ${suffix}` };
