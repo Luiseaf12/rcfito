@@ -278,3 +278,17 @@ simulan el proveedor y no acreditan inferencia real ni captura UI en producción
 Sites versión 11 confirmó succeeded desde el commit validado; inicio/bundle 200,
 IA anónima 401, proxy local 401 y salud Auth 200 posteriores aprobados sin
 escrituras de operación ni inferencia. [Publicación](OPERATIONS.md#captura-con-ia-y-nota-actualización).
+
+## Configuración de IA en Conexión y preferencias
+
+2026-10-31: 136 pruebas, typecheck, build y docs:check aprobados. Incluyen servicio
+con Auth/proveedor/R2 simulados, cifrado y manipulación, permisos, límites,
+comprobante/expiración, escrituras concurrentes y captura usando la clave guardada.
+El cliente descarta campos secretos inesperados y separa prueba de guardado.
+
+Navegador: sección oculta para lector/sesión sin autenticar y demo administradora
+con controles deshabilitados; escritorio y 375 px sin desbordamiento. Un arnés
+aislado con el componente/adaptador/servicio reales y dependencias ficticias
+verificó probar, invalidar al editar, guardar, recargar y conservar clave al cambiar
+modelo. Sin claves reales, inferencia externa ni datos de operación. Revisión
+independiente sin pendientes. [Ficha y alcance](flows/ai-settings.md).

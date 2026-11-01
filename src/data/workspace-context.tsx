@@ -6,11 +6,12 @@ import { emptyWorkspace, type UserProfile, type WorkspaceCommand, type Workspace
 import { connect, loadWorkspace, readConnection, saveConnection, writeCommand, type Connection } from './supabase'
 import { interpretApplicationMessage } from './application-ai'
 import type { ExtractedApplication } from '@/domain/application-import'
+import { readAiSettings, testAiConnection, persistAiSettings, type AiSettingsStatus, type AiSettingsInput, type AiSettingsTestResult, type AiSettingsSaveInput } from './ai-settings'
 
 const demoKey='rcfito.demo.v1'
 type CreateUserInput={email:string;password:string;display_name:string;role:'viewer'|'admin';agricultural_unit_ids:string[]}
 const initialDemo=()=>{try {const parsed=JSON.parse(localStorage.getItem(demoKey)??'null'); if(parsed?.catalogs&&parsed?.projects&&parsed?.profiles)return {...emptyWorkspace(),...parsed,applicationOrders:parsed.applicationOrders??[],applicationTargets:parsed.applicationTargets??[],sowingGroups:parsed.sowingGroups??[]} as WorkspaceData}catch{/* Start fresh after invalid demo data. */}return createDemoData()}
-type WorkspaceContextValue={data:WorkspaceData;profile:UserProfile;isAdmin:boolean;mode:'demo'|'supabase';loading:boolean;error:string|null;warning:string|null;authenticated:boolean;connection:Connection|null;mutate:(c:WorkspaceCommand)=>Promise<void>;refresh:()=>Promise<void>;configure:(c:Connection|null)=>void;signIn:(email:string,password:string)=>Promise<void>;signOut:()=>Promise<void>;setDemoRole:(role:'admin'|'reader')=>void;resetDemo:()=>void;createUser:(input:CreateUserInput)=>Promise<void>;interpretApplication:(message:string,signal?:AbortSignal)=>Promise<ExtractedApplication>}
+type WorkspaceContextValue={data:WorkspaceData;profile:UserProfile;isAdmin:boolean;mode:'demo'|'supabase';loading:boolean;error:string|null;warning:string|null;authenticated:boolean;connection:Connection|null;mutate:(c:WorkspaceCommand)=>Promise<void>;refresh:()=>Promise<void>;configure:(c:Connection|null)=>void;signIn:(email:string,password:string)=>Promise<void>;signOut:()=>Promise<void>;setDemoRole:(role:'admin'|'reader')=>void;resetDemo:()=>void;createUser:(input:CreateUserInput)=>Promise<void>;interpretApplication:(message:string,signal?:AbortSignal)=>Promise<ExtractedApplication>;loadAiSettings:(signal?:AbortSignal)=>Promise<AiSettingsStatus>;testAiSettings:(input:AiSettingsInput,signal?:AbortSignal)=>Promise<AiSettingsTestResult>;saveAiSettings:(input:AiSettingsSaveInput,signal?:AbortSignal)=>Promise<AiSettingsStatus>}
 const Context=createContext<WorkspaceContextValue|null>(null)
 export function WorkspaceProvider({children}:{children:ReactNode}) {
   const [connection,setConnection]=useState(readConnection)
@@ -57,7 +58,17 @@ export function WorkspaceProvider({children}:{children:ReactNode}) {
     if(error||!current)throw new Error('Tu sesión no está disponible. Inicia sesión nuevamente antes de interpretar.')
     return interpretApplicationMessage(message,current.access_token,signal)
   }
-  const value:WorkspaceContextValue={data:client?data:scopeWorkspace(data,profile),profile,isAdmin:profile.role==='admin',mode:client?'supabase':'demo',loading,error,warning,authenticated:client?Boolean(session):true,connection,mutate,refresh,configure,signIn,signOut,setDemoRole,resetDemo,createUser,interpretApplication}
+  const aiSettingsToken=useCallback(async()=>{
+    if(!client||profile.role!=='admin')throw new Error('La configuración de IA requiere una sesión real de administración.')
+    if(!connection?.managed)throw new Error('La configuración de IA usa la conexión gestionada de esta instalación.')
+    const{data:{session:current},error}=await client.auth.getSession()
+    if(error||!current)throw new Error('Tu sesión no está disponible. Inicia sesión nuevamente.')
+    return current.access_token
+  },[client,profile.role,connection?.managed])
+  const loadAiSettings=useCallback(async(signal?:AbortSignal)=>readAiSettings(await aiSettingsToken(),signal),[aiSettingsToken])
+  const testAiSettings=useCallback(async(input:AiSettingsInput,signal?:AbortSignal)=>testAiConnection(await aiSettingsToken(),input,signal),[aiSettingsToken])
+  const saveAiSettings=useCallback(async(input:AiSettingsSaveInput,signal?:AbortSignal)=>persistAiSettings(await aiSettingsToken(),input,signal),[aiSettingsToken])
+  const value:WorkspaceContextValue={data:client?data:scopeWorkspace(data,profile),profile,isAdmin:profile.role==='admin',mode:client?'supabase':'demo',loading,error,warning,authenticated:client?Boolean(session):true,connection,mutate,refresh,configure,signIn,signOut,setDemoRole,resetDemo,createUser,interpretApplication,loadAiSettings,testAiSettings,saveAiSettings}
   return <Context.Provider value={value}>{children}</Context.Provider>
 }
 export function useWorkspace(){const c=useContext(Context);if(!c)throw new Error('Falta WorkspaceProvider.');return c}

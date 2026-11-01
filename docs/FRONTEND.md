@@ -77,3 +77,11 @@ QA: enlace y alta/relectura en escritorio; a 375 px se revisaron menú, selector
 sugerencia histórica, Escape/descarte y ausencia de overflow de página/diálogo.
 Se corrigió la grilla móvil con columnas minmax(0,1fr). Teclado completo y texto
 200 % siguen en el pendiente general RCF-006. [Ficha](flows/ai-capture.md).
+
+## Preferencias de inteligencia artificial
+
+La sección de [configuración de IA](flows/ai-settings.md) aparece solo para
+administrador. En modo gestionado permite clave password, modelo, probar y guardar;
+demo muestra la indisponibilidad explícita. La clave permanece solo en memoria
+durante la edición y se limpia al guardar. Cambiar entradas invalida la prueba;
+estado, carga, error y éxito conservan controles accesibles y diseño móvil.

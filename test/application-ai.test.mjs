@@ -265,7 +265,7 @@ test('IA impide interpretaciones simultáneas del mismo usuario y libera el bloq
 test('Worker conecta la ruta de IA únicamente al túnel validado y nunca persiste datos', async () => {
   const state = aiSetup();
   let putCount = 0;
-  const env = { ...state.env, BUCKET: { async get() { return { async json() { return { url: aiBackend, updatedAt: 1_800_000_000_000, expiresAt: 1_800_000_120_000 }; } }; }, async put() { putCount++; } } };
+  const env = { ...state.env, BUCKET: { async get(key) { return key === 'rcfito/quick-tunnel.json' ? { async json() { return { url: aiBackend, updatedAt: 1_800_000_000_000, expiresAt: 1_800_000_120_000 }; } } : null; }, async put() { putCount++; } } };
   const worker = createSiteWorker({}, { key: 'sb_publishable_fictitious' }, { fetch: state.fetch, now: () => 1_800_000_000_000 });
   assert.equal((await worker.fetch(aiRequest(), env)).status, 200);
   assert.equal(putCount, 0);

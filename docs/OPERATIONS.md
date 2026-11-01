@@ -282,3 +282,33 @@ despliegue `appgdep_6ae6ada616548191866aa363f511adf7`, en
 Docker frontend se reconstruyó desde el mismo commit con entorno Compose
 explícito y montaje público existente; HTML y bundle de Grupos respondieron HTTP
 200. No se modificó el esquema ni se escribieron fixtures en operación.
+
+## Configuración de IA en el servidor
+
+El administrador activo abre Conexión y preferencias, ingresa clave y modelo,
+pulsa Probar conexión y después Guardar configuración. Cada prueba envía una
+solicitud mínima al proveedor y puede consumir su cuota. No guarda aplicaciones.
+Cambiar entradas requiere otra prueba. Dejar clave vacía conserva la guardada;
+Actualizar estado permite recuperar la revisión vigente ante un conflicto.
+
+El Worker conserva un objeto exclusivo R2, rcfito/ai-settings.json, con la clave
+cifrada y metadatos autenticados. Requiere BUCKET y un secreto estable de al menos
+32 caracteres: RCFITO_AI_CONFIG_SECRET, o, si no se define, el secreto existente
+RCFITO_TUNNEL_UPDATE_SECRET. HKDF usa dominios separados por propósito. Este
+despliegue reutiliza la custodia existente sin revelar ni modificar secretos.
+OPENAI_API_KEY/OPENAI_MODEL siguen como compatibilidad solo si no existe objeto
+guardado; la configuración guardada tiene prioridad y no se cachea entre capturas.
+
+Respaldar de forma privada el objeto cifrado y el secreto raíz por separado.
+Cambiar o perder ese secreto impide descifrar el objeto; el servicio falla
+explícitamente y no cambia de clave en silencio. Para rotarlo, recuperar la clave
+con el secreto anterior por un procedimiento privado y reconfigurar, o retirar el
+objeto mediante administración de R2 y volver a ingresar/probar/guardar la clave.
+No borrar el registro del túnel ni publicar respaldos, claves o entorno privado.
+
+La activación sigue pendiente de que el Propietario ingrese su clave y modelo en
+esta sección. La verificación de implementación usa dependencias ficticias y no
+confirma una conexión de proveedor real. Evidencia en
+[TESTING](TESTING.md#configuración-de-ia-en-conexión-y-preferencias).
+
+Publicación de esta sección y actualización del frontend Docker en curso.

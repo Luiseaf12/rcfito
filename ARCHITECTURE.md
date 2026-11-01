@@ -126,3 +126,11 @@ Vite y Nginx reenvían únicamente `/api/application-draft` al Site. La clave de
 permanece en secretos del Worker, separada de Supabase y del navegador. El
 Propietario dejó su activación pendiente; el endpoint responde indisponibilidad
 explícita mientras falte configuración, y se puede completar manualmente.
+
+## Configuración de IA administrada
+
+Conexión y preferencias coordina un adaptador de configuración separado de la
+vista. El Worker comprueba Auth/perfil de administrador y guarda la clave cifrada
+en un objeto R2 exclusivo; la captura resuelve esa configuración en cada petición.
+La prueba y el guardado son acciones distintas con comprobante temporal y revisión
+condicional. Contrato y recorrido en [la ficha](docs/flows/ai-settings.md).

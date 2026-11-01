@@ -169,3 +169,18 @@ VITE_*, repositorio o navegador. El Propietario decidió dejar la activación
 pendiente: no se creó ni escribió una clave y no se ejecutó inferencia real.
 La nueva migración fue probada en aislamiento y aplicada con respaldo privado;
 no se cargaron mensajes ni fixtures en operación.
+
+## Custodia de la clave de IA
+
+GET/PUT /api/ai-settings y POST /api/ai-settings/test verifican sesión Auth y
+perfil activo administrador antes de leer R2 o invocar proveedor. No confían en
+roles del navegador. Mismo origen, cuerpos acotados y límite de pruebas por
+administrador complementan esa autorización.
+
+La clave se cifra con AES-256-GCM e IV aleatorio. HKDF separa cifrado y HMAC a
+partir del secreto estable del servidor; metadatos autenticados detectan cambios.
+El navegador recibe solo modelo/estado/últimos cuatro caracteres. Guardar exige
+una prueba HMAC de diez minutos ligada a usuario, clave, modelo y revisión;
+R2 condicional rechaza sobrescrituras concurrentes. Los errores no reproducen
+claves ni respuestas privadas del proveedor. Custodia y recuperación en
+[OPERATIONS](OPERATIONS.md#configuración-de-ia-en-el-servidor).

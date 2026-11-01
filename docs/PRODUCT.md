@@ -299,3 +299,12 @@ cuando aplique. Mantener requisitos, decisiones y evidencia junto al flujo.
 
 El pendiente de definición está en [PLANS](PLANS.md). El producto solo se
 considerará verificado con las comprobaciones descritas en [TESTING](TESTING.md).
+
+## Configuración administradora de IA
+
+El administrador activo configura clave y modelo en Conexión y preferencias.
+Probar confirma ambos antes de permitir guardar en el servidor; una clave vacía
+conserva la existente. La clave completa no vuelve a mostrarse. La configuración
+es común a la instalación y se usa en Captura con IA sin nueva publicación.
+El lector no ve la sección ni tiene acceso a sus endpoints. Contrato operativo
+y casos de error en [la ficha de configuración](flows/ai-settings.md).

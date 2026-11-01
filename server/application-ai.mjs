@@ -124,7 +124,7 @@ async function aiReadJson(source, maximum, signal) {
   } finally { signal.removeEventListener('abort', abort); reader.releaseLock(); }
 }
 
-export function createApplicationAiHandler({ fetch: aiFetch = fetch, now = Date.now, key, backendUrl }) {
+export function createApplicationAiHandler({ fetch: aiFetch = fetch, now = Date.now, key, backendUrl, configuration }) {
   // These limits apply only to this Worker instance; no message or token is retained.
   const limits = new Map();
   let globalMinute = -1, globalCount = 0, globalInFlight = 0;
@@ -164,12 +164,13 @@ export function createApplicationAiHandler({ fetch: aiFetch = fetch, now = Date.
       if (profileResponse.status !== 200) { await profileResponse.body?.cancel(); return aiJson({ error: 'No se pudo comprobar tu permiso para generar la captura.' }, 403); }
       const profiles = await aiReadJson(profileResponse, 16_384, signal);
       if (!Array.isArray(profiles) || profiles.length !== 1 || profiles[0]?.role !== 'admin' || profiles[0]?.active !== true) return aiJson({ error: 'La captura con IA requiere una cuenta administradora activa.' }, 403);
-      if (typeof env.OPENAI_API_KEY !== 'string' || !env.OPENAI_API_KEY.trim() || typeof env.OPENAI_MODEL !== 'string' || !env.OPENAI_MODEL.trim() || env.OPENAI_MODEL.length > 200) return aiJson({ error: 'La captura con IA todavía no está configurada. La administración debe activar el proveedor y el modelo.' }, 503);
+      const configured = configuration ? await configuration(env) : { apiKey: env.OPENAI_API_KEY, model: env.OPENAI_MODEL };
+      if (typeof configured.apiKey !== 'string' || !configured.apiKey.trim() || typeof configured.model !== 'string' || !configured.model.trim() || configured.model.length > 200) return aiJson({ error: 'La captura con IA todavía no está configurada. La administración debe activar el proveedor y el modelo.' }, 503);
       release = reserve(identity.id);
       const response = await aiFetch('https://api.openai.com/v1/responses', {
         method: 'POST', redirect: 'manual', signal,
-        headers: { authorization: `Bearer ${env.OPENAI_API_KEY}`, 'content-type': 'application/json' },
-        body: JSON.stringify({ model: env.OPENAI_MODEL.trim(), store: false, max_output_tokens: 6000,
+        headers: { authorization: `Bearer ${configured.apiKey}`, 'content-type': 'application/json' },
+        body: JSON.stringify({ model: configured.model.trim(), store: false, max_output_tokens: 6000,
           instructions: applicationExtractionInstructions,
           input: [{ role: 'user', content: [{ type: 'input_text', text: body.message }] }],
           text: { format: { type: 'json_schema', name: 'agricultural_application_draft', strict: true, schema: applicationDraftSchema } },
