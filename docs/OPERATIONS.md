@@ -436,7 +436,14 @@ El commit inicial `5f040bae1551d1c4a2cc8217a9b6675515aa7c9f` quedó en GitHub y
 fue incluido en la publicación posterior de Usos de ingredientes, versión 18.
 La rectificación se valida y publica sobre esa revisión, conservando sus cambios
 y la audiencia pública. Los fixtures permanecen fuera del build y de operación.
-Commit/push y resultado nativo de la rectificación: en curso.
+Commit `5266322878a855aa59b66e51842305a279bfe636` subido a GitHub y al
+repositorio del Site, validado y empaquetado desde checkout limpio: 215 pruebas,
+tipos/build y checker aprobados. Sites confirmó `succeeded`, versión 19
+`appgprj_6ae67ae019e88191a7012093bb19c505~appgver_eb2516fdc00c8191ac967af97f8fdfb2`,
+despliegue `appgdep_6ae74b1d9a4c8191ac0ec8eba36c27c0`, en
+[RCFito](https://rcfito.paxxa.chatgpt.site). Audiencia pública y entorno revisión 1
+conservados. Tres comprobaciones posteriores aprobaron HTML, bundle exacto y
+dashboard con Todas/estados HTTP 200. Sin escrituras ficticias en operación.
 [Contrato y evidencia](flows/product-dashboard.md).
 
 ## Usos de ingredientes

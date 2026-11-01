@@ -392,7 +392,10 @@ Rectificación: 215 pruebas integradas aprobadas (13 del dashboard), tipos y
 checker válidos. QA demo con 18 destinos comprobó Todas por defecto, cambio a
 Realizadas/Canceladas, fechas/estados y temporada anterior en historial. A 375 px
 no hubo overflow; estado inválido de URL no rompe el render ni amplía la consulta.
-Cierre de revisión limpia y publicación: en verificación.
+Revisión limpia: 215/215 pruebas, tipos/build y checker aprobados desde
+`5266322878a855aa59b66e51842305a279bfe636`. Sites versión 19 confirmó succeeded;
+HTML, bundle exacto y dashboard HTTP 200, con Todas y estados presentes. No se
+escribieron datos ficticios en operación. [Publicación](OPERATIONS.md#dashboard-de-uso-de-productos).
 [Contrato](flows/product-dashboard.md#verificación-y-publicación).
 
 ## Usos de ingredientes

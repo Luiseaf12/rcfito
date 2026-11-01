@@ -76,5 +76,8 @@ por defecto agrega casos de estados, temporadas anteriores y snapshots de
 indicación por destino. 215 pruebas integradas (13 de dashboard), tipos y checker aprobados. QA demo de
 Todas/Realizadas/Canceladas, temporada anterior, historial por estado y móvil
 aprobado; URL de estado inválido devuelve vacío sin romper el render. Revisión
-independiente integrada. Cierre de revisión limpia y publicación: en verificación.
+independiente integrada. Cierre: 215/215 pruebas, tipos/build y checker aprobados desde revisión limpia.
+Commit 5266322 subido a GitHub y al repositorio del Site; publicación versión 19
+confirmada, con tres comprobaciones HTTP posteriores. No se escribieron fixtures
+en operación. Accesibilidad general adicional conserva el pendiente RCF-006.
 Evidencia nativa de Sites en [OPERATIONS](../OPERATIONS.md#dashboard-de-uso-de-productos).

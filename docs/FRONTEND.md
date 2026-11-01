@@ -125,4 +125,3 @@ en Todas las aplicaciones, sobre todas las temporadas autorizadas. Agrícola,
 cultivo, etapa y estado quedan en la URL. Cantidad y dosis se ordenan por unidad,
 con leyenda que distingue valores registrados y consumo real. El móvil contiene
 el scroll en cada tabla. [Contrato y QA](flows/product-dashboard.md).
-

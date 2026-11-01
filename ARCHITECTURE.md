@@ -167,4 +167,3 @@ reales corregidos; indicadas/canceladas resuelven su indicación histórica por
 destino con indicationForTarget. Cantidades por unidad, promedio ponderado y
 fechas según estado se definen en [la ficha](docs/flows/product-dashboard.md).
 Carga diferida, shell y errores existentes conservados.
-

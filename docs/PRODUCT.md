@@ -367,4 +367,3 @@ histórica del destino para los demás estados. No equivalen a consumo real al
 incluir indicadas/canceladas; la fecha identifica su origen. No hay comparación
 programado/ejecutado y no sustituye el reporte completo.
 [Contrato, recorrido y evidencia](flows/product-dashboard.md).
-
