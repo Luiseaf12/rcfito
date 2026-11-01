@@ -1,6 +1,6 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { catalogKinds, emptyWorkspace, type CatalogRecord, type SowingStage, type WorkspaceCommand, type WorkspaceData } from '@/domain/model'
-import { normalizeConnection, type Connection } from './connection-config'
+import { connectionSessionKey, migrateManagedSession, normalizeConnection, resolveConnection, storedConnection, type Connection } from './connection-config'
 
 export type { Connection } from './connection-config'
 const configKey = 'rcfito.supabase.v1'
@@ -13,19 +13,34 @@ export async function loadRuntimeConnection(): Promise<void> {
   if (config.mode !== 'supabase' || typeof config.url !== 'string' || typeof config.key !== 'string') {
     throw new Error('La configuración de esta instalación está incompleta.')
   }
-  runtimeConnection = normalizeConnection(config, window.location.href)
+  const next = normalizeConnection(config, window.location.href)
+  if (next.managed && (new URL(next.url).origin !== window.location.origin || new URL(next.url).pathname !== '/supabase')) {
+    throw new Error('La conexión gestionada debe usar el proxy /supabase de esta instalación.')
+  }
+  runtimeConnection = next
 }
 export function readConnection(): Connection | null {
-  try { const saved=JSON.parse(localStorage.getItem(configKey)??'null'); if(saved?.mode==='demo')return null;if(saved?.url&&saved?.key) return normalizeConnection(saved) } catch { /* Ignore invalid browser preferences. */ }
-  if (runtimeConnection) return runtimeConnection
+  let saved: unknown = null
+  try { saved = JSON.parse(localStorage.getItem(configKey) ?? 'null') } catch { /* Ignore invalid browser preferences. */ }
   const url=import.meta.env.VITE_SUPABASE_URL, key=import.meta.env.VITE_SUPABASE_ANON_KEY
-  return url&&key ? {url,key} : null
+  const connection = resolveConnection(saved, runtimeConnection, storedConnection(url && key ? { url, key } : null))
+  if (connection?.managed) {
+    try {
+      migrateManagedSession(localStorage, storedConnection(saved), connection)
+      localStorage.setItem(configKey, JSON.stringify(connection))
+    } catch { /* A blocked store does not change the selected server. */ }
+  }
+  return connection
 }
-export function saveConnection(value: Connection | null) {
-  if(!value) { localStorage.setItem(configKey,JSON.stringify({mode:'demo'})); return }
-  localStorage.setItem(configKey,JSON.stringify(normalizeConnection(value)))
+export function saveConnection(value: Connection | null): Connection | null {
+  if(!value) { localStorage.setItem(configKey,JSON.stringify({mode:'demo'})); return null }
+  const previous = normalizeConnection(value)
+  const connection = resolveConnection(previous, runtimeConnection)!
+  migrateManagedSession(localStorage, previous, connection)
+  localStorage.setItem(configKey,JSON.stringify(connection))
+  return connection
 }
-export const connect = (config:Connection) => createClient(config.url,config.key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}})
+export const connect = (config:Connection) => createClient(config.url,config.key,{auth:{storageKey:connectionSessionKey(config),persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}})
 type Raw = Record<string, unknown>
 const string = (value:unknown) => typeof value==='string'?value:''
 const n = (value:unknown) => Number(value??0)

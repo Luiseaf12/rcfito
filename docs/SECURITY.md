@@ -111,3 +111,19 @@ decodificación y la pérdida de la URL al crecer los logs; se verificaron las
 correcciones con peticiones anónimas y pruebas HTTPS. Evidencia en
 [TESTING](TESTING.md#quick-tunnel-https). El endpoint estable y SMTP de recuperación
 siguen pendientes. Las pruebas demo y HTTP aisladas se conservan por separado.
+
+## Registro automático de la conexión
+
+El Worker de Sites conserva el acceso privado y autoriza el registro con un
+secreto adicional de actualización. El publicador local usa acceso de servicio
+existente del Site; ambas credenciales permanecen fuera de Git, del navegador y
+de R2, en su carpeta local con ACL restringida. El servidor valida la dirección y
+su salud, fija una vigencia de 120 segundos y rechaza rutas o destinos ambiguos.
+Un registro vencido no se usa para reenviar sesiones. Las consultas Docker del
+monitor tienen timeout y se reintentan cuando el motor vuelve a estar disponible.
+
+El proxy permite solo las rutas API y cabeceras necesarias; no reenvía cookies,
+identidad de ChatGPT, credenciales del actualizador, redirecciones ni Set-Cookie
+del destino. La configuración managed queda disponible aun con la PC caída y no
+simula conexión de datos mediante demo. R2 contiene únicamente URL/vigencia, sin
+registros de negocio. Procedimiento: [Conexión automática](tunnel-auto-update.md).

@@ -111,6 +111,8 @@ SMTP/recuperación sigue pendiente. Registro de versión en
 
 ## Navegador de demostración
 
+La actualización automática del túnel tiene su evidencia independiente abajo.
+
 Casos ejecutados por el agente principal a 1440 px en el frontend local:
 
 - Crear «Cultivo de verificación», buscar `verificacion` sin depender de acentos,
@@ -145,3 +147,21 @@ separadas.
 El checker documental comprueba destinos locales, no anchors ni URLs externas.
 No certifica UX, RLS ni cálculos. Las referencias TS/TSX del bundle del estándar
 no forman parte del código compilado de la aplicación.
+
+## Actualización automática del túnel
+
+Implementación del 2026-10-31: proxy de mismo origen, registro R2 de URL/vigencia y
+publicador local con tarea Windows de inicio de sesión. Datos de negocio y
+volúmenes de Supabase se conservan.
+
+34 pruebas de dominio, conexión, Worker y publicador aprobadas. Cubren migración
+de conexión y sesión del mismo backend, aislamiento de demo/custom, validación de
+destinos/rutas, secreto de escritura, expiración del lease, caída sin cambio a
+demo, conservación de JWT/apikey y cabeceras REST, exclusión de cookies/identidad,
+rechazo de redirecciones y cambio del destino tras una renovación. Revisión
+independiente realizada; se añadió timeout para que Docker no bloquee el monitor.
+
+La tarea Windows quedó instalada y en ejecución con ACL privada para sus
+credenciales. Publicación del Worker, aceptación del binding R2 y prueba de
+renovación tras reiniciar únicamente el conector: pendientes de verificación.
+No se reinició la PC ni se modificaron datos de negocio para esta prueba.

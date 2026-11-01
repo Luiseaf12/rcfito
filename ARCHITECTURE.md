@@ -75,12 +75,13 @@ envía `/supabase/auth/v1`, `/supabase/rest/v1` y `/supabase/functions/v1` a la 
 API por la red Docker. No reenvía Studio ni rutas administrativas. El JSON se
 carga en ejecución y la normalización conserva el prefijo `/supabase`.
 
-El Site aloja el frontend privado. `public/rcfito-config.json` define su conexión
-inicial mediante URL HTTPS temporal y clave pública; la preferencia de cada
-navegador puede reemplazarla o elegir demo. El Quick Tunnel enlaza la API a esta
-PC. Un reinicio puede cambiar su dirección y requiere actualizar la configuración
-del Site o del navegador. Sites no sustituye la base por D1. Procedimiento y
-límites: [OPERATIONS](docs/OPERATIONS.md#quick-tunnel-gratuito-para-pruebas).
+El Site aloja el frontend privado y un Worker con proxy `/supabase` del mismo
+origen. La configuración managed utiliza esa ruta fija y migra preferencias
+anteriores del mismo backend. El actualizador de Windows renueva en R2 únicamente
+la URL del Quick Tunnel y su vigencia; una URL caducada produce 503. Las sesiones,
+permisos y datos de negocio permanecen en Supabase de esta PC. El proxy no
+reenvía identidad o cookies de Sites. Detalle y límites:
+[Conexión automática](docs/tunnel-auto-update.md).
 
 Configuración, respaldos y datos persistentes se transfieren aparte al migrar de servidor;
 ver [OPERATIONS](docs/OPERATIONS.md).

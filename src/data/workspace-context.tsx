@@ -43,7 +43,7 @@ export function WorkspaceProvider({children}:{children:ReactNode}) {
     await writeCommand(client,c)
     try{await refresh()}catch{setWarning('El cambio se guardó, pero no se pudo actualizar la vista. Usa Actualizar; no repitas la captura.')}
   },[client,profile,refresh])
-  const configure=(c:Connection|null)=>{saveConnection(c);setConnection(c?{...c}:null)}
+  const configure=(c:Connection|null)=>{setConnection(saveConnection(c))}
   const signIn=async(email:string,password:string)=>{if(!client)throw new Error('Primero configura la conexión.');const{error}=await client.auth.signInWithPassword({email,password});if(error)throw error}
   const signOut=async()=>{if(!client)return;const{error}=await client.auth.signOut();if(error)throw error;setData(emptyWorkspace());setSession(null)}
   const resetDemo=()=>{const next=createDemoData();localStorage.setItem(demoKey,JSON.stringify(next));dataRef.current=next;setData(next);setDemoRole('admin')}

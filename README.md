@@ -11,9 +11,9 @@ La demostración identificada se elige desde Conexión y preferencias.
 La instalación real de este equipo se
 abre en [RCFito local](http://127.0.0.1:5180), con administrador, acceso y guardado
 real comprobados.
-El acceso de prueba desde Sites usa HTTPS exterior; la PC y Docker deben estar
-activos. Comandos y renovación de la dirección en
-[Quick Tunnel](docs/OPERATIONS.md#quick-tunnel-gratuito-para-pruebas).
+El acceso de prueba desde Sites usa HTTPS exterior y una ruta fija; la PC, la
+sesión de Windows y Docker deben estar activos. La dirección aleatoria se renueva
+con el [actualizador automático](docs/tunnel-auto-update.md).
 
 React + TypeScript + Vite 8, controles shadcn/Radix y API de Supabase. El frontend
 puede explorarse con datos ficticios guardados solo en el navegador, o conectarse

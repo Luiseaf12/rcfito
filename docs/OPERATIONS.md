@@ -58,6 +58,10 @@ requiere una decisión posterior.
 
 ## Quick Tunnel gratuito para pruebas
 
+El seguimiento de cambios de dirección ahora se gestiona según
+[Conexión automática](tunnel-auto-update.md). El Site usa una ruta fija y el
+actualizador de Windows renueva el destino sin volver a publicar el frontend.
+
 El Propietario eligió Cloudflare Quick Tunnel sin comprar dominio. La composición
 [compose.tunnel.yaml](../compose.tunnel.yaml) añade el grupo `rcfito-tunnel`, con
 `rcfito-api-proxy` y `rcfito-quick-tunnel`. Usa la red `rcfito-backend`, sin publicar
@@ -86,9 +90,10 @@ node scripts/backend-tunnel.mjs site-config
 
 Este comando actualiza exclusivamente `public/rcfito-config.json` con URL y clave
 pública. Después publicar esa revisión siguiendo **GitHub y Sites**, más abajo.
-Una preferencia guardada previamente en el navegador prevalece sobre este valor
-inicial; si conserva otra dirección, actualizarla en **Conexión y preferencias**.
-El frontend Docker sigue usando su montaje local `/supabase`.
+La configuración gestionada reemplaza una dirección anterior del mismo backend;
+demo elegida o un servidor con otra clave se conservan. El frontend Docker sigue
+usando su montaje local `/supabase`. `site-config` prepara esa ruta estable, no la
+dirección aleatoria del túnel.
 
 El proxy solo reenvía `/auth/v1`, `/rest/v1` y `/functions/v1`; bloquea Studio,
 registro y administración directa de Auth y rutas ambiguas con escapes
@@ -103,11 +108,11 @@ node scripts/backend-tunnel.mjs stop
 ```
 
 Detener el túnel no detiene ni borra Supabase. Al volver a crear o reiniciar el
-conector, la URL puede cambiar: consultar `status`, repetir las comprobaciones y
-actualizar la conexión guardada o preparar/publicar de nuevo el JSON del Site.
+conector, la URL puede cambiar. Con el actualizador instalado se renueva el
+registro automáticamente; `status` permite diagnosticar el arranque actual.
 Los contenedores reinician con Docker salvo detención manual, pero la dirección
-anterior no se recupera por ese reinicio. La PC, Docker y la conexión a internet
-deben mantenerse activos.
+anterior no se recupera por ese reinicio, pero el navegador conserva su ruta fija.
+La PC, la sesión de Windows, Docker y la conexión a internet deben estar activos.
 
 Cloudflare destina [Quick Tunnels](https://developers.cloudflare.com/tunnel/get-started/quick-tunnels/)
 a pruebas/desarrollo: sin garantía de disponibilidad, con hasta 200 peticiones

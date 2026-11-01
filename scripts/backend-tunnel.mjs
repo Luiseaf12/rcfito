@@ -9,8 +9,8 @@ const runtime = resolve(root, '.artifacts/quick-tunnel');
 const containers = ['rcfito-api-proxy', 'rcfito-quick-tunnel'];
 const compose = ['compose', '--env-file', '.env.example', '-f', 'compose.tunnel.yaml'];
 
-function docker(args, optional = false) {
-  const result = spawnSync('docker', args, { cwd: root, encoding: 'utf8', maxBuffer: 2 * 1024 * 1024 });
+function docker(args, optional = false, timeout = 20000) {
+  const result = spawnSync('docker', args, { cwd: root, encoding: 'utf8', windowsHide: true, timeout, maxBuffer: 2 * 1024 * 1024 });
   if (result.error || result.status !== 0) {
     if (optional) return null;
     throw new Error('No se confirmó la operación Docker. Comprueba que Docker Desktop esté activo y que tu sesión tenga acceso.');
@@ -49,6 +49,14 @@ function currentUrl() {
   return url;
 }
 
+export function readTunnelStatus() {
+  docker(['version', '--format', '{{.Server.Version}}']);
+  assertOwned();
+  const state = inspect('rcfito-quick-tunnel');
+  const url = currentUrl();
+  return state?.Running && url ? { url, id: state.id, startedAt: state.StartedAt } : null;
+}
+
 function readPublicKey() {
   const { key } = JSON.parse(readFileSync(resolve(root, '.artifacts/production-supabase/frontend-config.json'), 'utf8'));
   let role;
@@ -85,7 +93,7 @@ async function run(action) {
     // Validar la configuración pública antes de abrir el acceso exterior.
     readPublicKey();
     docker([...compose, 'config', '--quiet']);
-    docker([...compose, 'up', '-d', '--wait']);
+    docker([...compose, 'up', '-d', '--wait'], false, 180000);
     console.log('Conector iniciado. Esperando la dirección HTTPS temporal…');
   }
   for (let attempt = 0; attempt < (action === 'start' ? 60 : 1); attempt++) {
@@ -93,12 +101,12 @@ async function run(action) {
     if (url) {
       savePublicConnection(url);
       if (action === 'site-config') {
-        writeFileSync(resolve(root, 'public/rcfito-config.json'), `${JSON.stringify({ mode: 'supabase', url, key: readPublicKey() }, null, 2)}\n`);
-        console.log('Conexión predeterminada del Site preparada en public/rcfito-config.json. Publica esta revisión según OPERATIONS.');
+        writeFileSync(resolve(root, 'public/rcfito-config.json'), `${JSON.stringify({ mode: 'supabase', managed: true, url: '/supabase', key: readPublicKey() }, null, 2)}\n`);
+        console.log('Conexión estable /supabase del Site preparada. El actualizador registra la dirección del túnel sin modificar el frontend.');
       }
       console.log(`API de RCFito: ${url}`);
       console.log('Conexión pública: .artifacts/quick-tunnel/connection.json (URL y clave pública; sin secretos).');
-      console.log('La URL puede cambiar al reiniciar el conector. Configúrala en Conexión y preferencias del Site.');
+      console.log('El actualizador registra esta dirección automáticamente; el Site conserva su ruta /supabase.');
       return;
     }
     if (action === 'start') await setTimeout(1000);
@@ -106,7 +114,9 @@ async function run(action) {
   throw new Error('El túnel aún no tiene una URL activa. Revisa el estado de rcfito-quick-tunnel y vuelve a consultar status.');
 }
 
-run(process.argv[2] ?? 'status').catch((error) => {
-  console.error(error.message);
-  process.exitCode = 1;
-});
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  run(process.argv[2] ?? 'status').catch((error) => {
+    console.error(error.message);
+    process.exitCode = 1;
+  });
+}
