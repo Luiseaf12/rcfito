@@ -538,8 +538,18 @@ Recargar después de terminar cualquier captura abierta para recibir la versión
 2026-11-01, RCF-027: regla local documentada y formato de presentación compartido
 aplicado a métricas, tablas generales/por lote e historial del dashboard. Se
 conservan cálculos, captura y conteos; sin migraciones ni cambios de configuración.
-228 pruebas, tipos/checker y QA demo/móvil aprobados. Autorrevisión. Pendiente
-publicación en Sites con la audiencia pública existente.
+Commit 672dd1b3d8fdfeea694e922c194b15bd90564583 subido a GitHub y repositorio de
+Sites. 228 pruebas, ocho comprobaciones puntuales de redondeo, tipos/build/checker,
+workflow de GitHub y QA demo/móvil aprobados. Autorrevisión. Sites confirmó
+succeeded, versión 24
+appgprj_6ae67ae019e88191a7012093bb19c505~appgver_76e8f420b11c8191a2b3fbdcd17ad8a8,
+despliegue appgdep_6ae7677e4f348191b64fff081e1e48a6 a las
+2026-11-01T16:23:33Z, en [RCFito](https://rcfito.paxxa.chatgpt.site).
+Audiencia pública y entorno revisión 1 conservados; tres comprobaciones HTTP 200
+posteriores verificaron HTML/bundle exacto y mínimo/máximo de dos decimales.
+Sin datos ficticios en operación. La reapertura del source verificó el commit
+actual antes de empaquetar, tras rechazarse la referencia de apertura anterior.
+Recargar después de terminar cualquier captura abierta para recibir la versión.
 [Regla](FRONTEND.md#decimales-en-reportes) y [QA](TESTING.md#decimales-en-reportes).
 
 ## Consultas por chat, audio y CLI
