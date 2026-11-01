@@ -37,7 +37,7 @@ function addTarget(data: WorkspaceData, id: string, overrides: Partial<Applicati
   return target
 }
 
-test('cuenta destinos realizados y calcula cantidades y dosis ponderadas solo con sus productos reales', () => {
+test('al filtrar realizadas cuenta destinos y calcula cantidades y dosis ponderadas solo con sus productos reales', () => {
   const data = fixture()
   addOrder(data)
   addTarget(data, 'target-small', { actual_products: [liquid(100), solid(25)] })
@@ -45,7 +45,7 @@ test('cuenta destinos realizados y calcula cantidades y dosis ponderadas solo co
   addTarget(data, 'target-indicated', { status: 'indicated', actual_date: null, actual_products: [] })
   addTarget(data, 'target-cancelled', { status: 'cancelled', actual_date: null, actual_products: [] })
   const original = structuredClone(data)
-  const result = buildProductUsage(data)
+  const result = buildProductUsage(data, { status: 'performed' })
   assert.equal(result.applicationCount, 2, 'varios productos de una mezcla no multiplican el total general')
   assert.equal(result.products.length, 2)
   const [a, b] = result.products
@@ -55,7 +55,7 @@ test('cuenta destinos realizados y calcula cantidades y dosis ponderadas solo co
   assert.equal(a.accumulatedAreaHa, 10)
   assert.equal(a.averageDose, 180, 'la media debe ponderarse por superficie, no ser 150')
   assert.equal(a.destinationCount, 2)
-  assert.equal(a.lastAppliedDate, '2026-10-08')
+  assert.equal(a.lastRecordedDate, '2026-10-08')
   assert.deepEqual(a.history.map(row => row.targetId), ['target-large', 'target-small'])
   assert.equal(a.history[0].quantity, 1600)
   assert.equal(b.totalQuantity, 50)
@@ -81,7 +81,7 @@ test('la superficie acumulada cuenta cada aplicación y los destinos cuentan cad
   assert.equal(product.averageDose, 75)
 })
 
-test('filtra agrícola, cultivo y número de etapa sin mezclar temporadas y conserva etapas cerradas', () => {
+test('filtra agrícola, cultivo y número de etapa incluyendo proyectos y etapas cerrados', () => {
   const data = fixture()
   data.stages.find(stage => stage.id === 'stage-1')!.status = 'closed'
   addOrder(data)
@@ -93,17 +93,17 @@ test('filtra agrícola, cultivo y número de etapa sin mezclar temporadas y cons
   addTarget(data, 'south-1', { order_id: 'order-south', stage_id: 'south-stage' })
   addTarget(data, 'tomato-1', { order_id: 'order-tomato', stage_id: 'tomato-stage', crop_name: 'Tomate' })
   addTarget(data, 'history-1', { order_id: 'order-history', stage_id: 'stage-history' })
-  assert.equal(buildProductUsage(data).applicationCount, 4)
-  assert.equal(buildProductUsage(data, { agriculturalUnitId: 'agri-ensenada' }).applicationCount, 3)
-  assert.equal(buildProductUsage(data, { cropId: 'crop-pepino', stageNumber: 1 }).applicationCount, 2, 'etapa 1 se repite en varias subdivisiones')
+  assert.equal(buildProductUsage(data).applicationCount, 5)
+  assert.equal(buildProductUsage(data, { agriculturalUnitId: 'agri-ensenada' }).applicationCount, 4)
+  assert.equal(buildProductUsage(data, { cropId: 'crop-pepino', stageNumber: 1 }).applicationCount, 3, 'etapa 1 se repite en varias subdivisiones y temporadas')
   const selected = buildProductUsage(data, { agriculturalUnitId: 'agri-ensenada', cropId: 'crop-pepino', stageNumber: 1 })
-  assert.equal(selected.applicationCount, 1, 'la etapa cerrada sigue contando en su proyecto activo')
-  assert.equal(selected.products[0].history[0].targetId, 'north-1')
+  assert.equal(selected.applicationCount, 2, 'las etapas cerradas y la temporada anterior siguen contando')
+  assert.deepEqual(selected.products[0].history.map(row => row.targetId), ['history-1', 'north-1'])
   assert.equal(buildProductUsage(data, { stageNumber: 2 }).applicationCount, 1)
   assert.equal(buildProductUsage(data, { agriculturalUnitId: 'agri-unknown' }).applicationCount, 0)
-  assert.equal(buildProductUsage(data, { agriculturalUnitId: '', cropId: '' }).applicationCount, 4)
+  assert.equal(buildProductUsage(data, { agriculturalUnitId: '', cropId: '' }).applicationCount, 5)
   data.projects.find(project => project.id === 'project-culiacan')!.status = 'draft'
-  assert.equal(buildProductUsage(data).applicationCount, 3)
+  assert.equal(buildProductUsage(data).applicationCount, 5, 'el estado del proyecto no oculta registros guardados')
 })
 
 test('usa nombres y superficies conservados aunque cambien catálogos y siembras', () => {
@@ -150,7 +150,7 @@ test('las correcciones vigentes sustituyen los valores reales anteriores sin con
   assert.equal(result.products[0].productId, 'product-b')
   assert.equal(result.solidG, 3000)
   assert.equal(result.liquidMl, 0)
-  assert.equal(result.products[0].lastAppliedDate, '2026-10-14')
+  assert.equal(result.products[0].lastRecordedDate, '2026-10-14')
 })
 
 test('separa unidades conservadas del mismo identificador de producto y ordena empates de manera estable', () => {
@@ -210,6 +210,123 @@ test('no duplica un destino repetido y respeta el ámbito que entrega el adaptad
   assert.ok(result.products[0].history.every(row => row.agriculturalUnitName === 'Ensenada'))
 })
 
-test('una consulta sin realizaciones devuelve un resumen vacío sin valores no finitos', () => {
+test('una consulta sin registros devuelve un resumen vacío sin valores no finitos', () => {
   assert.deepEqual(buildProductUsage(createDemoData()), { products: [], applicationCount: 0, liquidMl: 0, solidG: 0, incompleteCount: 0 })
+})
+
+test('por defecto incluye indicadas, realizadas y canceladas con la fecha y mezcla correspondientes a cada estado', () => {
+  const data = fixture()
+  addOrder(data, 'order-1', { products: [liquid(100, 'Nombre indicado')], indicated_date: '2026-10-01', scheduled_date: '2026-12-15' })
+  addTarget(data, 'indicated', { status: 'indicated', actual_date: null, actual_products: [] })
+  addTarget(data, 'cancelled', { status: 'cancelled', actual_date: '2026-10-31', actual_products: [solid(999)] })
+  addTarget(data, 'performed', { actual_date: '2026-10-05', actual_products: [liquid(200, 'Nombre realizado')] })
+  const original = structuredClone(data)
+  const result = buildProductUsage(data)
+  assert.equal(result.applicationCount, 3)
+  assert.equal(result.products.length, 1)
+  assert.equal(result.products[0].applicationCount, 3)
+  assert.equal(result.products[0].name, 'Nombre realizado')
+  assert.equal(result.products[0].totalQuantity, 800)
+  assert.equal(result.products[0].averageDose, 800 / 6)
+  assert.equal(result.products[0].lastRecordedDate, '2026-10-05', 'ni la programación ni la fecha residual cancelada sustituyen la fecha de registro')
+  assert.deepEqual(result.products[0].history.map(row => [row.targetId, row.status, row.source, row.recordDate]), [
+    ['performed', 'performed', 'actual', '2026-10-05'],
+    ['cancelled', 'cancelled', 'indication', '2026-10-01'],
+    ['indicated', 'indicated', 'indication', '2026-10-01'],
+  ])
+  assert.deepEqual(buildProductUsage(data, { status: 'all' }), result)
+  const indicated = buildProductUsage(data, { status: 'indicated' })
+  assert.equal(indicated.applicationCount, 1)
+  assert.equal(indicated.liquidMl, 200)
+  assert.equal(indicated.solidG, 0)
+  const cancelled = buildProductUsage(data, { status: 'cancelled' })
+  assert.equal(cancelled.applicationCount, 1)
+  assert.equal(cancelled.liquidMl, 200, 'los valores reales residuales no pertenecen a una cancelada')
+  assert.equal(cancelled.solidG, 0)
+  const performed = buildProductUsage(data, { status: 'performed' })
+  assert.equal(performed.applicationCount, 1)
+  assert.equal(performed.liquidMl, 400)
+  assert.deepEqual(data, original)
+})
+
+function revisedIndications() {
+  let data = createDemoData()
+  const admin = data.profiles.find(profile => profile.id === DEMO_ADMIN_ID)!
+  Object.assign(data.stages.find(stage => stage.id === 'stage-2')!, {
+    crop_id: 'crop-pepino', variety_id: 'var-pepino-persian', crop_name_snapshot: 'Pepino', variety_name_snapshot: 'Persa',
+    status: 'planted', planned_sowing_date: '2026-10-02', actual_sowing_date: '2026-10-04',
+  })
+  data = applyCommand(data, { type: 'create_application_order', record: {
+    id: 'revised-order', project_id: 'project-ensenada', field_id: 'field-norte', crop_id: 'crop-pepino', method_id: 'method-dron',
+    indicated_date: '2026-10-10', scheduled_date: '2026-10-15', water_l_ha: 100, observations: '',
+    stage_ids: ['stage-1', 'stage-2'], products: [{ product_id: 'product-a', dose: 100 }],
+  } }, admin)
+  data = applyCommand(data, { type: 'revise_application_order', record: {
+    id: 'revision-1', order_id: 'revised-order', expected_revision: 0, target_ids: data.applicationTargets.map(target => target.id),
+    method_id: 'method-dron', indicated_date: '2026-10-11', scheduled_date: '2026-10-16', water_l_ha: 110, observations: '',
+    reason: 'Primera revisión ficticia', products: [{ product_id: 'product-b', dose: 25 }],
+  } }, admin)
+  const cancelledId = data.applicationTargets.find(target => target.stage_id === 'stage-1')!.id
+  data = applyCommand(data, { type: 'cancel_application_targets', order_id: 'revised-order', target_ids: [cancelledId], reason: 'Cancelación ficticia' }, admin)
+  data = applyCommand(data, { type: 'revise_application_order', record: {
+    id: 'revision-2', order_id: 'revised-order', expected_revision: 1,
+    target_ids: data.applicationTargets.filter(target => target.status === 'indicated').map(target => target.id),
+    method_id: 'method-dron', indicated_date: '2026-10-12', scheduled_date: '2026-10-17', water_l_ha: 120, observations: '',
+    reason: 'Segunda revisión ficticia', products: [{ product_id: 'product-a', dose: 300 }],
+  } }, admin)
+  return { data, cancelledId }
+}
+
+test('la indicación usa su revisión vigente y la cancelada mantiene congelada la revisión que tenía', () => {
+  const { data, cancelledId } = revisedIndications()
+  const original = structuredClone(data)
+  const result = buildProductUsage(data)
+  const liquidProduct = result.products.find(product => product.unit === 'ml')!
+  const solidProduct = result.products.find(product => product.unit === 'g')!
+  assert.equal(result.applicationCount, 2)
+  assert.equal(result.incompleteCount, 0)
+  assert.equal(liquidProduct.totalQuantity, 2100)
+  assert.equal(liquidProduct.averageDose, 300)
+  assert.equal(liquidProduct.lastRecordedDate, '2026-10-12')
+  assert.equal(liquidProduct.history[0].status, 'indicated')
+  assert.equal(liquidProduct.history[0].source, 'indication')
+  assert.equal(solidProduct.totalQuantity, 300)
+  assert.equal(solidProduct.averageDose, 25)
+  assert.equal(solidProduct.lastRecordedDate, '2026-10-11')
+  assert.equal(solidProduct.history[0].targetId, cancelledId)
+  assert.equal(solidProduct.history[0].status, 'cancelled')
+  assert.equal(data.applicationOrders[0].products[0].dose, 100, 'la orden base no representa las revisiones de los destinos')
+  assert.deepEqual(data, original)
+})
+
+test('el historial de indicación faltante excluye el destino sin sustituirlo por la orden base', () => {
+  const { data } = revisedIndications()
+  data.applicationChanges = data.applicationChanges.filter(change => change.id !== 'revision-1')
+  const partial = buildProductUsage(data)
+  assert.equal(partial.incompleteCount, 1)
+  assert.equal(partial.applicationCount, 1)
+  assert.equal(partial.solidG, 0)
+  assert.equal(partial.liquidMl, 2100)
+  data.applicationChanges = []
+  const empty = buildProductUsage(data)
+  assert.equal(empty.incompleteCount, 2)
+  assert.equal(empty.applicationCount, 0)
+  assert.deepEqual(empty.products, [])
+})
+
+test('una realizada incompleta nunca utiliza los productos indicados aunque se consulte Todos', () => {
+  const data = fixture()
+  addOrder(data, 'order-1', { products: [solid(200)] })
+  addTarget(data, 'performed-empty', { actual_products: [], actual_date: '2026-10-05' })
+  addTarget(data, 'performed-no-date', { actual_products: [liquid(100)], actual_date: null })
+  addTarget(data, 'indicated-valid', { status: 'indicated', actual_products: [], actual_date: null })
+  const result = buildProductUsage(data)
+  assert.equal(result.incompleteCount, 2)
+  assert.equal(result.applicationCount, 1)
+  assert.equal(result.products.length, 1)
+  assert.equal(result.solidG, 400)
+  assert.equal(result.liquidMl, 0)
+  const actualOnly = buildProductUsage(data, { status: 'performed' })
+  assert.equal(actualOnly.incompleteCount, 2)
+  assert.equal(actualOnly.applicationCount, 0)
 })

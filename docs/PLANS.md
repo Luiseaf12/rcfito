@@ -29,7 +29,7 @@ Fecha de revisión: 2026-10-31.
 
 | RCF-021 | Catálogo de usos/clasificaciones y relación principal de ingredientes. | cerrada | Agente principal | Commit a98f662 en GitHub y Sites versión 18; frontend Docker actualizado. 211 pruebas integradas, 327 SQL, 99 HTTP y 12 comprobaciones posteriores aprobadas. Respaldo y migración operativa 6/0; historial conservado. | [Ficha](flows/ingredient-classifications.md) y [operación](OPERATIONS.md#usos-de-ingredientes) |
 
-| RCF-022 | Dashboard de productos realizados: tabla, ranking e historial. | en verificación | Agente principal y revisión independiente | Dominio, filtros y QA demo/móvil aprobados; cerrar validación limpia, commit/push y Sites. | [Ficha](flows/product-dashboard.md) |
+| RCF-022 | Dashboard de productos registrados: tabla, ranking e historial. | en verificación | Agente principal y revisión independiente | Primera revisión en GitHub e incluida en Sites 18; validar y publicar la rectificación a Todas por defecto, con estado y temporadas anteriores. | [Ficha](flows/product-dashboard.md) |
 
 Estados y cierre: [DOCUMENTATION](../.project-standards/DOCUMENTATION.md#planes-decisiones-y-deuda).
 Una tarea registrada no autoriza implementarla. Conservar su ID y actualizar su

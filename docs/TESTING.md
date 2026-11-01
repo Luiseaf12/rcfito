@@ -374,22 +374,26 @@ ni mutaciones de productos reales para verificar la publicación.
 
 ## Dashboard de uso de productos
 
-Pruebas de [product-usage](../test/product-usage.test.ts): nueve casos de conteos
-por destino, productos reales, unidades, ponderación, correcciones/snapshots,
-filtros, etapas cerradas de proyectos activos, permisos demo e incompletos.
-No se consultan datos ni se escriben fixtures en operación.
+[product-usage.test.ts](../test/product-usage.test.ts) cubre conteos por destino,
+unidades, ponderación, correcciones/snapshots, filtros, permisos demo e incompletos.
+La rectificación a Todas por defecto cubre los tres estados, temporadas cerradas,
+indicaciones revisadas/canceladas congeladas, fechas según estado y falta de
+historial sin fallback. No se escriben fixtures ni se capturan aplicaciones en
+operación para verificar.
 
-QA en demo aislada en `http://127.0.0.1:5193/`: doce productos y quince destinos
-ficticios, con mezclas y dos agrícolas. Se verificaron tres filtros, conteos y
-cantidades, paginación de tabla/historial, última fecha y promedio ponderado,
-recarga conservando filtros, cierre con Escape/retorno de foco y orden por fecha.
-A 375 y 1440 px no hubo desbordamiento horizontal de página; las tablas mantienen
-scroll propio. URL de etapa inválida devuelve vacío y no amplía el ámbito. Cero
-errores de consola en este recorrido. No equivale a captura real en Supabase.
+La primera revisión limpia aprobó 206 pruebas, tipos/build y checker. QA demo en
+5193 con doce productos y quince destinos comprobó filtros, paginación de tabla e
+historial, promedio ponderado, recarga conservando filtros, Escape y retorno de
+foco, orden por fecha y lector limitado a su agrícola. A 375/1440 px, sin overflow
+de página y con scroll de tablas contenido. Etapa inválida devuelve vacío; sin
+errores de consola. El commit limpio también se comprobó en 5194.
 
-Verificación de la revisión limpia y publicación: en curso.
-[Contrato y cierre](flows/product-dashboard.md#verificación-y-publicación).
-
+Rectificación: 215 pruebas integradas aprobadas (13 del dashboard), tipos y
+checker válidos. QA demo con 18 destinos comprobó Todas por defecto, cambio a
+Realizadas/Canceladas, fechas/estados y temporada anterior en historial. A 375 px
+no hubo overflow; estado inválido de URL no rompe el render ni amplía la consulta.
+Cierre de revisión limpia y publicación: en verificación.
+[Contrato](flows/product-dashboard.md#verificación-y-publicación).
 
 ## Usos de ingredientes
 

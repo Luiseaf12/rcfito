@@ -159,10 +159,12 @@ conserva el nombre escrito y la vinculación determinista ocurre al revisar.
 
 ## Dashboard de uso de productos
 
-[product-dashboard](src/features/product-dashboard.tsx) reemplaza el resumen de
-siembras de `/` por filtros, tabla, ranking e historial de productos realizados.
-[product-usage](src/domain/product-usage.ts) agrega snapshots reales del workspace
-ya autorizado, sin nuevas consultas ni mutaciones. Cantidades calculadas por
-unidad, promedio ponderado y conteos por destino se definen en
-[la ficha](docs/flows/product-dashboard.md). La carga es diferida y reutiliza el
-shell, sus errores y la hidratación vigente de correcciones reales.
+[product-dashboard](src/features/product-dashboard.tsx) ofrece filtros, tabla,
+ranking e historial en `/`. [product-usage](src/domain/product-usage.ts) agrega el
+workspace autorizado de todas las temporadas y estados, sin consultas o mutaciones
+nuevas. Todas las aplicaciones es el estado inicial. Realizadas usan snapshots
+reales corregidos; indicadas/canceladas resuelven su indicación histórica por
+destino con indicationForTarget. Cantidades por unidad, promedio ponderado y
+fechas según estado se definen en [la ficha](docs/flows/product-dashboard.md).
+Carga diferida, shell y errores existentes conservados.
+

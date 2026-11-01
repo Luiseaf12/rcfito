@@ -426,13 +426,17 @@ del proveedor ni escrituras ficticias en operación. Registro de evidencia en
 
 ## Dashboard de uso de productos
 
-Solicitud del 2026-11-01: implementar y publicar el dashboard de productos
-realizados con filtros de agrícola/cultivo/etapa. No requiere migraciones ni
-cambios de configuración, secretos o volúmenes. Publicar desde revisión limpia
-validada, conservando identidad, audiencia y entorno del Site. Las pruebas
-ficticias permanecen fuera de operación y del build publicado.
+Solicitud del 2026-11-01 con commit/push y Sites, rectificada durante la entrega:
+Todas las aplicaciones guardadas por defecto; filtros de agrícola/cultivo/etapa y
+estado, sobre todas las temporadas autorizadas. Tabla, ranking e historial con
+valores y fechas según el estado. No requiere migraciones, cambios de secretos,
+configuración ni volúmenes.
 
-Commit/push y resultado nativo de Sites: en curso.
+El commit inicial `5f040bae1551d1c4a2cc8217a9b6675515aa7c9f` quedó en GitHub y
+fue incluido en la publicación posterior de Usos de ingredientes, versión 18.
+La rectificación se valida y publica sobre esa revisión, conservando sus cambios
+y la audiencia pública. Los fixtures permanecen fuera del build y de operación.
+Commit/push y resultado nativo de la rectificación: en curso.
 [Contrato y evidencia](flows/product-dashboard.md).
 
 ## Usos de ingredientes

@@ -358,9 +358,13 @@ históricos. Reglas exactas y aceptación: [ficha](flows/product-synonyms.md).
 
 ## Dashboard de uso de productos
 
-Autorizado el 2026-11-01: en Resumen, tabla de productos realizados, ranking por
-aplicaciones e historial al seleccionar. Solo temporadas activas; filtros de
-agrícola, cultivo y número de etapa. Cantidades calculadas desde dosis/superficie
-reales, promedio ponderado, última fecha real y etapas distintas por producto.
-Conserva unidades y snapshots; no compara programado/ejecutado ni sustituye el
-reporte completo. [Contrato, recorrido y evidencia](flows/product-dashboard.md).
+Autorizado y rectificado el 2026-11-01: Resumen muestra por defecto todas las
+aplicaciones guardadas, incluidas temporadas anteriores. Filtros de agrícola,
+cultivo, número de etapa y estado (Todas/Indicadas/Realizadas/Canceladas). Tabla
+de productos, ranking por aplicaciones e historial al seleccionar. La cantidad
+y dosis se calculan con la realización guardada para realizadas y la indicación
+histórica del destino para los demás estados. No equivalen a consumo real al
+incluir indicadas/canceladas; la fecha identifica su origen. No hay comparación
+programado/ejecutado y no sustituye el reporte completo.
+[Contrato, recorrido y evidencia](flows/product-dashboard.md).
+
