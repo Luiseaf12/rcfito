@@ -434,3 +434,29 @@ ficticias permanecen fuera de operación y del build publicado.
 
 Commit/push y resultado nativo de Sites: en curso.
 [Contrato y evidencia](flows/product-dashboard.md).
+
+## Usos de ingredientes
+
+2026-11-01: catálogo de clasificaciones principales de ingredientes y relación
+opcional publicados desde el commit `a98f662787cbf63d0bd5920a5363e453a96f64f1`.
+Se integraron los cambios recientes sin reemplazar trabajo local. La revisión
+limpia aprobó 211 pruebas cliente, tipos/build y checker documental; el alcance
+de persistencia aprobó 327 comprobaciones SQL y 99 HTTP con Supabase aislado.
+QA demo de alta/relación/recarga, inactivos, lector y móvil aprobado; autorrevisión.
+
+Antes del frontend se validó respaldo custom privado de PostgreSQL (442,895 bytes)
+y se aplicó `20261101131945_ingredient_classifications.sql` con el gestor SHA-256:
+seis aplicadas y cero pendientes. La comparación privada de productos,
+composiciones, aplicaciones y su historial fue idéntica antes/después. Sin datos
+ficticios en operación; catálogo vacío e ingredientes existentes sin clasificar.
+No se leyó ni modificó el `.env` del usuario.
+
+Docker reconstruido desde el mismo checkout, con montaje público conservado.
+Sites confirmó `succeeded`, versión 18
+`appgprj_6ae67ae019e88191a7012093bb19c505~appgver_90ff9d2328f0819186c6b6ebea1e1458`,
+despliegue `appgdep_6ae74055171c8191848cbcdd649912e4`, en
+[RCFito](https://rcfito.paxxa.chatgpt.site). Audiencia pública y entorno revisión 1
+conservados. Doce comprobaciones posteriores en Site/local aprobaron HTML,
+bundle exacto, selector de clasificación, conexión del mismo origen y rechazo
+del catálogo anónimo 401. Sin escrituras de prueba en operación. Contrato y
+límites de QA en [la ficha](flows/ingredient-classifications.md).

@@ -389,3 +389,12 @@ errores de consola en este recorrido. No equivale a captura real en Supabase.
 
 Verificación de la revisión limpia y publicación: en curso.
 [Contrato y cierre](flows/product-dashboard.md#verificación-y-publicación).
+
+
+## Usos de ingredientes
+
+2026-11-01: 211 pruebas cliente en la revisión integrada, 327 SQL y 99 HTTP
+aislados aprobados. QA demo de relación, recarga, búsqueda, inactivos, lector
+y formulario móvil; autorrevisión de permisos/persistencia. Doce comprobaciones
+posteriores en Site/local aprobaron sin escrituras ficticias en operación.
+[Evidencia y límites](flows/ingredient-classifications.md#verificación).

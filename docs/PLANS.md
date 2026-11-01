@@ -27,7 +27,7 @@ Fecha de revisión: 2026-10-31.
 
 | RCF-020 | Sinónimos de productos, conflictos y selector por nombre/ingredientes. | cerrada | Agente principal y revisión independiente | Commit cf245f9 en GitHub y Sites versión17; frontend Docker actualizado. 197 pruebas, 308 SQL, 87 HTTP y 16 verificaciones posteriores aprobadas. Respaldo/migración operativa5/0 confirmados. | [Ficha](flows/product-synonyms.md) y [operación](OPERATIONS.md#sinónimos-y-selector-de-productos) |
 
-| RCF-021 | Catálogo de usos/clasificaciones y relación principal de ingredientes. | en verificación | Agente principal | UI, 202 pruebas, 327 SQL y 99 HTTP aprobados. Respaldo y migración operativa 6/0 confirmados; publicar el frontend conservando audiencia e historial. | [Ficha](flows/ingredient-classifications.md) |
+| RCF-021 | Catálogo de usos/clasificaciones y relación principal de ingredientes. | cerrada | Agente principal | Commit a98f662 en GitHub y Sites versión 18; frontend Docker actualizado. 211 pruebas integradas, 327 SQL, 99 HTTP y 12 comprobaciones posteriores aprobadas. Respaldo y migración operativa 6/0; historial conservado. | [Ficha](flows/ingredient-classifications.md) y [operación](OPERATIONS.md#usos-de-ingredientes) |
 
 | RCF-022 | Dashboard de productos realizados: tabla, ranking e historial. | en verificación | Agente principal y revisión independiente | Dominio, filtros y QA demo/móvil aprobados; cerrar validación limpia, commit/push y Sites. | [Ficha](flows/product-dashboard.md) |
 

@@ -1,8 +1,8 @@
 # Usos y clasificación principal de ingredientes
 
 Solicitud del Propietario, 2026-11-01: administrar los usos/clasificaciones en un
-catálogo y relacionarlos desde Ingredientes activos. Estado: implementación en
-verificación. Negocio: [PRODUCT](../PRODUCT.md#catálogos); controles:
+catálogo y relacionarlos desde Ingredientes activos. Estado: implementado y
+publicado. Negocio: [PRODUCT](../PRODUCT.md#catálogos); controles:
 [catálogos](catalogs.md). El agente principal asume desarrollo, QA y autorrevisión.
 
 ## Recorrido y reglas
@@ -58,5 +58,10 @@ Operación: respaldo privado custom de PostgreSQL validado antes de aplicar la
 migración; registro SHA-256 con seis aplicadas y cero pendientes. Comparación
 privada de las tablas de productos/aplicaciones e historial idéntica antes/después;
 catálogo nuevo vacío e ingredientes existentes sin clasificación. Sin fixtures ni
-cambios al `.env` del usuario. Publicación del frontend pendiente de confirmación.
+cambios al `.env` del usuario.
+
+Cierre: revisión integrada con 211 pruebas cliente, tipos/build y documentos
+aprobados. Commit `a98f662787cbf63d0bd5920a5363e453a96f64f1` en GitHub,
+frontend Docker y Sites versión 18 confirmados; doce comprobaciones posteriores
+aprobadas. Se conserva la audiencia. [Evidencia operativa](../OPERATIONS.md#usos-de-ingredientes).
 
