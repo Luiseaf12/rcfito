@@ -27,7 +27,8 @@ a Editar manteniendo la identidad del registro.
 | Cultivo | Nombre y estado. |
 | Variedad | Nombre y cultivo válido; estado. |
 | Producto | Nombre comercial, unidad fija g o ml y dosis sugerida por ha; marca/familia opcionales; uno o varios ingredientes relacionados. |
-| Ingrediente activo | Nombre y estado. La concentración opcional corresponde a cada relación producto-ingrediente. |
+| Usos de ingredientes | Nombre y estado; clasificaciones configurables, con eliminación protegida si hay ingredientes relacionados. |
+| Ingrediente activo | Nombre, clasificación principal opcional y estado. La concentración opcional corresponde a cada relación producto-ingrediente. |
 | Marca/familia | Nombre y estado; relación opcional del producto. |
 | Infraestructura | Nombre y estado; selección por lote completo. |
 | Medio de aplicación | Nombre y estado; dron/tractor/bomba manual son opciones configurables. |
@@ -170,3 +171,5 @@ conflictos globales exactos/aproximados e información conservada ante errores.
 Ver y buscar incluyen sinónimos; el lector solo consulta. Producto/composición/
 sinónimos se guardan atómicamente. Reglas, recorrido de captura y evidencia en
 la [ficha de sinónimos](product-synonyms.md).
+
+El catálogo adicional de usos y su relación siguen la [ficha de clasificaciones](ingredient-classifications.md).

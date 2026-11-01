@@ -132,7 +132,8 @@ su configuración e historial propios.
 | Lotes, subdivisiones y etapas | Configuración propia de cada proyecto de temporada, con historial; los lotes pueden copiarse de un proyecto anterior como base. |
 | Cultivos y variedades | La variedad se relaciona con el cultivo de la siembra. |
 | Productos | Nombre, unidad fija en gramos o mililitros y dosis predeterminada modificable en cada aplicación. |
-| Ingredientes activos | Un producto puede relacionarse con varios ingredientes activos. Al capturar cada relación se solicita su concentración como dato opcional, propio de ese ingrediente en ese producto. |
+| Usos de ingredientes | Catálogo configurable de clasificaciones para el uso principal de cada ingrediente; relación opcional única para conservar los registros actuales sin inventar su clasificación. |
+| Ingredientes activos | Clasificación principal opcional; mantenimiento en [ficha de clasificaciones](flows/ingredient-classifications.md). Un producto puede relacionarse con varios ingredientes activos. Al capturar cada relación se solicita su concentración como dato opcional, propio de ese ingrediente en ese producto. |
 | Marca y familia de producto | Datos opcionales del producto. |
 | Tipos de infraestructura | Catálogo ampliable: mallasombra, campo abierto, invernadero y otros; se asigna al lote completo. |
 | Medios de aplicación | Catálogo ampliable: dron, tractor, bomba manual y otros. |

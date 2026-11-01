@@ -93,6 +93,7 @@ try {
     sql(source);
   }
   sql(readFileSync(resolve(root, 'supabase/tests/catalogs-and-sowing.sql'), 'utf8'));
+  sql(readFileSync(resolve(root, 'supabase/tests/ingredient-classifications.sql'), 'utf8'));
   sql(applicationTests);
   const editingSetupEnd = applicationTests.indexOf('-- Captura asistida:');
   if (editingSetupEnd < 0) throw new Error('Falta el límite de fixtures para pruebas de edición.');

@@ -1,9 +1,9 @@
-export type CatalogKind = 'agricultural_units' | 'fields' | 'crops' | 'varieties' | 'products' | 'active_ingredients' | 'brands' | 'product_families' | 'infrastructure_types' | 'application_methods'
+export type CatalogKind = 'agricultural_units' | 'fields' | 'crops' | 'varieties' | 'products' | 'active_ingredients' | 'ingredient_classifications' | 'brands' | 'product_families' | 'infrastructure_types' | 'application_methods'
 export type ProductIngredient = { ingredient_id: string; concentration: string | null }
 export type CatalogRecord = {
   id: string; name: string; code?: string; active: boolean;
   agricultural_unit_id?: string; crop_id?: string; brand_id?: string | null;
-  family_id?: string | null; unit?: 'g' | 'ml'; default_dose?: number;
+  classification_id?: string | null; family_id?: string | null; unit?: 'g' | 'ml'; default_dose?: number;
   ingredients?: ProductIngredient[]; created_at?: string; unit_locked?: boolean; synonyms?: string[];
 }
 export type SowingProject = { id: string; agricultural_unit_id: string; name: string; season: string; start_date?: string; status: 'draft' | 'active' | 'closed'; created_at?: string }
@@ -62,5 +62,6 @@ export type WorkspaceCommand =
   | { type: 'revise_application_order'; record: ApplicationRevisionInput }
   | { type: 'correct_application_target'; record: ApplicationCorrectionInput }
   | { type: 'save_sowing_group'; record: SowingGroupInput }
-export const catalogKinds: CatalogKind[] = ['agricultural_units','fields','crops','varieties','products','active_ingredients','brands','product_families','infrastructure_types','application_methods']
-export function emptyWorkspace(): WorkspaceData { return { catalogs: Object.fromEntries(catalogKinds.map(key => [key, []])) as unknown as WorkspaceData['catalogs'], projects: [], lots: [], subdivisions: [], stages: [], profiles: [], assignments: [], applicationOrders: [], applicationTargets: [], applicationChanges: [], sowingGroups: [] } }
+export const catalogKinds: CatalogKind[] = ['agricultural_units','fields','crops','varieties','products','active_ingredients','ingredient_classifications','brands','product_families','infrastructure_types','application_methods']
+export function completeCatalogs(catalogs: Partial<Record<CatalogKind, CatalogRecord[]>> = {}): WorkspaceData['catalogs'] { return Object.fromEntries(catalogKinds.map(kind => [kind, catalogs[kind] ?? []])) as WorkspaceData['catalogs'] }
+export function emptyWorkspace(): WorkspaceData { return { catalogs: completeCatalogs(), projects: [], lots: [], subdivisions: [], stages: [], profiles: [], assignments: [], applicationOrders: [], applicationTargets: [], applicationChanges: [], sowingGroups: [] } }

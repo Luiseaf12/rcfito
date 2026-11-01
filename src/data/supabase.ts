@@ -106,7 +106,7 @@ export async function writeCommand(client:SupabaseClient,c:WorkspaceCommand):Pro
     case 'save_catalog': {
       const r=c.record
       if(c.kind==='products') {await rpc('save_product',{p_data:{...clean(r,['id','code','name','active','unit','default_dose','brand_id','synonyms']),code:r.code||r.name,product_family_id:r.family_id||null,brand_id:r.brand_id||null},p_ingredients:(r.ingredients??[]).map(i=>({active_ingredient_id:i.ingredient_id,concentration:i.concentration||null}))});break}
-      const values={...clean(r,['code','name','active','agricultural_unit_id','crop_id']),code:r.code||r.name}
+      const values={...clean(r,['code','name','active','agricultural_unit_id','crop_id','classification_id']),code:r.code||r.name}
       if(r.id)await update(c.kind,r.id,values);else {const {error}=await client.from(c.kind).insert(values);if(error)throw error}break
     }
     case 'delete_catalog': await remove(c.kind,c.id); break

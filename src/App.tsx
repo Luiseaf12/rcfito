@@ -28,6 +28,7 @@ const catalogNav:{kind:CatalogKind;name:string;icon:typeof Leaf}[]=[
   {kind:'agricultural_units',name:'Agrícolas',icon:Building2},{kind:'fields',name:'Campos',icon:MapPinned},
   {kind:'crops',name:'Cultivos',icon:Sprout},{kind:'varieties',name:'Variedades',icon:Leaf},
   {kind:'products',name:'Productos',icon:Package},{kind:'active_ingredients',name:'Ingredientes activos',icon:FlaskConical},
+  {kind:'ingredient_classifications',name:'Usos de ingredientes',icon:Layers3},
   {kind:'brands',name:'Marcas',icon:Package},{kind:'product_families',name:'Familias de productos',icon:Leaf},
   {kind:'infrastructure_types',name:'Infraestructura',icon:Building2},{kind:'application_methods',name:'Medios de aplicación',icon:Tractor},
 ]

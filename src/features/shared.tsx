@@ -19,6 +19,7 @@ export const catalogDefinitions: Record<CatalogKind, { title: string; singular: 
   crops: { title: 'Cultivos', singular: 'cultivo', description: 'Los cultivos que dan identidad a cada etapa de siembra.', eyebrow: 'Planeación agrícola' },
   varieties: { title: 'Variedades', singular: 'variedad', description: 'Relaciona cada variedad con el cultivo al que pertenece.', eyebrow: 'Planeación agrícola' },
   products: { title: 'Productos', singular: 'producto', description: 'Productos, dosis de referencia e ingredientes activos, en un solo lugar.', eyebrow: 'Insumos de aplicación' },
+  ingredient_classifications: { title: 'Usos de ingredientes', singular: 'uso de ingrediente', description: 'Clasificaciones para identificar el uso principal de cada ingrediente activo.', eyebrow: 'Insumos de aplicación' },
   active_ingredients: { title: 'Ingredientes activos', singular: 'ingrediente activo', description: 'Ingredientes que se relacionan con uno o varios productos.', eyebrow: 'Insumos de aplicación' },
   brands: { title: 'Marcas', singular: 'marca', description: 'Identifica las marcas de los productos. Su asignación es opcional.', eyebrow: 'Insumos de aplicación' },
   product_families: { title: 'Familias de productos', singular: 'familia', description: 'Una clasificación compartida para encontrar y organizar productos.', eyebrow: 'Insumos de aplicación' },

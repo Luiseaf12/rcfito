@@ -56,6 +56,7 @@ export function validateCatalogEdit(data: CatalogEditContext, kind: CatalogKind,
   }
   if (kind === 'fields') relation('agricultural_units', row.agricultural_unit_id, existing?.agricultural_unit_id, 'agricultural_unit_id', 'una agrícola activa')
   if (kind === 'varieties') relation('crops', row.crop_id, existing?.crop_id, 'crop_id', 'un cultivo activo')
+  if (kind === 'active_ingredients' && row.classification_id) relation('ingredient_classifications', row.classification_id, existing?.classification_id, 'classification_id', 'una clasificación activa')
   if (kind === 'products') {
     Object.assign(errors, validateProductSynonyms(data.catalogs.products, row))
     if (!['g', 'ml'].includes(row.unit ?? '')) errors.unit = 'Selecciona gramos o mililitros.'

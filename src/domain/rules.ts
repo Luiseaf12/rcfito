@@ -66,6 +66,7 @@ export function applyCommand(input: WorkspaceData, command: WorkspaceCommand, pr
         :kind==='infrastructure_types'?d.lots.some(l=>l.infrastructure_type_id===id)
         :kind==='brands'?d.catalogs.products.some(p=>p.brand_id===id)
         :kind==='product_families'?d.catalogs.products.some(p=>p.family_id===id)
+        :kind==='ingredient_classifications'?d.catalogs.active_ingredients.some(ingredient=>ingredient.classification_id===id)
         :kind==='active_ingredients'?d.catalogs.products.some(p=>p.ingredients?.some(i=>i.ingredient_id===id))
         :kind==='products'?d.applicationOrders.some(o=>o.products.some(p=>p.product_id===id))||d.applicationTargets.some(t=>t.actual_products.some(p=>p.product_id===id))||d.applicationChanges.some(change=>[change.before,change.after].some(snapshot=>snapshot.products.some(product=>product.product_id===id)))
         :kind==='application_methods'?d.applicationOrders.some(o=>o.method_id===id)||d.applicationChanges.some(change=>[change.before,change.after].some(snapshot=>'method_id' in snapshot&&snapshot.method_id===id)):false

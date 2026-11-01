@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import type { Session } from '@supabase/supabase-js'
 import { createDemoData, DEMO_ADMIN_ID, DEMO_READER_ID } from '@/domain/demo'
 import { applyCommand, scopeWorkspace } from '@/domain/rules'
-import { emptyWorkspace, type UserProfile, type WorkspaceCommand, type WorkspaceData } from '@/domain/model'
+import { completeCatalogs, emptyWorkspace, type UserProfile, type WorkspaceCommand, type WorkspaceData } from '@/domain/model'
 import { connect, loadWorkspace, readConnection, saveConnection, writeCommand, type Connection } from './supabase'
 import { interpretApplicationMessage } from './application-ai'
 import type { ExtractedApplication } from '@/domain/application-import'
@@ -10,7 +10,7 @@ import { readAiSettings, testAiConnection, persistAiSettings, type AiSettingsSta
 
 const demoKey='rcfito.demo.v1'
 type CreateUserInput={email:string;password:string;display_name:string;role:'viewer'|'admin';agricultural_unit_ids:string[]}
-const initialDemo=()=>{try {const parsed=JSON.parse(localStorage.getItem(demoKey)??'null'); if(parsed?.catalogs&&parsed?.projects&&parsed?.profiles)return {...emptyWorkspace(),...parsed,applicationOrders:parsed.applicationOrders??[],applicationTargets:parsed.applicationTargets??[],applicationChanges:parsed.applicationChanges??[],sowingGroups:parsed.sowingGroups??[]} as WorkspaceData}catch{/* Start fresh after invalid demo data. */}return createDemoData()}
+const initialDemo=()=>{try {const parsed=JSON.parse(localStorage.getItem(demoKey)??'null'); if(parsed?.catalogs&&parsed?.projects&&parsed?.profiles)return {...emptyWorkspace(),...parsed,catalogs:completeCatalogs(parsed.catalogs),applicationOrders:parsed.applicationOrders??[],applicationTargets:parsed.applicationTargets??[],applicationChanges:parsed.applicationChanges??[],sowingGroups:parsed.sowingGroups??[]} as WorkspaceData}catch{/* Start fresh after invalid demo data. */}return createDemoData()}
 type WorkspaceContextValue={data:WorkspaceData;profile:UserProfile;isAdmin:boolean;mode:'demo'|'supabase';loading:boolean;error:string|null;warning:string|null;authenticated:boolean;connection:Connection|null;mutate:(c:WorkspaceCommand)=>Promise<void>;refresh:()=>Promise<void>;configure:(c:Connection|null)=>void;signIn:(email:string,password:string)=>Promise<void>;signOut:()=>Promise<void>;setDemoRole:(role:'admin'|'reader')=>void;resetDemo:()=>void;createUser:(input:CreateUserInput)=>Promise<void>;interpretApplication:(message:string,signal?:AbortSignal)=>Promise<ExtractedApplication>;loadAiSettings:(signal?:AbortSignal)=>Promise<AiSettingsStatus>;testAiSettings:(input:AiSettingsInput,signal?:AbortSignal)=>Promise<AiSettingsTestResult>;saveAiSettings:(input:AiSettingsSaveInput,signal?:AbortSignal)=>Promise<AiSettingsStatus>}
 const Context=createContext<WorkspaceContextValue|null>(null)
 export function WorkspaceProvider({children}:{children:ReactNode}) {

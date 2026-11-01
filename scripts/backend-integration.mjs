@@ -480,6 +480,22 @@ try {
   await verifyApplications(adminToken, readerToken, noAccessToken, create.data);
   await verifyApplicationChanges(adminToken, readerToken, noAccessToken, create.data);
   await verifyProductSynonyms(adminToken, readerToken, noAccessToken);
+  const classificationId = randomUUID(), classifiedIngredientId = randomUUID();
+  const classification = { id: classificationId, code: `QA-CLASS-${suffix}`, name: `Clasificación ficticia ${suffix}` };
+  check((await request('/rest/v1/ingredient_classifications', adminToken, classification)).status === 201, 'Clasificaciones: administrador crea por REST');
+  check((await request('/rest/v1/active_ingredients', adminToken, { id: classifiedIngredientId, code: `QA-CLASS-ING-${suffix}`, name: `Ingrediente clasificado ${suffix}`, classification_id: classificationId })).status === 201, 'Clasificaciones: ingrediente guarda relación por REST');
+  const classifiedRead = await request(`/rest/v1/active_ingredients?id=eq.${classifiedIngredientId}&select=classification_id`, adminToken);
+  check(classifiedRead.status === 200 && classifiedRead.data?.[0]?.classification_id === classificationId, 'Clasificaciones: relectura conserva relación');
+  check((await request(`/rest/v1/ingredient_classifications?id=eq.${classificationId}&select=id`, readerToken)).data?.length === 1, 'Clasificaciones: lector consulta catálogo común');
+  check((await request('/rest/v1/ingredient_classifications', readerToken, { code: `QA-DENIED-${suffix}`, name: 'No permitido' })).status === 403, 'Clasificaciones: lector no escribe');
+  check((await request('/rest/v1/ingredient_classifications?select=id')).status === 401, 'Clasificaciones: acceso anónimo rechazado');
+  check((await request(`/rest/v1/ingredient_classifications?id=eq.${classificationId}`, adminToken, { active: false }, 'PATCH')).status === 204, 'Clasificaciones: baja lógica conserva registros');
+  check((await request(`/rest/v1/active_ingredients?id=eq.${classifiedIngredientId}`, adminToken, { name: `Ingrediente corregido ${suffix}`, classification_id: classificationId }, 'PATCH')).status === 204, 'Clasificaciones: edición conserva relación inactiva existente');
+  check((await request('/rest/v1/active_ingredients', adminToken, { code: `QA-BAD-CLASS-${suffix}`, name: `Ingrediente no válido ${suffix}`, classification_id: classificationId })).status >= 400, 'Clasificaciones: otra relación con opción inactiva se rechaza');
+  check((await request(`/rest/v1/ingredient_classifications?id=eq.${classificationId}`, adminToken, undefined, 'DELETE')).status === 409, 'Clasificaciones: FK protege eliminación relacionada');
+  check((await request(`/rest/v1/active_ingredients?id=eq.${classifiedIngredientId}`, adminToken, { classification_id: null }, 'PATCH')).status === 204, 'Clasificaciones: administrador puede retirar relación');
+  check((await request(`/rest/v1/ingredient_classifications?id=eq.${classificationId}`, adminToken, undefined, 'DELETE')).status === 204, 'Clasificaciones: eliminación libre confirmada');
+
   sql(`update public.profiles set active=false where id='${reader.id}';`);
   const revoked = await request('/rest/v1/agricultural_units?select=id', readerToken);
   assert(revoked.status === 200 && revoked.data.length === 0, 'Desactivación bloquea JWT de lector ya emitido');

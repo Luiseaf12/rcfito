@@ -43,6 +43,7 @@ try {
   const migrations = readdirSync(resolve(root, 'supabase/migrations')).filter((file) => file.endsWith('.sql')).sort();
   for (const file of migrations) sql(readFileSync(resolve(root, 'supabase/migrations', file), 'utf8'));
   sql(readFileSync(resolve(root, 'supabase/tests/catalogs-and-sowing.sql'), 'utf8'));
+  sql(readFileSync(resolve(root, 'supabase/tests/ingredient-classifications.sql'), 'utf8'));
   console.log(`Backend verificado: ${migrations.length} migración(es), fixtures aislados y controles de RLS/integridad. Auth es un stub de prueba; REST/Auth reales requieren integración aparte.`);
 } finally {
   if (started) removeOwnedContainer();

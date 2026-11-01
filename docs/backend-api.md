@@ -230,3 +230,17 @@ Todos los productos, incluso inactivos, reservan sus aliases. El servidor valida
 alias contra nombre/código/alias ajenos y renombres contra aliases ajenos; lock
 global de catálogo y triggers protegen concurrencia y rutas DML. No se reescriben
 productos históricos ni se generan sinónimos supuestos en la migración.
+
+## Clasificación principal de ingredientes
+
+`ingredient_classifications`: `id`, `code`, `name`, `active`, `created_at`,
+con nombre único comparando acentos/caso/espacios exteriores. Es un catálogo común:
+lectura para perfiles activos, mantenimiento solo para administrador mediante
+RLS. Anónimo y perfiles desactivados carecen de acceso.
+
+`active_ingredients.classification_id`: UUID nullable y FK restrictiva, indexada.
+Cada ingrediente tiene a lo sumo una clasificación principal. El trigger acepta
+clasificaciones activas para relaciones nuevas; permite conservar una inactiva ya
+guardada y retirar/cambiar la relación. Una clasificación referenciada se da de
+baja lógica; no se elimina en cascada. La migración no asigna datos ni modifica
+snapshots de aplicaciones existentes. Flujo: [clasificaciones](flows/ingredient-classifications.md).
