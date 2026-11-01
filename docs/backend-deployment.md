@@ -12,7 +12,9 @@ un servidor accesible desde otros dispositivos.
 Se conserva una copia de la configuración oficial de Supabase
 `self-hosted/v0.8.3`, revisión `bc27d2661edd09a5d0b8d76ce33da6d4071a756e`, en
 `infra/supabase/upstream/`, con su licencia. La adaptación está separada en
-`infra/supabase/compose.rcfito.yaml`.
+`infra/supabase/compose.rcfito.yaml`. Los ejemplos de secretos comentados del
+proveedor se sustituyeron por referencias a variables, según el
+[registro de seguridad](SECURITY.md#ejemplos-del-proveedor-y-alerta-de-github).
 
 El grupo `rcfito-supabase` inicia siete servicios: `rcfito-db`, `rcfito-auth`,
 `rcfito-rest`, `rcfito-gateway`, `rcfito-studio`, `rcfito-meta` y

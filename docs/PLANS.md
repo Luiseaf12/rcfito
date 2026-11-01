@@ -10,6 +10,7 @@ Fecha de revisión: 2026-10-31.
 | RCF-004 | Órdenes de aplicación, grupos guardados y reporte. | propuesta | Por asignar | Aclarar si realización asume lo indicado o registra diferencias; definir el flujo de esa entrega. | [Pendientes de producto](PRODUCT.md#por-definir-antes-de-la-propuesta) |
 | RCF-005 | Revisar hallazgos de dependencias de desarrollo. | pendiente | Por asignar | Revisar las 6 alertas de tooling y actualizar con pruebas compatibles, sin cambios forzados. | [TESTING](TESTING.md#evidencia-de-primera-entrega-2026-10-31) |
 | RCF-006 | Completar revisión de accesibilidad. | pendiente | Por asignar | Verificar recorrido completo de teclado, zoom 200 %, altura reducida y contraste medido. | [TESTING](TESTING.md#navegador-de-demostración) |
+| RCF-007 | Resolver falso positivo de secreto en ejemplo Supabase. | cerrada | Agente principal | Ejemplos sustituidos por variables, configuración validada y alerta 1 resuelta como falso positivo. | [Seguridad](SECURITY.md#ejemplos-del-proveedor-y-alerta-de-github) |
 
 Estados y cierre: [DOCUMENTATION](../.project-standards/DOCUMENTATION.md#planes-decisiones-y-deuda).
 Una tarea registrada no autoriza implementarla. Conservar su ID y actualizar su
