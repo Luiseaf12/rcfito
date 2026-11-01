@@ -81,7 +81,7 @@ export function StageDestinationPicker({ options, selected, onChange, disabled =
               <FieldLabel htmlFor={`${prefix}-${option.stage.id}`}>
                 <span className="destination-copy">
                   <strong>{option.lot.name} · {option.subdivision.name}</strong>
-                  <span>Etapa {option.stage.stage_number} · {option.cropName} / {option.varietyName}</span>
+                  <span>Etapa {option.stage.stage_number} · Cultivo: {option.cropName} · Variedad: {option.varietyName}</span>
                   <small>Sembrada el {formatDate(option.stage.actual_sowing_date)}</small>
                 </span>
                 <span className="destination-area">{formatArea(option.stage.area_ha)} ha</span>

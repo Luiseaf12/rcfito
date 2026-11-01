@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Check, Eye, Pencil, Plus } from 'lucide-react'
 import { useWorkspace } from '@/data/workspace-context'
 import type { SowingGroup, WorkspaceData } from '@/domain/model'
+import { updateVisibleGroupMembers } from '@/domain/sowing-groups'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -92,7 +93,7 @@ function GroupDetails({ group, close }: { group: SowingGroup; close: () => void 
       { label: 'Estado', value: group.active ? 'Activo' : 'Inactivo' },
       { label: 'Superficie vigente', value: `${formatArea(current.reduce((sum, option) => sum + Number(option.stage.area_ha), 0))} ha` },
     ]} />
-    <section className="flex flex-col gap-3"><h3 className="section-title">Etapas disponibles para nuevas indicaciones</h3>{current.length ? <ul className="list-disc pl-6">{current.map(option => <li key={option.stage.id}>{groupStageLabel(data, option.stage.id)} · {option.varietyName} · {formatArea(option.stage.area_ha)} ha</li>)}</ul> : <p className="muted">Este grupo no tiene etapas sembradas disponibles.</p>}</section>
+    <section className="flex flex-col gap-3"><h3 className="section-title">Etapas disponibles para nuevas indicaciones</h3>{current.length ? <ul className="list-disc pl-6">{current.map(option => <li key={option.stage.id}>{groupStageLabel(data, option.stage.id)} · Variedad: {option.varietyName} · {formatArea(option.stage.area_ha)} ha</li>)}</ul> : <p className="muted">Este grupo no tiene etapas sembradas disponibles.</p>}</section>
     {historical.length > 0 && <section className="flex flex-col gap-3"><h3 className="section-title">Historial de miembros</h3><p className="muted">Estas etapas se conservan para consulta. No se incluirán en una nueva indicación.</p><ul className="list-disc pl-6">{historical.map(id => <li key={id}>{groupStageLabel(data, id)}</li>)}</ul></section>}
     <div className="dialog-actions"><Button variant="outline" onClick={close}>Cerrar</Button></div>
   </RecordDialog>
@@ -104,6 +105,7 @@ function GroupEditor({ group, close, completed }: { group?: SowingGroup; close: 
   const [initial] = useState(() => ({ name: group?.name ?? '', project_id: group?.project_id ?? '', field_id: group?.field_id ?? '', crop_id: group?.crop_id ?? '', active: group?.active ?? true }))
   const [form, setForm] = useState(initial)
   const [selected, setSelected] = useState(() => group ? membership(data, group).current.map(option => option.stage.id) : [])
+  const [varietyId, setVarietyId] = useState('all')
   const [initialSelected] = useState(selected)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -112,15 +114,19 @@ function GroupEditor({ group, close, completed }: { group?: SowingGroup; close: 
   const dismissal = useFormClose(dirty, busy, close)
   const projects = data.projects.filter(project => project.status === 'active' || project.id === group?.project_id)
   const fields = data.catalogs.fields.filter(field => data.lots.some(lot => lot.project_id === form.project_id && lot.field_id === field.id))
-  const candidates = eligibleDestinations(data, form.project_id, form.field_id || undefined)
-  const cropIds = new Set(candidates.map(option => option.stage.crop_id))
-  if (group?.crop_id) cropIds.add(group.crop_id)
+  const crops = data.catalogs.crops.filter(crop => crop.active || crop.id === group?.crop_id)
   const options = form.field_id && form.crop_id ? eligibleDestinations(data, form.project_id, form.field_id, form.crop_id) : []
+  const varieties = new Map(data.catalogs.varieties.filter(variety => variety.crop_id === form.crop_id && variety.active).map(variety => [variety.id, variety.name]))
+  options.forEach(option => varieties.set(option.stage.variety_id, option.varietyName))
+  const visibleOptions = varietyId === 'all' ? options : options.filter(option => option.stage.variety_id === varietyId)
+  const selectedOptions = options.filter(option => selected.includes(option.stage.id))
   const historical = group ? membership(data, group).historical : []
   const update = (key: keyof typeof form, value: string | boolean) => setForm(current => ({ ...current, [key]: value }))
   const applyContextChange = (key: 'project_id' | 'field_id' | 'crop_id', value: string) => {
+    setError(null)
     setForm(current => ({ ...current, [key]: value, ...(key === 'project_id' ? { field_id: '', crop_id: '' } : key === 'field_id' ? { crop_id: '' } : {}) }))
     setSelected([])
+    setVarietyId('all')
   }
   const changeContext = (key: 'project_id' | 'field_id' | 'crop_id', value: string) => {
     if (value === form[key]) return
@@ -150,12 +156,16 @@ function GroupEditor({ group, close, completed }: { group?: SowingGroup; close: 
           <FieldGroup>
             <FormInput label="Nombre del grupo" value={form.name} onChange={value => update('name', value)} required placeholder="Por ejemplo: Pepino · siembras de octubre" />
             <FieldGroup className="field-grid">
-              <FormSelect label="Proyecto de temporada" value={form.project_id} onChange={value => changeContext('project_id', value)} required disabled={!!group} options={projects.map(project => ({ value: project.id, label: `${recordName(data.catalogs.agricultural_units, project.agricultural_unit_id)} · ${project.name} (${project.season})` }))} />
-              <FormSelect label="Campo" value={form.field_id} onChange={value => changeContext('field_id', value)} required disabled={!!group || !form.project_id} options={fields.map(field => ({ value: field.id, label: field.name }))} />
-              <FormSelect label="Cultivo" value={form.crop_id} onChange={value => changeContext('crop_id', value)} required disabled={!!group || !form.field_id} options={data.catalogs.crops.filter(crop => cropIds.has(crop.id)).map(crop => ({ value: crop.id, label: crop.name }))} />
+            <FormSelect label="Proyecto de temporada" value={form.project_id} onChange={value => changeContext('project_id', value)} required disabled={busy || !!group || !projects.length} help={group ? 'El proyecto del grupo se conserva. Para otra temporada, crea un grupo nuevo.' : 'Elige una temporada activa para agrupar sus siembras.'} options={projects.map(project => ({ value: project.id, label: `${recordName(data.catalogs.agricultural_units, project.agricultural_unit_id)} · ${project.name} (${project.season})` }))} />
+            <FormSelect label="Campo" value={form.field_id} onChange={value => changeContext('field_id', value)} required disabled={busy || !!group || !form.project_id || !fields.length} help={group ? 'El campo del grupo se conserva para mantener su historial.' : !form.project_id ? 'Primero elige el proyecto de temporada.' : !fields.length ? 'Este proyecto aún no tiene lotes. Configúralos en Proyectos de siembra.' : 'Elige el campo cuyos lotes quieres agrupar.'} options={fields.map(field => ({ value: field.id, label: field.name }))} />
+            <FormSelect label="Cultivo" value={form.crop_id} onChange={value => changeContext('crop_id', value)} required disabled={busy || !!group || !form.field_id || !crops.length} help={group ? 'El cultivo de un grupo guardado no cambia. Para otro cultivo, crea un grupo nuevo.' : !form.field_id ? 'Primero elige proyecto y campo.' : !crops.length ? 'Agrega un cultivo activo en el catálogo de Cultivos.' : 'Elige el cultivo. Después podrás seleccionar sus siembras y filtrar por variedad.'} options={crops.map(crop => ({ value: crop.id, label: `${crop.name}${crop.active ? '' : ' (inactivo)'}` }))} />
             </FieldGroup>
-            {group && <p className="muted">El proyecto, campo y cultivo conservan la identidad del grupo. Para usar otra combinación, crea un grupo nuevo.</p>}
-            {form.field_id && form.crop_id && <StageDestinationPicker title="Miembros vigentes del grupo" options={options} selected={selected} onChange={setSelected} />}
+            {form.field_id && form.crop_id && <>
+              <FormSelect label="Variedad de las siembras" value={varietyId} onChange={setVarietyId} disabled={busy} options={[{ value: 'all', label: 'Todas las variedades' }, ...[...varieties].map(([value, label]) => ({ value, label }))]} help="La variedad se toma de cada etapa registrada en Proyectos de siembra. El grupo puede incluir varias variedades del mismo cultivo. Seleccionar todos y Limpiar afectan solo las siembras visibles." />
+              <StageDestinationPicker title="Siembras para agregar al grupo" options={visibleOptions} selected={selected} disabled={busy} onChange={ids => { setError(null); setSelected(current => updateVisibleGroupMembers(current, visibleOptions.map(option => option.stage.id), ids)) }} />
+              <p className="muted" aria-live="polite">Total del grupo: {selectedOptions.length} {selectedOptions.length === 1 ? 'siembra' : 'siembras'} · {formatArea(selectedOptions.reduce((sum, option) => sum + Number(option.stage.area_ha), 0))} ha. Cambiar el filtro de variedad conserva las siembras seleccionadas.</p>
+              {!visibleOptions.length && <Alert><AlertTitle>{options.length ? 'No hay siembras de esta variedad disponibles' : 'No hay siembras vigentes de este cultivo en el campo'}</AlertTitle><AlertDescription>{options.length ? 'Elige otra variedad o Todas las variedades. Las siembras que ya seleccionaste permanecen en el grupo.' : 'En Proyectos de siembra, registra la variedad y la fecha real de siembra de una etapa de este cultivo. Las etapas planeadas o cerradas no se pueden agregar a un grupo activo.'} <Link to="/proyectos">Ir a proyectos de siembra</Link></AlertDescription></Alert>}
+            </>}
             {!projects.length && <Alert><AlertTitle>Se necesita un proyecto activo</AlertTitle><AlertDescription>Activa el proyecto y registra la siembra real de las etapas antes de agruparlas. <Link to="/proyectos">Consultar proyectos</Link></AlertDescription></Alert>}
             {historical.length > 0 && <Alert><AlertTitle>El historial se conserva</AlertTitle><AlertDescription>{historical.length} etapas anteriores permanecen en el historial y no se incluirán en nuevas órdenes. Los miembros que retires también conservarán su referencia histórica.</AlertDescription></Alert>}
             <Field orientation="horizontal"><Checkbox id={`group-active-${groupId}`} checked={form.active} onCheckedChange={value => update('active', value === true)} /><div><FieldLabel htmlFor={`group-active-${groupId}`}>Grupo activo</FieldLabel><FieldDescription>Los grupos activos con miembros vigentes pueden reutilizarse al indicar aplicaciones.</FieldDescription></div></Field>

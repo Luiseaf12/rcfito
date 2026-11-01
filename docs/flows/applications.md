@@ -166,3 +166,32 @@ no hay evidencia completa de teclado o texto 200 %.
 Las pruebas demo, SQL/HTTP aisladas y navegador contra Supabase real se registran
 por separado. No cargar fixtures en la instalación de operación ni incluir datos
 reales, sesiones o secretos en Git, capturas publicadas o esta ficha.
+
+## Selección de cultivo y variedad en grupos
+
+Corrección solicitada el 2026-10-31: al crear un grupo se eligen proyecto activo,
+campo y un cultivo activo del catálogo, incluso cuando ese cultivo todavía no
+tiene etapas sembradas disponibles. En ese caso se explica cómo registrar la
+variedad y la siembra real en Proyectos; un grupo activo sigue necesitando miembros
+sembrados vigentes. Al editar, proyecto/campo/cultivo permanecen bloqueados con
+su motivo para conservar la identidad e historial del grupo.
+
+La variedad pertenece a cada etapa. Se muestra explícitamente en los candidatos
+y en el detalle, y el selector Variedad de las siembras filtra esos candidatos sin
+cambiar su variedad ni los integrantes seleccionados de otras variedades. Las
+acciones Seleccionar todos/Limpiar afectan solo la lista visible; el total del
+grupo incluye todos los seleccionados. No se introduce una variedad fija al grupo.
+
+Criterios de QA: elegir un cultivo sin siembras y recibir orientación; seleccionar
+un cultivo con siembras, filtrar su variedad y guardar; cambiar/limpiar filtros sin
+perder miembros; recargar y consultar la variedad original; edición del contexto
+bloqueada con motivo; vacío de proyecto/campo/cultivos; móvil y lector sin captura.
+Verificación del 2026-10-31: 115 pruebas automáticas aprobadas, incluidas dos
+regresiones que impiden perder miembros de otras variedades al seleccionar o
+limpiar el filtro. Tipos/build y control documental aprobados. Navegador demo:
+selección de Pimiento/Rojo sin siembras con orientación y rechazo de grupo activo
+vacío; selección de Pepino/Persa, filtro Slicer sin pérdida del miembro oculto,
+guardado, recarga y detalle con variedad original; edición con contexto bloqueado
+y motivo visible. A 375 px, documento de 375 px y diálogo con scroll interno sin
+desbordamiento. No se modificó el esquema ni se crearon fixtures en operación.
+La revisión React fue del autor; teclado/contraste/zoom completos siguen en RCF-006.
