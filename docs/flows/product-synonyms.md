@@ -2,7 +2,7 @@
 
 Autorización: el Propietario solicita sinónimos editables solo por administrador,
 validación de conflictos, uso en captura IA, selector ordenado por nombre con
-ingredientes activos, commit/push y publicación en el mismo Site. Estado: implementado y verificado; publicación en curso.
+ingredientes activos, commit/push y publicación en el mismo Site. Estado: implementado y publicado en Sites versión17; frontend Docker actualizado.
 
 ## Recorrido y aceptación
 
@@ -57,4 +57,5 @@ fixtures, cambios de claves, preparación o reset. Publicar el commit validado,
 conservando audiencia y configuración. Evidencia: 197 pruebas cliente, 308 SQL y
 87 HTTP aislados aprobados. QA demo de alias/conflicto/recarga/captura por alias,
 selector móvil e identidad oficial al guardar; lector solo consulta. Respaldo
-privado y migración operativa5/0 confirmados. IDs de publicación en OPERATIONS.
+privado y migración operativa5/0 confirmados. Commit cf245f9 publicado en Sites
+versión17 y Docker; 16 verificaciones posteriores aprobadas. IDs en OPERATIONS.

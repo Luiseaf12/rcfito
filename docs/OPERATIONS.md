@@ -410,4 +410,16 @@ proveedor IA ni claves.
 cero pendientes; conteos de órdenes, destinos por estado y productos originales/
 reales intactos. Cero sinónimos inventados. 197 pruebas cliente, 308 SQL aisladas,
 87 HTTP y QA demo/móvil/lector aprobados; revisión independiente integrada.
-Frontend Docker y publicación en Sites pendientes de confirmación.
+Commit `cf245f95700e01be0d4e3c2c57708bd65f9b051f` subido a GitHub y al
+repositorio de Sites. Validado desde checkout limpio con 197 pruebas, tipos,
+docs y build; Docker reconstruido desde ese mismo commit con configuración
+pública montada y backend/secretos/volúmenes conservados.
+
+Sites confirmó succeeded, versión17
+`appgprj_6ae67ae019e88191a7012093bb19c505~appgver_7dd6157a8c108191ac23515097945914`,
+despliegue `appgdep_6ae7387039508191a508f1d53f5aeac7`. Audiencia pública,
+R2 y entorno revisión1 conservados. Dieciséis comprobaciones posteriores
+aprobadas en Site/local: inicio, bundle/adaptador, editor de alias y captura,
+salud Auth 200; captura/configuración y sinónimos sin sesión 401. Sin consumo
+del proveedor ni escrituras ficticias en operación. Registro de evidencia en
+[TESTING](TESTING.md#sinónimos-y-selector-de-productos).

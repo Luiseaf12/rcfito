@@ -364,4 +364,10 @@ La extracción del ejemplo se sustituyó solo en el harness ignorado de QA; no s
 consumió el proveedor ni se probaron capturas ficticias en operación. Selector
 Álamo/Beta/Zeta con ingredientes largos, sin nombre duplicado y sin overflow
 móvil: página375/375, opciones276/276. Lector sin edición, aliases consultables.
-Migración operativa con respaldo validado y ledger5/0; publicación en curso.
+Migración operativa con respaldo validado y ledger5/0.
+
+Sites versión17 y Docker confirmados desde el commit cf245f9. Dieciséis
+comprobaciones posteriores aprobaron: inicio/bundles/editores y salud Auth 200;
+captura/configuración y tabla de sinónimos sin sesión 401 en ambos orígenes.
+La configuración del proveedor se conservó; no se realizaron capturas ficticias
+ni mutaciones de productos reales para verificar la publicación.
