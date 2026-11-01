@@ -236,3 +236,22 @@ un override de contexto de build y los Compose originales con `.env.example`
 explícito. Conserva el montaje público existente y el backend. HTML y bundle de
 catálogos devolvieron HTTP 200 en `http://127.0.0.1:5180`. No se aplicaron
 migraciones ni se generaron datos de prueba en operación para esta mejora.
+
+## Captura con IA y nota: actualización
+
+2026-10-31: migración aditiva de fuente/numeración aplicada en rcfito-db después
+de generar un respaldo privado en .artifacts/production-supabase/backups.
+Ledger coherente: 3 aplicadas y 0 pendientes. No se reiniciaron ni prepararon
+secretos/volúmenes y no se cargaron datos de prueba en operación. El frontend
+Docker se reconstruyó con entorno Compose explícito; HTML y bundle devolvieron
+200 con la ruta de captura nueva. Evidencia en [TESTING](TESTING.md#captura-con-ia-número-por-etapa-y-nota).
+
+El endpoint de IA se aloja en el Worker del Site. El frontend local reenvía su
+ruta exacta al mismo Site; Auth/perfil y la RPC conservan el control de acceso.
+Para activar más adelante, configurar OPENAI_API_KEY como secreto y OPENAI_MODEL
+como modelo vigente del proveedor mediante las herramientas de Sites. No usar
+el .env preexistente, variables VITE_* ni archivos versionados para secretos.
+El Propietario dejó esa activación pendiente: no se creó una clave ni se comprobó
+inferencia real. La captura manual y la revisión del borrador siguen disponibles.
+
+Publicación del código en Sites: pendiente de resultado nativo en esta entrega.

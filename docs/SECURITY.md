@@ -149,3 +149,23 @@ identidad de ChatGPT, credenciales del actualizador, redirecciones ni Set-Cookie
 del destino. La configuración managed queda disponible aun con la PC caída y no
 simula conexión de datos mediante demo. R2 contiene únicamente URL/vigencia, sin
 registros de negocio. Procedimiento: [Conexión automática](tunnel-auto-update.md).
+
+## Servicio de interpretación de aplicaciones
+
+`POST /api/application-draft` requiere bearer de la conexión gestionada, Auth
+válido y perfil administrador activo consultado en el servidor. Un lector o
+anónimo no consume inferencia. Solo se envía el mensaje; el modelo no recibe
+sesiones, credenciales, catálogos ni historial de la base. La autorización de
+creación permanece en la RPC, incluso si se omite la interfaz de revisión.
+
+Mensaje de hasta 20,000 caracteres y cuerpo 128 KiB, nota 4,000, hasta 40 productos y
+100 destinos; entradas y salidas se validan. El servicio limita por usuario e
+instancia y usa timeout; esos límites no son una cuota distribuida. El proveedor
+recibe store:false; el Worker no registra mensajes ni tokens. El bloque Nota se
+recupera literalmente de la fuente para impedir omisiones o resúmenes del modelo.
+
+OPENAI_API_KEY y OPENAI_MODEL son configuración exclusiva del Worker; nunca
+VITE_*, repositorio o navegador. El Propietario decidió dejar la activación
+pendiente: no se creó ni escribió una clave y no se ejecutó inferencia real.
+La nueva migración fue probada en aislamiento y aplicada con respaldo privado;
+no se cargaron mensajes ni fixtures en operación.

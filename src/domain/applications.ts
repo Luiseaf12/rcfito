@@ -1,4 +1,4 @@
-import type { ApplicationOrderInput, ApplicationPerformanceInput, ApplicationProductInput, ProductLine, SowingStage, UserProfile, WorkspaceCommand, WorkspaceData } from './model'
+import type { ApplicationOrderInput, ApplicationPerformanceInput, ApplicationProductInput, ApplicationTarget, ProductLine, SowingStage, UserProfile, WorkspaceCommand, WorkspaceData } from './model'
 
 const fail = (message: string): never => { throw new Error(message) }
 const validDate = (value: string) => /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(`${value}T12:00:00Z`)) && new Date(`${value}T12:00:00Z`).toISOString().slice(0, 10) === value
@@ -10,6 +10,15 @@ const today = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Mazatl
 export function stageApplicationCounts(data: WorkspaceData, stageId: string) {
   const targets = (data.applicationTargets ?? []).filter(target => target.stage_id === stageId)
   return { indicated: targets.filter(t => t.status === 'indicated').length, performed: targets.filter(t => t.status === 'performed').length, cancelled: targets.filter(t => t.status === 'cancelled').length }
+}
+
+// Legacy browser demos predate persisted numbers. Their insertion order is stable.
+export function stageApplicationNumber(data: WorkspaceData, target: ApplicationTarget): number {
+  return target.application_number ?? data.applicationTargets.filter(item => item.stage_id === target.stage_id).findIndex(item => item.id === target.id) + 1
+}
+
+export function nextStageApplicationNumber(data: WorkspaceData, stageId: string): number {
+  return Math.max(0, ...data.applicationTargets.filter(target => target.stage_id === stageId).map(target => stageApplicationNumber(data, target))) + 1
 }
 
 function destinations(data: WorkspaceData, stageIds: string[], projectId: string, fieldId: string, cropId: string): SowingStage[] {
@@ -48,7 +57,9 @@ function mixtureKey(products: ApplicationProductInput[]) {
 }
 
 function requestKey(record: ApplicationOrderInput) {
-  return JSON.stringify({ ...record, observations: trim(record.observations), stage_ids: [...record.stage_ids].sort(), products: mixtureKey(record.products) })
+  return JSON.stringify({ id: record.id, project_id: record.project_id, field_id: record.field_id, crop_id: record.crop_id, method_id: record.method_id,
+    indicated_date: record.indicated_date, scheduled_date: record.scheduled_date, water_l_ha: record.water_l_ha, observations: record.observations,
+    source_text: record.source_text ?? '', application_number: record.application_number ?? null, stage_ids: [...record.stage_ids].sort(), products: mixtureKey(record.products) })
 }
 
 function performance(data: WorkspaceData, command: Extract<WorkspaceCommand, { type: 'perform_application_targets' }>) {
@@ -68,12 +79,13 @@ export function applyApplicationCommand(data: WorkspaceData, command: WorkspaceC
   switch (command.type) {
     case 'create_application_order': {
       const record = command.record
+      if (record.application_number !== undefined && (!Number.isInteger(record.application_number) || record.application_number < 1 || record.application_number > 2147483647)) fail('El número de aplicación debe ser un entero positivo válido.')
+      if (record.source_text !== undefined && (typeof record.source_text !== 'string' || record.source_text.length > 20000)) fail('El mensaje original debe ser texto de hasta 20,000 caracteres.')
       const existing = data.applicationOrders.find(o => o.id === record.id)
       if (existing) {
-        const previous = { ...record, ...existing, stage_ids: data.applicationTargets.filter(t => t.order_id === existing.id).map(t => t.stage_id), products: existing.products.map(p => ({ product_id: p.product_id, dose: p.dose })) }
+        const previous = { ...existing, application_number: existing.application_number, source_text: existing.source_text, stage_ids: data.applicationTargets.filter(t => t.order_id === existing.id).map(t => t.stage_id), products: existing.products.map(p => ({ product_id: p.product_id, dose: p.dose })) }
         // Compare only creation inputs: presentation snapshots/folio never change a retry.
-        const stored: ApplicationOrderInput = Object.fromEntries(Object.keys(record).map(key => [key, previous[key as keyof typeof previous]])) as ApplicationOrderInput
-        if (requestKey(stored) !== requestKey(record)) fail('Ese identificador ya pertenece a otra indicación.')
+        if (requestKey(previous) !== requestKey(record)) fail('Ese identificador ya pertenece a otra indicación.')
         return true
       }
       const stages = destinations(data, record.stage_ids, record.project_id, record.field_id, record.crop_id)
@@ -82,13 +94,19 @@ export function applyApplicationCommand(data: WorkspaceData, command: WorkspaceC
       positive(record.water_l_ha, 'El gasto de agua')
       const method = data.catalogs.application_methods.find(m => m.id === record.method_id && m.active) ?? fail('Selecciona un medio de aplicación activo.')
       const products = productLines(data, record.products)
+      const applicationNumbers = new Map(stages.map(stage => [stage.id, record.application_number ?? nextStageApplicationNumber(data, stage.id)]))
+      for (const stage of stages) {
+        const number = applicationNumbers.get(stage.id)!
+        if (number > 2147483647) fail('La numeración de esta etapa alcanzó su límite.')
+        if (data.applicationTargets.some(target => target.stage_id === stage.id && stageApplicationNumber(data, target) === number)) fail(`La aplicación ${number} ya está registrada en una de las etapas seleccionadas.`)
+      }
       const nextNumber = Math.max(0, ...data.applicationOrders.map(o => Number(o.folio.replace(/^APL-/, '')) || 0)) + 1
       const { stage_ids: _stageIds, ...order } = record
-      data.applicationOrders.push({ ...order, observations: trim(record.observations), products, folio: `APL-${String(nextNumber).padStart(6, '0')}`, project_name: data.projects.find(p => p.id === record.project_id)!.name, field_name: data.catalogs.fields.find(f => f.id === record.field_id)!.name, crop_name: data.catalogs.crops.find(c => c.id === record.crop_id)!.name, method_name: method.name })
+      data.applicationOrders.push({ ...order, products, folio: `APL-${String(nextNumber).padStart(6, '0')}`, project_name: data.projects.find(p => p.id === record.project_id)!.name, field_name: data.catalogs.fields.find(f => f.id === record.field_id)!.name, crop_name: data.catalogs.crops.find(c => c.id === record.crop_id)!.name, method_name: method.name })
       for (const stage of stages) {
         const sub = data.subdivisions.find(s => s.id === stage.subdivision_id)!
         const lot = data.lots.find(l => l.id === sub.lot_id)!
-        data.applicationTargets.push({ id: crypto.randomUUID(), order_id: record.id, stage_id: stage.id, status: 'indicated', lot_name: lot.name, subdivision_name: sub.name, stage_number: stage.stage_number, crop_name: stage.crop_name_snapshot ?? data.catalogs.crops.find(c => c.id === stage.crop_id)!.name, variety_name: stage.variety_name_snapshot ?? data.catalogs.varieties.find(v => v.id === stage.variety_id)!.name, area_ha: stage.area_ha, actual_date: null, actual_water_l_ha: null, actual_products: [], equipment: '', applicator: '', actual_observations: '', cancellation_reason: '', has_changes: false })
+        data.applicationTargets.push({ id: crypto.randomUUID(), order_id: record.id, stage_id: stage.id, application_number: applicationNumbers.get(stage.id)!, status: 'indicated', lot_name: lot.name, subdivision_name: sub.name, stage_number: stage.stage_number, crop_name: stage.crop_name_snapshot ?? data.catalogs.crops.find(c => c.id === stage.crop_id)!.name, variety_name: stage.variety_name_snapshot ?? data.catalogs.varieties.find(v => v.id === stage.variety_id)!.name, area_ha: stage.area_ha, actual_date: null, actual_water_l_ha: null, actual_products: [], equipment: '', applicator: '', actual_observations: '', cancellation_reason: '', has_changes: false })
       }
       return true
     }

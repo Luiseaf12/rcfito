@@ -17,16 +17,18 @@ export type ApplicationProductInput = Pick<ProductLine, 'product_id' | 'dose'>
 export type ApplicationOrder = {
   id: string; folio: string; project_id: string; field_id: string; crop_id: string; method_id: string;
   indicated_date: string; scheduled_date: string; water_l_ha: number; observations: string;
+  source_text?: string; application_number?: number;
   products: ProductLine[]; project_name?: string; field_name?: string; crop_name?: string; method_name?: string;
 }
 export type ApplicationTarget = {
   id: string; order_id: string; stage_id: string; status: 'indicated' | 'performed' | 'cancelled';
+  application_number?: number;
   lot_name: string; subdivision_name: string; stage_number: number; crop_name: string; variety_name: string; area_ha: number;
   actual_date: string | null; actual_water_l_ha: number | null; actual_products: ProductLine[];
   equipment: string; applicator: string; actual_observations: string; cancellation_reason: string; has_changes: boolean;
 }
 export type SowingGroup = { id: string; project_id: string; field_id: string; crop_id: string; name: string; active: boolean; stage_ids: string[]; historical_stage_ids?: string[] }
-export type ApplicationOrderInput = Pick<ApplicationOrder, 'id' | 'project_id' | 'field_id' | 'crop_id' | 'method_id' | 'indicated_date' | 'scheduled_date' | 'water_l_ha' | 'observations'> & { stage_ids: string[]; products: ApplicationProductInput[] }
+export type ApplicationOrderInput = Pick<ApplicationOrder, 'id' | 'project_id' | 'field_id' | 'crop_id' | 'method_id' | 'indicated_date' | 'scheduled_date' | 'water_l_ha' | 'observations' | 'source_text' | 'application_number'> & { stage_ids: string[]; products: ApplicationProductInput[] }
 export type ApplicationPerformanceInput = { actual_date: string; equipment: string; applicator: string; observations: string; changed: boolean; water_l_ha?: number; products?: ApplicationProductInput[] }
 export type SowingGroupInput = Omit<SowingGroup, 'id' | 'historical_stage_ids'> & { id?: string }
 export type WorkspaceData = { catalogs: Record<CatalogKind, CatalogRecord[]>; projects: SowingProject[]; lots: ProjectLot[]; subdivisions: LotSubdivision[]; stages: SowingStage[]; profiles: UserProfile[]; assignments: UserAssignment[]; applicationOrders: ApplicationOrder[]; applicationTargets: ApplicationTarget[]; sowingGroups: SowingGroup[] }

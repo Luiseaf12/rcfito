@@ -1,3 +1,5 @@
+import { createApplicationAiHandler } from './application-ai.mjs';
+
 const registryKey = 'rcfito/quick-tunnel.json';
 const leaseMs = 120_000;
 const proxyRequestHeaders = ['authorization', 'apikey', 'content-type', 'accept', 'x-client-info', 'x-supabase-api-version', 'prefer', 'range', 'range-unit', 'accept-profile', 'content-profile'];
@@ -58,11 +60,13 @@ export function createSiteWorker(assets = {}, settings = {}, services = {}) {
     const object = await env.BUCKET.get(registryKey);
     return object ? activeRecord(await object.json(), now()) : null;
   }
+  const applicationAi = createApplicationAiHandler({ fetch: remoteFetch, now, key: settings.key, backendUrl: async env => (await registry(env))?.url ?? null });
   return {
     async fetch(request, env) {
       const url = new URL(request.url);
       const path = url.pathname;
       try {
+        if (path === '/api/application-draft') return await applicationAi(request, env);
         if (path === '/rcfito-config.json') {
           if (!['GET', 'HEAD'].includes(request.method)) return json({ error: 'Método no permitido.' }, 405);
           // La conexión sigue siendo real aunque la PC o el registro estén caídos.

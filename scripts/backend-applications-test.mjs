@@ -2,6 +2,7 @@ import { spawnSync } from 'node:child_process';
 import { readFileSync, readdirSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { migrationBody } from './backend-local.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const container = 'rcfito-applications-test';
@@ -41,9 +42,37 @@ try {
   if (!ready) throw new Error('PostgreSQL de prueba no quedó disponible.');
   sql(readFileSync(resolve(root, 'supabase/tests/bootstrap-auth.sql'), 'utf8'));
   const migrations = readdirSync(resolve(root, 'supabase/migrations')).filter((file) => file.endsWith('.sql')).sort();
-  for (const file of migrations) sql(readFileSync(resolve(root, 'supabase/migrations', file), 'utf8'));
+  const applicationTests = readFileSync(resolve(root, 'supabase/tests/applications.sql'), 'utf8');
+  for (const file of migrations) {
+    const source = readFileSync(resolve(root, 'supabase/migrations', file), 'utf8');
+    if (file.endsWith('_application_capture_source_and_stage_number.sql')) {
+      // Probar la actualización sobre historia previa y revertir toda esa prueba;
+      // después se aplica la misma migración al entorno vacío del resto de casos.
+      const setupEnd = applicationTests.indexOf('-- Captura asistida:');
+      if (setupEnd < 0) throw new Error('Falta el límite de fixtures para la prueba de actualización.');
+      sql(`${applicationTests.slice(0, setupEnd)}
+        select public.create_application_order(pg_temp.order_data(),pg_temp.stages(),pg_temp.mixture());
+        select public.create_application_order(pg_temp.order_data('90000000-0000-4000-8000-000000000002'),array['80000000-0000-4000-8000-000000000001']::uuid[],pg_temp.mixture());
+        select public.perform_application_targets('90000000-0000-4000-8000-000000000001',array[(select id from public.application_targets where order_id='90000000-0000-4000-8000-000000000001' and stage_id='80000000-0000-4000-8000-000000000001')],'{"changed":false,"actual_date":"2026-01-04"}');
+        select public.cancel_application_targets('90000000-0000-4000-8000-000000000002',pg_temp.target_ids('90000000-0000-4000-8000-000000000002'),'Cancelación ficticia anterior');
+        reset role;
+        create temporary table before_capture_upgrade as select
+          (select jsonb_agg(to_jsonb(t) order by t.id) from public.application_targets t) as targets,
+          (select jsonb_agg(to_jsonb(o) order by o.id) from public.application_orders o) as orders;
+        ${migrationBody(source)}
+        select pg_temp.assert_true((select array_agg(application_number order by order_id,stage_id)=array[1,1,2] from public.application_targets),'backfill secuencial determinista por etapa');
+        select pg_temp.assert_true((select jsonb_agg(to_jsonb(t)-'application_number' order by t.id) from public.application_targets t)=(select targets from before_capture_upgrade),'backfill conserva destinos completos, estados y snapshots');
+        select pg_temp.assert_true((select jsonb_agg(to_jsonb(o)-'source_text' order by o.id) from public.application_orders o)=(select orders from before_capture_upgrade),'backfill conserva órdenes, firmas y notas anteriores');
+        select pg_temp.assert_true((select bool_and(source_text='') from public.application_orders),'historia anterior conserva fuente vacía sin texto inventado');
+        set local role authenticated;
+        select pg_temp.assert_true(public.create_application_order(pg_temp.order_data(),pg_temp.stages(),pg_temp.mixture())='90000000-0000-4000-8000-000000000001'::uuid,'reintento histórico compatible tras migración');
+        rollback;
+      `);
+    }
+    sql(source);
+  }
   sql(readFileSync(resolve(root, 'supabase/tests/catalogs-and-sowing.sql'), 'utf8'));
-  sql(readFileSync(resolve(root, 'supabase/tests/applications.sql'), 'utf8'));
+  sql(applicationTests);
   console.log(`Backend aplicaciones verificado: ${migrations.length} migración(es), fixtures aislados y controles de RLS/integridad. Auth es un stub de prueba; REST/Auth reales requieren integración aparte.`);
 } finally {
   if (started) removeOwnedContainer();

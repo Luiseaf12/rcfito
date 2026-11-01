@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { createDemoData, DEMO_ADMIN_ID, DEMO_READER_ID } from '../src/domain/demo.ts'
-import { stageApplicationCounts } from '../src/domain/applications.ts'
+import { nextStageApplicationNumber, stageApplicationCounts, stageApplicationNumber } from '../src/domain/applications.ts'
 import { applyCommand, scopeWorkspace } from '../src/domain/rules.ts'
 import type { ApplicationOrderInput, ApplicationPerformanceInput, SowingGroup, UserProfile, WorkspaceCommand, WorkspaceData } from '../src/domain/model.ts'
 
@@ -50,6 +50,70 @@ test('indicar crea destinos completos con snapshots y una sola aplicación por e
   assert.deepEqual(created.order.products.map(product => product.unit), ['ml', 'g'])
   assert.deepEqual(stageApplicationCounts(created.data, 'stage-1'), { indicated: 1, performed: 0, cancelled: 0 })
   assert.deepEqual(stageApplicationCounts(created.data, 'stage-2'), { indicated: 1, performed: 0, cancelled: 0 })
+})
+
+test('un número indicado se conserva por etapa y los saltos no inventan aplicaciones anteriores', () => {
+  const { data, admin } = fixture()
+  const source = '  Mensaje ficticio\nAplicación 23\nNota:\nMañana y tarde  '
+  const note = '  Mañana y tarde\nConservar indicación  '
+  const created = indicate(data, admin, input({ application_number: 23, source_text: source, observations: note }))
+  assert.deepEqual(created.targets.map(target => target.application_number), [23, 23])
+  assert.equal(created.order.source_text, source)
+  assert.equal(created.order.observations, note, 'la nota se conserva literalmente')
+  assert.deepEqual(stageApplicationCounts(created.data, 'stage-1'), { indicated: 1, performed: 0, cancelled: 0 })
+  assert.equal(nextStageApplicationNumber(created.data, 'stage-1'), 24)
+})
+
+test('la numeración automática continúa de manera independiente en cada etapa', () => {
+  const { data, admin } = fixture()
+  const first = indicate(data, admin, input({ application_number: 9, stage_ids: ['stage-1'] }))
+  const second = indicate(first.data, admin)
+  assert.deepEqual(second.targets.map(target => target.application_number), [10, 1])
+  assert.equal(second.order.application_number, undefined, 'la orden no inventa un número solicitado común')
+})
+
+test('una aplicación cancelada reserva su número y un conflicto deja intacto todo el lote', () => {
+  const { data, admin } = fixture()
+  const first = indicate(data, admin, input({ application_number: 9, stage_ids: ['stage-1'] }))
+  const cancelled = applyCommand(first.data, { type: 'cancel_application_targets', order_id: first.order.id, target_ids: first.targets.map(target => target.id), reason: 'Prueba ficticia' }, admin)
+  const original = structuredClone(cancelled)
+  assert.throws(() => indicate(cancelled, admin, input({ application_number: 9 })), /aplicación 9.*registrada/i)
+  assert.deepEqual(cancelled, original)
+  const next = indicate(cancelled, admin, input({ stage_ids: ['stage-1'] }))
+  assert.equal(next.targets[0].application_number, 10)
+})
+
+test('el número y el mensaje forman parte de la idempotencia de la captura', () => {
+  const { data, admin } = fixture()
+  const created = indicate(data, admin, input({ application_number: 23, source_text: 'Mensaje fuente ficticio' }))
+  assert.deepEqual(applyCommand(created.data, { type: 'create_application_order', record: created.record }, admin), created.data)
+  for (const record of [
+    { ...created.record, application_number: 24 },
+    { ...created.record, application_number: undefined },
+    { ...created.record, source_text: 'Otro mensaje ficticio' },
+    { ...created.record, source_text: undefined },
+  ]) assert.throws(() => applyCommand(created.data, { type: 'create_application_order', record }, admin), /identificador|indicación/i)
+  const automatic = indicate(data, admin)
+  assert.throws(() => applyCommand(automatic.data, { type: 'create_application_order', record: { ...automatic.record, application_number: 1 } }, admin), /identificador|indicación/i)
+})
+
+test('la captura rechaza números inválidos y mensajes fuera de su contrato', () => {
+  const { data, admin, reader } = fixture()
+  for (const number of [0, -1, 1.5, NaN, Infinity, 2147483648]) {
+    assert.throws(() => indicate(data, admin, input({ application_number: number })), /número de aplicación/i)
+  }
+  assert.throws(() => indicate(data, admin, input({ source_text: 'x'.repeat(20001) })), /mensaje original/i)
+  assert.throws(() => applyCommand(data, { type: 'create_application_order', record: input({ application_number: 23 }) }, reader), /administración/i)
+})
+
+test('la demo anterior sin números conserva su secuencia al continuar capturando', () => {
+  const { data, admin } = fixture()
+  const first = indicate(data, admin)
+  const second = indicate(first.data, admin)
+  second.data.applicationTargets.forEach(target => { delete target.application_number })
+  assert.deepEqual(second.data.applicationTargets.filter(target => target.stage_id === 'stage-1').map(target => stageApplicationNumber(second.data, target)), [1, 2])
+  const next = indicate(second.data, admin)
+  assert.deepEqual(next.targets.map(target => target.application_number), [3, 3])
 })
 
 test('indicación rechaza campo, cultivo, temporada o etapa incompatibles sin guardar parcialmente', () => {

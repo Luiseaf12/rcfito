@@ -120,8 +120,10 @@ async function verifyApplications(adminToken, readerToken, noAccessToken, projec
     check(stage.status === 200 && stage.data === stageId && succeeded(planted), 'Aplicaciones: etapa planeada y sembrada por RPC');
     stages.push(stageId);
   }
+  const sourceText = '  Agrícola ficticia\n9na aplicación\nNota:\nMañana y tarde  ';
+  const applicationNote = '  Mañana y tarde\nNota original ficticia  ';
   const data = { id: fixture.order, project_id: projectA, field_id: fixture.fieldA, crop_id: fixture.crop, method_id: fixture.method,
-    indicated_date: '2026-01-03', scheduled_date: '2026-01-06', water_l_ha: 100, observations: 'Indicación ficticia original' };
+    indicated_date: '2026-01-03', scheduled_date: '2026-01-06', water_l_ha: 100, observations: applicationNote, source_text: sourceText, application_number: 9 };
   const mixture = [{ product_id: fixture.productA, dose: 12 }, { product_id: fixture.productB, dose: 8 }];
   const orderBody = { p_data: data, p_stage_ids: stages.slice(0, 2), p_products: mixture };
   const createOrder = await request('/rest/v1/rpc/create_application_order', adminToken, orderBody);
@@ -130,6 +132,16 @@ async function verifyApplications(adminToken, readerToken, noAccessToken, projec
   check(repeated.status === 200 && repeated.data === fixture.order, 'Aplicaciones: reintento de orden conserva UUID');
   const targetRows = await request(`/rest/v1/application_targets?order_id=eq.${fixture.order}&select=*`, adminToken);
   check(targetRows.status === 200 && targetRows.data?.length === 2 && targetRows.data.every((row) => row.status === 'indicated' && Number(row.area_ha) === 5), 'Aplicaciones: destinos completos persistidos y consultables por REST');
+  check(targetRows.data.every((row) => row.application_number === 9), 'Captura IA: número 9 persistido por cada etapa tras relectura REST');
+  const sourceOrder = await request(`/rest/v1/application_orders?id=eq.${fixture.order}&select=id,source_text,observations`, adminToken);
+  check(sourceOrder.status === 200 && sourceOrder.data?.length === 1 && sourceOrder.data[0].source_text === sourceText && sourceOrder.data[0].observations === applicationNote, 'Captura IA: mensaje y nota multilínea conservados literalmente tras recarga REST');
+  const duplicateId = randomUUID();
+  const duplicateNumber = await request('/rest/v1/rpc/create_application_order', adminToken, { ...orderBody, p_data: { ...data, id: duplicateId } });
+  const duplicateRows = await request(`/rest/v1/application_orders?id=eq.${duplicateId}&select=id`, adminToken);
+  check(duplicateNumber.status >= 400 && /ya está registrada|unique/i.test(duplicateNumber.data?.message ?? '') && duplicateRows.data?.length === 0, 'Captura IA: número duplicado rechazado sin orden parcial');
+  const differentSource = await request('/rest/v1/rpc/create_application_order', adminToken, { ...orderBody, p_data: { ...data, source_text: `${sourceText}\nOtra instrucción ficticia` } });
+  const differentNumber = await request('/rest/v1/rpc/create_application_order', adminToken, { ...orderBody, p_data: { ...data, application_number: 10 } });
+  check(differentSource.status >= 400 && differentNumber.status >= 400, 'Captura IA: UUID estable rechaza otra fuente o número');
   const targetA = targetRows.data.find((row) => row.stage_id === stages[0]);
   const targetB = targetRows.data.find((row) => row.stage_id === stages[1]);
   const direct = await request(`/rest/v1/application_targets?id=eq.${targetA.id}`, adminToken, { status: 'cancelled', cancellation_reason: 'Atajo' }, 'PATCH');
@@ -138,6 +150,8 @@ async function verifyApplications(adminToken, readerToken, noAccessToken, projec
   check(denied.status === 403, 'Aplicaciones: RPC rechaza lector con JWT real');
   const noAuth = await request('/rest/v1/application_orders?select=id');
   check(noAuth.status === 401 || noAuth.status === 403, 'Aplicaciones: REST anónimo rechazado');
+  const noAuthCapture = await request('/rest/v1/rpc/create_application_order', publicKey, orderBody);
+  check(noAuthCapture.status === 401 || noAuthCapture.status === 403, 'Captura IA: RPC con número, fuente y nota rechaza anónimo');
   const closePending = await request('/rest/v1/rpc/transition_sowing_stage', adminToken, { p_stage_id: stages[0], p_status: 'closed', p_date: '2026-01-10' });
   check(closePending.status >= 400, 'Aplicaciones: pendiente bloquea cierre real de etapa');
   const blankCancel = await request('/rest/v1/rpc/cancel_application_targets', adminToken, { p_order_id: fixture.order, p_target_ids: [targetA.id], p_reason: '  ' });
@@ -165,6 +179,8 @@ async function verifyApplications(adminToken, readerToken, noAccessToken, projec
   check(succeeded(changed) && changedTarget.data?.[0]?.has_changes === true && Number(changedTarget.data[0].actual_water_l_ha) === 80 && actualB.data?.some((row) => row.product_id === fixture.productC && Number(row.dose) === 4) && indicatedProducts.data?.length === 2 && indicatedProducts.data.some((row) => row.product_id === fixture.productA && Number(row.dose) === 12), 'Aplicaciones: excepción propia del destino conserva indicación y otros destinos');
   const counts = await request(`/rest/v1/application_stage_counts?stage_id=eq.${stages[0]}&select=*`, adminToken);
   check(counts.status === 200 && Number(counts.data?.[0]?.performed_count) === 1, 'Aplicaciones: conteo REST no multiplica productos');
+  const preservedNote = await request(`/rest/v1/application_orders?id=eq.${fixture.order}&select=source_text,observations`, adminToken);
+  check(preservedNote.status === 200 && preservedNote.data?.[0]?.source_text === sourceText && preservedNote.data[0].observations === applicationNote && Number(counts.data[0].performed_count) === 1, 'Captura IA: número 9 no inventa ocho aplicaciones ni reescribe nota al realizar');
   const earlyClose = await request('/rest/v1/rpc/transition_sowing_stage', adminToken, { p_stage_id: stages[0], p_status: 'closed', p_date: '2026-01-03' });
   check(earlyClose.status >= 400, 'Aplicaciones: cierre no precede última realización por HTTP');
   const closed = await request('/rest/v1/rpc/transition_sowing_stage', adminToken, { p_stage_id: stages[1], p_status: 'closed', p_date: '2026-01-10' });
@@ -187,6 +203,12 @@ async function verifyApplications(adminToken, readerToken, noAccessToken, projec
   const cancelRetry = await request('/rest/v1/rpc/cancel_application_targets', adminToken, { p_order_id: fixture.orderB, p_target_ids: [targetOther], p_reason: 'No se realizará' });
   const cancelled = await request(`/rest/v1/application_targets?id=eq.${targetOther}&select=status,cancellation_reason`, adminToken);
   check(succeeded(cancel) && succeeded(cancelRetry) && cancelled.data?.[0]?.status === 'cancelled' && cancelled.data[0].cancellation_reason === 'No se realizará', 'Aplicaciones: cancelación persistida con motivo e idempotencia');
+  const numberAfterCancel = await request('/rest/v1/rpc/create_application_order', adminToken, { p_data: { ...data, id: randomUUID(), project_id: projectB.data, field_id: fixture.fieldB }, p_stage_ids: [stages[2]], p_products: [{ product_id: fixture.productB, dose: 8 }] });
+  check(numberAfterCancel.status >= 400 && /ya está registrada|unique/i.test(numberAfterCancel.data?.message ?? ''), 'Captura IA: número cancelado permanece reservado por etapa');
+  const automaticId = randomUUID();
+  const automaticOrder = await request('/rest/v1/rpc/create_application_order', adminToken, { p_data: { ...data, id: automaticId, project_id: projectB.data, field_id: fixture.fieldB, application_number: undefined }, p_stage_ids: [stages[2]], p_products: [{ product_id: fixture.productB, dose: 8 }] });
+  const automaticTarget = await request(`/rest/v1/application_targets?order_id=eq.${automaticId}&select=application_number,stage_id`, adminToken);
+  check(automaticOrder.status === 200 && automaticTarget.status === 200 && automaticTarget.data?.length === 1 && automaticTarget.data[0].application_number === 10 && automaticTarget.data[0].stage_id === stages[2], 'Captura IA: numeración automática continúa en 10 tras número 9 cancelado');
   const unit = await request(`/rest/v1/products?id=eq.${fixture.productA}`, adminToken, { unit: 'ml' }, 'PATCH');
   check(unit.status >= 400, 'Aplicaciones: unidad usada bloqueada también por REST');
   console.log(`Integración aplicaciones: ${assertionCount} comprobaciones HTTP/Auth/REST aprobadas.`);

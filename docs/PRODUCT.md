@@ -38,6 +38,10 @@ Flujos: [catálogos](flows/catalogs.md), [proyectos](flows/sowing-projects.md) y
 
 ## Objetivo
 
+La captura asistida por IA y sus reglas confirmadas se describen en la
+[ficha de captura con IA](flows/ai-capture.md). El Propietario autorizó su
+implementación, commit/push y publicación el 2026-10-31.
+
 Registrar y consultar las aplicaciones de productos realizadas en las agrícolas
 de una empresa, con trazabilidad por campo, lote, subdivisión, etapa de siembra,
 cultivo y temporada. Los medios de aplicación pueden ser dron, tractor, bomba

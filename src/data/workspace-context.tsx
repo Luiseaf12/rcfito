@@ -4,11 +4,13 @@ import { createDemoData, DEMO_ADMIN_ID, DEMO_READER_ID } from '@/domain/demo'
 import { applyCommand, scopeWorkspace } from '@/domain/rules'
 import { emptyWorkspace, type UserProfile, type WorkspaceCommand, type WorkspaceData } from '@/domain/model'
 import { connect, loadWorkspace, readConnection, saveConnection, writeCommand, type Connection } from './supabase'
+import { interpretApplicationMessage } from './application-ai'
+import type { ExtractedApplication } from '@/domain/application-import'
 
 const demoKey='rcfito.demo.v1'
 type CreateUserInput={email:string;password:string;display_name:string;role:'viewer'|'admin';agricultural_unit_ids:string[]}
 const initialDemo=()=>{try {const parsed=JSON.parse(localStorage.getItem(demoKey)??'null'); if(parsed?.catalogs&&parsed?.projects&&parsed?.profiles)return {...emptyWorkspace(),...parsed,applicationOrders:parsed.applicationOrders??[],applicationTargets:parsed.applicationTargets??[],sowingGroups:parsed.sowingGroups??[]} as WorkspaceData}catch{/* Start fresh after invalid demo data. */}return createDemoData()}
-type WorkspaceContextValue={data:WorkspaceData;profile:UserProfile;isAdmin:boolean;mode:'demo'|'supabase';loading:boolean;error:string|null;warning:string|null;authenticated:boolean;connection:Connection|null;mutate:(c:WorkspaceCommand)=>Promise<void>;refresh:()=>Promise<void>;configure:(c:Connection|null)=>void;signIn:(email:string,password:string)=>Promise<void>;signOut:()=>Promise<void>;setDemoRole:(role:'admin'|'reader')=>void;resetDemo:()=>void;createUser:(input:CreateUserInput)=>Promise<void>}
+type WorkspaceContextValue={data:WorkspaceData;profile:UserProfile;isAdmin:boolean;mode:'demo'|'supabase';loading:boolean;error:string|null;warning:string|null;authenticated:boolean;connection:Connection|null;mutate:(c:WorkspaceCommand)=>Promise<void>;refresh:()=>Promise<void>;configure:(c:Connection|null)=>void;signIn:(email:string,password:string)=>Promise<void>;signOut:()=>Promise<void>;setDemoRole:(role:'admin'|'reader')=>void;resetDemo:()=>void;createUser:(input:CreateUserInput)=>Promise<void>;interpretApplication:(message:string,signal?:AbortSignal)=>Promise<ExtractedApplication>}
 const Context=createContext<WorkspaceContextValue|null>(null)
 export function WorkspaceProvider({children}:{children:ReactNode}) {
   const [connection,setConnection]=useState(readConnection)
@@ -48,7 +50,14 @@ export function WorkspaceProvider({children}:{children:ReactNode}) {
   const signOut=async()=>{if(!client)return;const{error}=await client.auth.signOut();if(error)throw error;setData(emptyWorkspace());setSession(null)}
   const resetDemo=()=>{const next=createDemoData();localStorage.setItem(demoKey,JSON.stringify(next));dataRef.current=next;setData(next);setDemoRole('admin')}
   const createUser=async(input:CreateUserInput)=>{if(!client||profile.role!=='admin')throw new Error('El alta de cuentas requiere conexión real y sesión de administración.');const{data,error}=await client.functions.invoke('admin-create-user',{body:input});if(error)throw error;if(data?.error)throw new Error(data.error);try{await refresh()}catch{setWarning('La cuenta se creó, pero no se pudo actualizar la lista. Actualiza la vista sin repetir el alta.')}}
-  const value:WorkspaceContextValue={data:client?data:scopeWorkspace(data,profile),profile,isAdmin:profile.role==='admin',mode:client?'supabase':'demo',loading,error,warning,authenticated:client?Boolean(session):true,connection,mutate,refresh,configure,signIn,signOut,setDemoRole,resetDemo,createUser}
+  const interpretApplication=async(message:string,signal?:AbortSignal)=>{
+    if(!client||profile.role!=='admin')throw new Error('La interpretación con IA requiere una sesión real de administración.')
+    if(!connection?.managed)throw new Error('La IA usa la conexión gestionada de esta instalación. Revisa Conexión y preferencias.')
+    const{data:{session:current},error}=await client.auth.getSession()
+    if(error||!current)throw new Error('Tu sesión no está disponible. Inicia sesión nuevamente antes de interpretar.')
+    return interpretApplicationMessage(message,current.access_token,signal)
+  }
+  const value:WorkspaceContextValue={data:client?data:scopeWorkspace(data,profile),profile,isAdmin:profile.role==='admin',mode:client?'supabase':'demo',loading,error,warning,authenticated:client?Boolean(session):true,connection,mutate,refresh,configure,signIn,signOut,setDemoRole,resetDemo,createUser,interpretApplication}
   return <Context.Provider value={value}>{children}</Context.Provider>
 }
 export function useWorkspace(){const c=useContext(Context);if(!c)throw new Error('Falta WorkspaceProvider.');return c}

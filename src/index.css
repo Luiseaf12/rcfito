@@ -313,6 +313,9 @@ button:disabled { cursor: not-allowed; }
 .record-dialog-wide { max-width: 780px; }
 .record-form { display: flex; flex-direction: column; gap: 22px; }
 .field-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 18px; }
+.field-grid>[data-slot=field],.record-dialog form,.record-dialog fieldset,.record-dialog [data-slot=field-group] { min-width: 0; }
+.record-dialog [data-slot=select-value] { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+@media(max-width:767px) { .record-dialog .field-grid { grid-template-columns: minmax(0,1fr); } }
 .field-grid>[data-slot=field]:only-child { grid-column: 1/-1; }
 .dialog-actions { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; padding-top: 20px; border-top: 1px solid var(--border); }
 .dialog-actions-end { display: flex; justify-content: flex-end; gap: 10px; flex: 1; flex-wrap: wrap; }

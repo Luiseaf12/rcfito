@@ -106,3 +106,23 @@ y criterios. Aplicaciones/grupos están publicados; el reporte completo
 permanece fuera del alcance actual.
 Nuevos flujos conservan las fronteras de reglas/casos de uso, acceso a datos y
 presentación del [estándar de ingeniería](.project-standards/ENGINEERING.md).
+
+## Captura asistida de aplicaciones
+
+La ruta `/captura-ia` reutiliza el shell y la captura de indicaciones.
+`src/features/application-ai.tsx` coordina mensaje y revisión; el dominio puro
+`src/domain/application-import.ts` valida la extracción, resuelve códigos y
+etapas y sugiere cultivo desde el historial de esas mismas etapas. El adaptador
+`src/data/application-ai.ts` llama al endpoint del mismo origen con la sesión
+administradora de la conexión gestionada.
+
+El Worker incorpora `server/application-ai.mjs`: autentica con Auth y perfil
+activo, limita peticiones y extrae JSON estructurado sin crear registros. La
+aprobación usa la RPC de aplicaciones existente; conserva `source_text`, nota
+(`observations`) y número único por etapa. La migración aditiva conserva los
+registros previos y asigna su numeración en orden histórico determinista.
+
+Vite y Nginx reenvían únicamente `/api/application-draft` al Site. La clave de IA
+permanece en secretos del Worker, separada de Supabase y del navegador. El
+Propietario dejó su activación pendiente; el endpoint responde indisponibilidad
+explícita mientras falte configuración, y se puede completar manualmente.

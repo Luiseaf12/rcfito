@@ -44,6 +44,40 @@ create function pg_temp.stages() returns uuid[] language sql as $$ select array[
 create function pg_temp.target_ids(p_order uuid) returns uuid[] language sql as $$ select array_agg(id order by id) from public.application_targets where order_id=p_order $$;
 create function pg_temp.group_data() returns jsonb language sql as $$ select pg_temp.order_data() - array['method_id','indicated_date','scheduled_date','water_l_ha','observations']::text[] || '{"id":"91000000-0000-4000-8000-000000000001","name":"Grupo manual","active":true}'::jsonb $$;
 
+-- Captura asistida: fixtures adicionales revertidos antes de la regresión existente.
+savepoint capture_numbering;
+select pg_temp.expect_error($q$select public.create_application_order(pg_temp.order_data()||'{"application_number":0}',pg_temp.stages(),pg_temp.mixture())$q$,'entero positivo','número cero rechazado');
+select pg_temp.expect_error($q$select public.create_application_order(pg_temp.order_data()||'{"application_number":1.5}',pg_temp.stages(),pg_temp.mixture())$q$,'entero positivo','número fraccionario rechazado');
+select pg_temp.expect_error($q$select public.create_application_order(pg_temp.order_data()||'{"application_number":"23"}',pg_temp.stages(),pg_temp.mixture())$q$,'entero positivo','número textual rechazado');
+select pg_temp.expect_error($q$select public.create_application_order(pg_temp.order_data()||'{"application_number":null}',pg_temp.stages(),pg_temp.mixture())$q$,'entero positivo','número nulo explícito rechazado');
+select pg_temp.expect_error($q$select public.create_application_order(pg_temp.order_data()||'{"application_number":2147483648}',pg_temp.stages(),pg_temp.mixture())$q$,'entero positivo','número fuera de rango rechazado');
+select pg_temp.expect_error($q$select public.create_application_order(pg_temp.order_data()||'{"source_text":23}',pg_temp.stages(),pg_temp.mixture())$q$,'debe ser texto','mensaje no textual rechazado');
+select pg_temp.expect_error($q$select public.create_application_order(pg_temp.order_data()||jsonb_build_object('source_text',repeat('x',20001)),pg_temp.stages(),pg_temp.mixture())$q$,'20,000','mensaje excedido rechazado');
+select public.create_application_order(pg_temp.order_data('90000000-0000-4000-8000-000000000020')||jsonb_build_object('application_number',23,'source_text',E'  Mensaje ficticio\nAplicación 23  ','observations',E'  Mañana y tarde\nPrecaución ficticia  '),pg_temp.stages(),pg_temp.mixture());
+select pg_temp.assert_true((select count(*)=2 and bool_and(application_number=23) from public.application_targets),'número 23 se conserva en cada etapa');
+select pg_temp.assert_true((select indicated_count=1 from public.application_stage_counts where stage_id='80000000-0000-4000-8000-000000000001'),'salto de número no inventa 22 aplicaciones');
+select pg_temp.assert_true((select source_text=E'  Mensaje ficticio\nAplicación 23  ' and observations=E'  Mañana y tarde\nPrecaución ficticia  ' from public.application_orders),'fuente y nota multilínea conservan texto literal');
+select pg_temp.assert_true(public.create_application_order(pg_temp.order_data('90000000-0000-4000-8000-000000000020')||jsonb_build_object('application_number',23,'source_text',E'  Mensaje ficticio\nAplicación 23  ','observations',E'  Mañana y tarde\nPrecaución ficticia  '),pg_temp.stages(),pg_temp.mixture())='90000000-0000-4000-8000-000000000020'::uuid,'reintento de captura asistida no duplica');
+select pg_temp.expect_error($q$select public.create_application_order(pg_temp.order_data('90000000-0000-4000-8000-000000000020')||'{"application_number":24}',pg_temp.stages(),pg_temp.mixture())$q$,'UUID','UUID conserva número y fuente');
+select pg_temp.expect_error($q$select public.create_application_order(pg_temp.order_data('90000000-0000-4000-8000-000000000021')||'{"application_number":23}',pg_temp.stages(),pg_temp.mixture())$q$,'ya está registrada','número repetido rechazado por etapa');
+select public.cancel_application_targets('90000000-0000-4000-8000-000000000020',array[(select id from public.application_targets where stage_id='80000000-0000-4000-8000-000000000001')],'Prueba ficticia');
+select pg_temp.expect_error($q$select public.create_application_order(pg_temp.order_data('90000000-0000-4000-8000-000000000021')||'{"application_number":23}',array['80000000-0000-4000-8000-000000000001']::uuid[],pg_temp.mixture())$q$,'ya está registrada','cancelación no libera el número');
+select public.create_application_order(pg_temp.order_data('90000000-0000-4000-8000-000000000021'),array['80000000-0000-4000-8000-000000000001']::uuid[],pg_temp.mixture());
+select pg_temp.assert_true((select application_number=24 from public.application_targets where order_id='90000000-0000-4000-8000-000000000021'),'captura automática continúa tras salto y cancelación');
+select public.create_application_order(pg_temp.order_data('90000000-0000-4000-8000-000000000022'),pg_temp.stages(),pg_temp.mixture());
+select pg_temp.assert_true((select array_agg(application_number order by stage_id)=array[25,24] from public.application_targets where order_id='90000000-0000-4000-8000-000000000022'),'secuencia automática es independiente por etapa');
+select pg_temp.assert_true((select count(*)=3 from public.application_orders),'rechazos no dejan órdenes parciales');
+select pg_temp.expect_error($q$update public.application_targets set application_number=99$q$,'permission denied','administrador sin escritura directa del número');
+set local request.jwt.claim.sub='10000000-0000-4000-8000-000000000002';
+select pg_temp.assert_true((select bool_and(application_number>0) from public.application_targets),'lector asignado consulta números mediante RLS');
+select pg_temp.expect_error($q$select public.create_application_order(pg_temp.order_data()||'{"application_number":23,"source_text":"Ficticio"}',pg_temp.stages(),pg_temp.mixture())$q$,'administrador','lector no crea captura asistida');
+reset role;
+select pg_temp.expect_error($q$update public.application_targets set application_number=99 where order_id='90000000-0000-4000-8000-000000000021'$q$,'histórico','guarda conserva número histórico también frente a escritura privilegiada');
+select pg_temp.assert_true((select pg_get_functiondef('rcfito_private.create_application_order(jsonb,uuid[],jsonb)'::regprocedure) ~ 'order by id for update'),'RPC bloquea etapas ordenadas antes de asignar números');
+select pg_temp.assert_true(exists(select 1 from pg_constraint where conrelid='public.application_targets'::regclass and conname='application_targets_stage_number_unique' and contype='u'),'restricción única protege carreras por etapa y número');
+rollback to capture_numbering;
+release savepoint capture_numbering;
+
 select pg_temp.expect_error($q$select public.create_application_order(pg_temp.order_data(),array['80000000-0000-4000-8000-000000000003']::uuid[],pg_temp.mixture())$q$,'mismo proyecto, campo y cultivo','destinos de otro campo rechazados');
 select pg_temp.expect_error($q$select public.create_application_order(pg_temp.order_data(),array['80000000-0000-4000-8000-000000000004']::uuid[],pg_temp.mixture())$q$,'mismo proyecto, campo y cultivo','destinos de otra agrícola rechazados');
 select pg_temp.expect_error($q$select public.create_application_order(pg_temp.order_data(),null,pg_temp.mixture())$q$,'destinos','NULL no crea orden sin destinos');

@@ -92,7 +92,7 @@ export function RecordDialog({ title, description, open, onOpenChange, children,
   }}><DialogHeader><DialogTitle>{title}</DialogTitle><DialogDescription>{description}</DialogDescription></DialogHeader>{children}</DialogContent></Dialog>
 }
 
-export function SaveButton({ busy, children = 'Guardar cambios', form }: { busy: boolean; children?: ReactNode; form?: string }) { return <Button type="submit" form={form} disabled={busy}>{busy && <LoaderCircle className="animate-spin" data-icon="inline-start" aria-hidden="true" />}{busy ? 'Guardando…' : children}</Button> }
+export function SaveButton({ busy, disabled, children = 'Guardar cambios', form }: { busy: boolean; disabled?: boolean; children?: ReactNode; form?: string }) { return <Button type="submit" form={form} disabled={busy || disabled}>{busy && <LoaderCircle className="animate-spin" data-icon="inline-start" aria-hidden="true" />}{busy ? 'Guardando…' : children}</Button> }
 
 export function RecordDetails({ items }: { items: { label: string; value: ReactNode }[] }) { return <dl className="record-details">{items.map(item => <div key={item.label}><dt>{item.label}</dt><dd>{item.value ?? 'Sin especificar'}</dd></div>)}</dl> }
 

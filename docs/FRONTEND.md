@@ -58,3 +58,22 @@ real de aplicaciones.
 El [estándar FRONTEND](../.project-standards/FRONTEND.md) sigue vigente.
 MoneyInput no aplica: este producto no captura importes. El reporte completo de
 aplicaciones no forma parte de esta ampliación.
+
+## Captura con IA
+
+`/captura-ia` añade un enlace de administrador al mismo AppNavigation de
+escritorio/móvil. Usa Card/Field/Textarea/Button para el mensaje y el
+RecordDialog de aplicaciones para revisar, completar selectores y aprobar. Los
+productos muestran código y nombre, conservan la dosis del mensaje y exigen
+aclarar unidades incompatibles. Nota de la aplicación es multilínea y editable;
+el origen se consulta con Collapsible sin modificarlo.
+
+La aprobación se habilita al completar los campos y revisiones. Los cambios de
+contexto/grupo/destinos reinician sus confirmaciones. Se usa calendario para
+fechas ausentes y se conserva el borrador frente a errores. En demo se ofrece
+un ejemplo de revisión expresamente ficticio, sin simular una inferencia real.
+
+QA: enlace y alta/relectura en escritorio; a 375 px se revisaron menú, selectores,
+sugerencia histórica, Escape/descarte y ausencia de overflow de página/diálogo.
+Se corrigió la grilla móvil con columnas minmax(0,1fr). Teclado completo y texto
+200 % siguen en el pendiente general RCF-006. [Ficha](flows/ai-capture.md).

@@ -244,3 +244,33 @@ validación compartida, controles deshabilitados durante guardado y motivo acces
 No se presenta como revisión independiente. Zoom 200 %, contraste medido y
 matriz completa de teclado permanecen en RCF-006. El build conserva la advertencia
 previa de tamaño del chunk principal. Publicación: [OPERATIONS](OPERATIONS.md).
+
+## Captura con IA, número por etapa y nota
+
+2026-10-31: 113/113 pruebas de npm test aprobadas, incluidos 15 casos del dominio
+de importación, 26 de aplicaciones y 28 de IA/Worker. npm run typecheck,
+npm run build y npm run docs:check aprobados. El sandbox de Windows bloquea
+subprocesos con EPERM; la ejecución autorizada fuera de esa restricción pasó.
+
+SQL aislado: 161 comprobaciones (65 catálogos, 91 aplicaciones y 5 de backfill
+sobre registros previos). HTTP/Auth/REST/Edge/RLS real aislado: 48 comprobaciones,
+8 nuevas de número por etapa, origen/nota literales, reintento, conflictos,
+permisos, reserva de número cancelado y continuación automática. El stack de QA
+quedó detenido y sus datos ficticios retirados.
+
+En navegador demo se completaron selectores y fechas vacías, código de producto,
+dosis preservada, número 9 con confirmación del salto y nota editada en dos líneas.
+El alta quedó indicada y la recarga conservó número, dosis, nota y origen. Una
+segunda revisión sugirió el cultivo desde la aplicación anterior de la misma
+etapa. A 375 px: menú de captura, diálogo, Escape/descarte y ancho sin overflow
+(página375/375, diálogo328/328) después de corregir la grilla móvil. El lector demo carece del enlace y la URL
+directa muestra captura reservada a administración.
+
+Revisión independiente de interfaz/servidor/SQL encontró y cerró conservación de
+nota completa, límites coherentes, contexto de agrícola corregida y reinicio de
+confirmaciones. El módulo de importación conserva autorrevisión separada.
+
+Operación: respaldo privado de 357,180 bytes, migración aditiva aplicada, ledger 3
+aplicadas/cero pendientes, sin fixtures. Frontend Docker actualizado y HTML/bundle
+200. La IA real permanece pendiente por decisión del Propietario; las pruebas
+simulan el proveedor y no acreditan inferencia real ni captura UI en producción.

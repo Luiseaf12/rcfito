@@ -30,7 +30,11 @@ const { key } = JSON.parse(readFileSync(resolve(root, 'public/rcfito-config.json
 let role;
 try { role = JSON.parse(Buffer.from(key.split('.')[1], 'base64url').toString()).role; } catch { /* Publishable key. */ }
 if (typeof key !== 'string' || key.startsWith('sb_secret_') || role === 'service_role' || !(key.startsWith('sb_publishable_') || role === 'anon')) throw new Error('El build solo admite una clave pública.');
-const source = readFileSync(resolve(root, 'server/site-worker.mjs'), 'utf8');
+const aiSource = readFileSync(resolve(root, 'server/application-ai.mjs'), 'utf8');
+const workerSource = readFileSync(resolve(root, 'server/site-worker.mjs'), 'utf8');
+const aiImport = "import { createApplicationAiHandler } from './application-ai.mjs';";
+if (!workerSource.startsWith(aiImport)) throw new Error('La entrada del Worker cambió; revisa el empaquetado de IA.');
+const source = `${aiSource}\n${workerSource.slice(aiImport.length)}`;
 if (dist !== resolve(root, 'dist') || lstatSync(dist).isSymbolicLink()) throw new Error('Destino de build no permitido.');
 rmSync(dist, { recursive: true });
 mkdirSync(resolve(dist, 'server'), { recursive: true });
