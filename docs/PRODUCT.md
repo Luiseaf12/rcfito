@@ -317,3 +317,17 @@ proyecto. No volver a solicitar un dato ya determinado por esas siembras. Una
 aplicación anterior compatible conserva prioridad; cultivos distintos o historia
 contradictoria requieren revisión. No interpretar el nombre libre del proyecto
 como un cultivo. [Contrato y evidencia](flows/ai-capture.md#cultivo-registrado-en-primeras-aplicaciones).
+
+## Contexto conocido y pendientes de aprobación
+
+La captura asistida completa agrícola/proyecto, campo y cultivo cuando los
+datos activos autorizados permiten una coincidencia única, aunque falten nombres
+de destinos. Los destinos sin identificar permanecen sin marcar y requieren
+selección; las referencias ambiguas exigen revisión explícita. No inventar medio,
+fechas, agua ni dosis a partir de datos de siembra o de otra aplicación.
+
+El botón Aprobar usa la misma validación que el envío y muestra cada pendiente
+por campo: incluye fechas anteriores a siembra, número repetido, salto pendiente
+de confirmación, productos/unidades/dosis y destinos. Nota vacía es válida.
+Completar o corregir lo señalado actualiza la lista y habilita la aprobación.
+[Contrato y evidencia](flows/ai-capture.md#autocompletado-y-pendientes-de-aprobación).

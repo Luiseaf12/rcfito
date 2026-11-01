@@ -301,3 +301,20 @@ etapas anteriores excluidas, selector explícito, cultivos distintos e historia
 contradictoria. QA de navegador demo: aplicación 1 con Pepino y destino completos
 automáticamente sin una aplicación anterior. Sin peticiones reales al proveedor
 ni escrituras de datos operativos. [Ficha](flows/ai-capture.md#cultivo-registrado-en-primeras-aplicaciones).
+
+## Autocompletado y pendientes de aprobación
+
+2026-10-31: 161 pruebas completas, tipos y build aprobados. Incluyen 24 casos de
+importación y 16 del validador compartido: ámbito activo/único, ambigüedad,
+selecciones explícitas, dosis/unidades, fecha de siembra, duplicados incluso
+cancelados, saltos de numeración y confirmaciones. Revisión independiente sin
+hallazgos pendientes.
+
+Navegador demo: contexto conocido preseleccionado, lista exacta de medio/fechas,
+fecha anterior a siembra y número 23 confirmado antes de habilitar Aprobar.
+Guardado con nota vacía y relectura tras recarga; duplicado identificado, cambio
+de número invalida confirmación y unidad incompatible exige corregir dosis.
+Mensaje sin contexto completa proyecto/campo/cultivo únicos sin marcar destinos.
+Móvil 375 px sin desbordamiento y lista completa visible. Solo datos ficticios
+en un origen local separado; sin consumo del proveedor ni escrituras operativas.
+[Ficha](flows/ai-capture.md#autocompletado-y-pendientes-de-aprobación).

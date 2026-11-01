@@ -81,6 +81,42 @@ y frontend Docker actualizado desde el mismo commit; ver
 
 ## Recuperación, permisos y accesibilidad
 
+### Autocompletado y pendientes de aprobación
+
+Ampliación autorizada por el Propietario: completar el contexto registrado y
+explicar por qué Aprobar y guardar sigue inactivo; commit/push y publicación
+en Sites autorizados. Estado: implementación y QA aprobados; publicación en curso.
+
+Resolver agrícola/proyecto, campo, cultivo y destinos por coincidencias únicas
+en los datos autorizados. Un proyecto o campo con una sola opción vigente se
+completa aunque las referencias de mallas aún requieran revisión; varias opciones
+conservan selección explícita. No tomar datos del nombre libre del proyecto ni
+inventar medio, fechas, dosis, agua o nota que no estén en el mensaje.
+
+La misma validación pura determina los pendientes visibles, el estado del botón
+y el envío. Mostrar cada dato faltante o incompatible junto a su campo y una lista
+antes de Aprobar: contexto, destinos, productos/unidades/dosis, agua, fechas,
+número disponible y confirmaciones de referencias o saltos. Nota vacía es válida.
+Corregir cualquier pendiente actualiza inmediatamente la lista; el estado listo
+confirma que se puede aprobar. Conservar el borrador ante rechazos del servidor.
+
+Evidencia: 161 pruebas completas aprobadas, incluidas 24 de importación y 16 de
+validación del borrador. Cubren contexto único sin agrícola/referencias,
+ambigüedad, selectores explícitos, revisiones, fechas, unidades, duplicados y
+precisión de dosis/agua. Tipos y build aprobados; revisión independiente sin
+hallazgos pendientes.
+
+Navegador demo: contexto/cultivo/producto/código/dosis completos del ejemplo;
+solo medio y fechas pendientes. Una fecha anterior a siembra y el salto a número
+23 aparecen explícitos; corregir fecha y confirmar habilita Aprobar. Nota vacía
+permitida, guardado ficticio confirmado y número 23 conservado tras recarga.
+Cambiar número invalida confirmación; un duplicado se identifica sin ofrecer una
+confirmación para eludirlo. Unidad incompatible exige aclaración y nueva dosis.
+Completar manualmente un mensaje sin contexto conserva proyecto/campo/cultivo
+únicos y deja destinos sin marcar. Móvil 375 px: documento 375 y diálogo 328 px,
+sin desbordamiento; lista y botón legibles. Sin aplicaciones ni inferencia ficticia
+en operación. [Publicación](../OPERATIONS.md#autocompletado-y-pendientes-de-aprobación).
+
 Validación por campo, carga visible, doble envío bloqueado y protección de
 descarte del borrador. Un cambio de contexto retira destinos incompatibles tras
 confirmación. Las referencias sin resolver permanecen visibles y exigen revisión

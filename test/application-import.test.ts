@@ -261,3 +261,56 @@ test('los selectores explícitos filtran las coincidencias y no retienen destino
   const reset = resolveImportContext(data, extracted({ crop: 'CA' }), { fieldId: '' })
   assert.equal(reset.fieldId, '', 'una selección vacía explícita no se vuelve a inferir')
 })
+
+test('completa proyecto, campo y cultivo únicos aunque falten agrícola y referencias del mensaje', () => {
+  const context = resolveImportContext(fixture(), extracted({ agricultural_unit: null, destinations: [] }))
+  assert.equal(context.agriculturalUnitId, 'agri')
+  assert.equal(context.projectId, 'project')
+  assert.equal(context.fieldId, 'field-a')
+  assert.equal(context.cropId, 'crop-a')
+  assert.deepEqual(context.selectedStageIds, [], 'no agrega destinos que el mensaje no indicó')
+  assert.match(context.warnings.join(' '), /Selecciona los destinos/)
+  assert.equal(context.methodId, '', 'el medio de aplicación sigue faltante')
+})
+
+test('un nombre de malla sin coincidencia no impide completar el campo y cultivo ya determinados', () => {
+  const context = resolveImportContext(fixture(), extracted({ destinations: ['Malla inexistente'] }))
+  assert.equal(context.fieldId, 'field-a')
+  assert.equal(context.cropId, 'crop-a')
+  assert.equal(context.candidateDestinations.length, 2)
+  assert.deepEqual(context.unresolvedDestinations, ['Malla inexistente'])
+  assert.deepEqual(context.selectedStageIds, [])
+})
+
+test('no elige entre campos o cultivos diferentes cuando faltan referencias', () => {
+  const data = fixture()
+  data.lots[1].field_id = 'field-b'
+  data.stages[1].crop_id = 'crop-b'
+  const context = resolveImportContext(data, extracted({ destinations: [] }))
+  assert.equal(context.fieldId, '')
+  assert.equal(context.cropId, '')
+  const field = resolveImportContext(data, extracted({ destinations: [] }), { fieldId: 'field-b' })
+  assert.equal(field.cropId, 'crop-b')
+})
+
+test('los destinos identifican una temporada única sin tomar el nombre del proyecto como cultivo', () => {
+  const data = fixture()
+  data.catalogs.agricultural_units.push({ id: 'other-agri', name: 'Otra agrícola', active: true })
+  data.projects.push({ id: 'other-project', agricultural_unit_id: 'other-agri', name: 'Cultivo de ejemplo B', season: '2026', status: 'active' })
+  const context = resolveImportContext(data, extracted({ agricultural_unit: null }))
+  assert.equal(context.projectId, 'project')
+  assert.equal(context.cropId, 'crop-a')
+  const missing = resolveImportContext(data, extracted({ agricultural_unit: null, destinations: [] }))
+  assert.equal(missing.projectId, '')
+  assert.equal(missing.cropId, '')
+  assert.ok(!missing.warnings.some(warning => warning.includes('No hay una siembra')))
+})
+
+test('una agrícola indicada sin coincidencia y selectores vacíos explícitos siguen pendientes', () => {
+  assert.equal(resolveImportContext(fixture(), extracted({ agricultural_unit: 'Otra agrícola' })).projectId, '')
+  const context = resolveImportContext(fixture(), extracted({ agricultural_unit: null }), { projectId: '' })
+  assert.equal(context.projectId, '')
+  const clear = resolveImportContext(fixture(), extracted({ destinations: [] }), { fieldId: '', cropId: '' })
+  assert.equal(clear.fieldId, '')
+  assert.equal(clear.cropId, '')
+})

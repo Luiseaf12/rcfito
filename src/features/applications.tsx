@@ -2,7 +2,8 @@ import { useId, useMemo, useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Check, Droplets, Eye, Layers3, Plus, X } from 'lucide-react'
 import { useWorkspace } from '@/data/workspace-context'
-import { matchImportedProducts, resolveImportContext, type ExtractedApplication } from '@/domain/application-import'
+import { currentApplicationDestinations, matchImportedProducts, resolveImportContext, type ExtractedApplication } from '@/domain/application-import'
+import { applicationDraftIssues, type ApplicationDraftIssue } from '@/domain/application-draft'
 import { nextStageApplicationNumber, stageApplicationNumber } from '@/domain/applications'
 import type {
   ApplicationOrder, ApplicationTarget, CatalogRecord, LotSubdivision,
@@ -34,16 +35,10 @@ export type DestinationOption = {
 }
 
 export function eligibleDestinations(data: WorkspaceData, projectId: string, fieldId?: string, cropId?: string): DestinationOption[] {
-  const project = data.projects.find(item => item.id === projectId)
-  if (!project || project.status !== 'active') return []
-  const lots = new Map(data.lots.filter(lot => lot.project_id === projectId && lot.active !== false && (!fieldId || lot.field_id === fieldId)).map(lot => [lot.id, lot]))
-  const subdivisions = new Map(data.subdivisions.filter(subdivision => subdivision.active && lots.has(subdivision.lot_id)).map(subdivision => [subdivision.id, subdivision]))
-  return data.stages
-    .filter(stage => stage.status === 'planted' && subdivisions.has(stage.subdivision_id) && (!cropId || stage.crop_id === cropId))
-    .map(stage => {
-      const subdivision = subdivisions.get(stage.subdivision_id)!
+  return currentApplicationDestinations(data, projectId, fieldId, cropId)
+    .map(({ stage, subdivision, lot }) => {
       return {
-        stage, subdivision, lot: lots.get(subdivision.lot_id)!,
+        stage, subdivision, lot,
         cropName: stage.crop_name_snapshot || recordName(data.catalogs.crops, stage.crop_id),
         varietyName: stage.variety_name_snapshot || recordName(data.catalogs.varieties, stage.variety_id),
       }
@@ -120,13 +115,14 @@ function validateProducts(rows: ProductDraft[]) {
   return ''
 }
 
-function ProductMixtureEditor({ rows, onChange, products, original = [], error, imported = false }: {
+function ProductMixtureEditor({ rows, onChange, products, original = [], error, imported = false, issues = [] }: {
   rows: ProductDraft[]
   onChange: (rows: ProductDraft[]) => void
   products: CatalogRecord[]
   original?: ProductLine[]
   error?: string
   imported?: boolean
+  issues?: ApplicationDraftIssue[]
 }) {
   const originalIds = new Set(original.map(product => product.product_id))
   const options = products.filter(product => product.active || originalIds.has(product.id))
@@ -146,12 +142,11 @@ function ProductMixtureEditor({ rows, onChange, products, original = [], error, 
                 const chosen = products.find(item => item.id === id)
                 const previous = original.find(item => item.product_id === id)
                 updateRow(row.key, { product_id: id, dose: imported ? row.dose : String(previous?.dose ?? chosen?.default_dose ?? '') })
-              }} options={options.map(item => ({ value: item.id, label: `${item.code || item.id} · ${item.name}${!item.active ? ' (inactivo, indicado)' : ''}`, disabled: rows.some(other => other.key !== row.key && other.product_id === item.id) }))} required help={product ? `Código: ${product.code || product.id} · Unidad del catálogo: ${unit}/ha` : 'Selecciona un producto del catálogo.'} />
-              <FormInput label={unit ? `Dosis (${unit}/ha)` : 'Dosis por hectárea'} value={row.dose} onChange={dose => updateRow(row.key, { dose })} type="number" min="0.0001" step="any" required />
+              }} options={options.map(item => ({ value: item.id, label: `${item.code || item.id} · ${item.name}${!item.active ? ' (inactivo, indicado)' : ''}`, disabled: rows.some(other => other.key !== row.key && other.product_id === item.id) }))} required error={issues.find(issue => issue.field === `product:${index}`)?.message} help={product ? `Código: ${product.code || product.id} · Unidad del catálogo: ${unit}/ha` : 'Selecciona un producto del catálogo.'} />
+              <FormInput label={unit ? `Dosis (${unit}/ha)` : 'Dosis por hectárea'} value={row.dose} onChange={dose => updateRow(row.key, { dose })} type="number" min="0.000001" step="any" required error={issues.find(issue => issue.field === `dose:${index}`)?.message} />
               <Button type="button" variant="outline" size="icon" aria-label={`Quitar producto ${index + 1}`} onClick={() => onChange(rows.filter(item => item.key !== row.key))}><X /></Button>
               {imported && row.sourceName && <div className="col-span-full flex flex-col gap-2">
-                <FormSelect label={`Unidad del mensaje para ${row.sourceName}`} value={row.importUnit || ''} onChange={value => updateRow(row.key, { importUnit: value as 'g' | 'ml', dose: '' })} options={[{ value: 'g', label: 'g/ha' }, { value: 'ml', label: 'ml/ha' }]} required help="Si corriges la unidad, vuelve a capturar la dosis confirmada. Masa y volumen requieren aclaración." />
-                {product && row.importUnit !== unit && <FieldError>El mensaje y el catálogo tienen unidades diferentes o pendientes. Confirma la unidad y la dosis antes de aprobar.</FieldError>}
+                <FormSelect label={`Unidad del mensaje para ${row.sourceName}`} value={row.importUnit || ''} onChange={value => updateRow(row.key, { importUnit: value as 'g' | 'ml', dose: '' })} options={[{ value: 'g', label: 'g/ha' }, { value: 'ml', label: 'ml/ha' }]} required error={issues.find(issue => issue.field === `unit:${index}`)?.message} help="Si corriges la unidad, vuelve a capturar la dosis confirmada. Masa y volumen requieren aclaración." />
               </div>}
             </FieldGroup>
           )
@@ -299,25 +294,27 @@ export function NewApplicationDialog({ close, imported, onSaved }: { close: () =
   const [groupId, setGroupId] = useState('manual')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [productError, setProductError] = useState('')
-  const [targetError, setTargetError] = useState('')
+  const [submitted, setSubmitted] = useState(false)
   const [contextChange, setContextChange] = useState<{ key: 'project_id' | 'field_id' | 'crop_id'; value: string } | null>(null)
   const dirty = !!imported || JSON.stringify(form) !== JSON.stringify(initial) || selected.length > 0 || rows.length !== 1 || rows.some(row => row.product_id || row.dose)
   const dismissal = useFormClose(!!dirty, busy, close)
   const projects = data.projects.filter(project => project.status === 'active')
-  const fields = data.catalogs.fields.filter(field => data.lots.some(lot => lot.project_id === form.project_id && lot.field_id === field.id && lot.active !== false))
+  const fields = data.catalogs.fields.filter(field => field.active && data.lots.some(lot => lot.project_id === form.project_id && lot.field_id === field.id && lot.active !== false))
   const fieldOptions = eligibleDestinations(data, form.project_id, form.field_id || undefined)
   const cropIds = new Set(fieldOptions.map(option => option.stage.crop_id))
   const options = form.field_id && form.crop_id ? eligibleDestinations(data, form.project_id, form.field_id, form.crop_id) : []
   const importContext = imported ? resolveImportContext(data, imported.extracted, { agriculturalUnitId: data.projects.find(project => project.id === form.project_id)?.agricultural_unit_id, projectId: form.project_id, fieldId: form.field_id || undefined, cropId: form.crop_id || undefined }) : null
   const chosenOptions = options.filter(option => selected.includes(option.stage.id))
-  const unusualNumbers = form.application_number ? chosenOptions.filter(option => nextStageApplicationNumber(data, option.stage.id) !== Number(form.application_number)) : []
-  const importIncomplete = !!imported && (!form.project_id || !form.field_id || !form.crop_id || !form.method_id || !validDate(form.indicated_date) || !validDate(form.scheduled_date) || !form.application_number || !Number.isSafeInteger(Number(form.application_number)) || Number(form.application_number) < 1 || Number(form.application_number) > 2_147_483_647 || !chosenOptions.length || chosenOptions.length !== selected.length || !!validateProducts(rows) || !Number.isFinite(Number(form.water_l_ha)) || Number(form.water_l_ha) <= 0 || form.observations.length > 4000 || rows.some(row => row.sourceName && (!row.importUnit || row.importUnit !== data.catalogs.products.find(product => product.id === row.product_id)?.unit)) || !!importContext?.unresolvedDestinations.length && !destinationsReviewed || !!unusualNumbers.length && !numberReviewed)
+  const draftIssues = applicationDraftIssues(data, form, rows, selected, { imported: !!imported, unresolvedDestinations: importContext?.unresolvedDestinations ?? [], destinationsReviewed, numberReviewed })
+  const visibleIssues = imported || submitted ? draftIssues : []
+  const issueFor = (field: string) => visibleIssues.find(issue => issue.field === field)?.message
+  const unusualNumbers = form.application_number && !draftIssues.some(issue => issue.field === 'application_number') ? chosenOptions.filter(option => nextStageApplicationNumber(data, option.stage.id) !== Number(form.application_number)) : []
+  const importIncomplete = !!imported && draftIssues.length > 0
   const groups = (data.sowingGroups ?? []).filter(group => group.active && group.project_id === form.project_id && group.field_id === form.field_id && group.crop_id === form.crop_id)
   const currentGroup = groups.find(group => group.id === groupId)
   const staleMembers = currentGroup ? new Set([...(currentGroup.historical_stage_ids ?? []), ...currentGroup.stage_ids.filter(id => !options.some(option => option.stage.id === id))]).size : 0
-  const update = (key: keyof typeof form, value: string) => { setForm(current => ({ ...current, [key]: value })); if (key === 'application_number') setNumberReviewed(false) }
-  const clearDestinations = () => { setSelected([]); setGroupId('manual'); setTargetError('') }
+  const update = (key: keyof typeof form, value: string) => { setError(null); setForm(current => ({ ...current, [key]: value })); if (key === 'application_number') setNumberReviewed(false) }
+  const clearDestinations = () => { setSelected([]); setGroupId('manual') }
   const applyContextChange = (key: 'project_id' | 'field_id' | 'crop_id', value: string) => {
     const next = { ...form, [key]: value, ...(key === 'project_id' ? { field_id: '', crop_id: '' } : key === 'field_id' ? { crop_id: '' } : {}) }
     clearDestinations()
@@ -337,28 +334,13 @@ export function NewApplicationDialog({ close, imported, onSaved }: { close: () =
     event.preventDefault()
     if (busy) return
     setError(null)
-    const mixtureError = validateProducts(rows)
-    setProductError(mixtureError)
-    const chosen = options.filter(option => selected.includes(option.stage.id))
-    const destinationError = !chosen.length ? 'Selecciona al menos una etapa sembrada.' : chosen.length !== selected.length ? 'La selección cambió. Revisa los destinos disponibles antes de guardar.' : ''
-    setTargetError(destinationError)
-    if (!projects.some(project => project.id === form.project_id) || !form.field_id || !form.crop_id || !data.catalogs.application_methods.some(method => method.id === form.method_id && method.active)) { setError('Completa proyecto activo, campo, cultivo y medio de aplicación.'); return }
-    if (mixtureError || destinationError) { setError('Revisa los productos y destinos señalados.'); return }
-    if (imported && rows.some(row => row.sourceName && (!row.importUnit || row.importUnit !== data.catalogs.products.find(product => product.id === row.product_id)?.unit))) { setError('Aclara las unidades del mensaje y del catálogo y confirma sus dosis antes de aprobar.'); return }
-    if (importContext?.unresolvedDestinations.length && !destinationsReviewed) { setError('Revisa los destinos del mensaje sin coincidencia única y confirma que la selección los representa.'); return }
-    if (form.application_number && (!Number.isSafeInteger(Number(form.application_number)) || Number(form.application_number) < 1 || Number(form.application_number) > 2_147_483_647)) { setError('El número de aplicación debe ser un entero positivo.'); return }
-    if (imported && !form.application_number) { setError('Completa el número de aplicación de la etapa.'); return }
-    if (chosen.some(option => data.applicationTargets.some(target => target.stage_id === option.stage.id && stageApplicationNumber(data, target) === Number(form.application_number)))) { setError('Ese número de aplicación ya está registrado en alguna etapa seleccionada. Revisa su historial.'); return }
-    if (unusualNumbers.length && !numberReviewed) { setError('Confirma el número solicitado después de revisar el consecutivo de cada etapa.'); return }
-    if (form.observations.length > 4000) { setError('La Nota de la aplicación admite hasta 4,000 caracteres.'); return }
-    if (!validDate(form.indicated_date) || !validDate(form.scheduled_date)) { setError('Captura fechas válidas para la indicación y su programación.'); return }
-    if (form.scheduled_date < form.indicated_date) { setError('La fecha programada debe ser igual o posterior a la fecha de indicación.'); return }
-    if (chosen.some(option => !option.stage.actual_sowing_date || form.indicated_date < option.stage.actual_sowing_date)) { setError('La indicación no puede ser anterior a la siembra real de ninguno de los destinos.'); return }
-    if (!form.water_l_ha.trim() || !Number.isFinite(Number(form.water_l_ha)) || Number(form.water_l_ha) <= 0) { setError('El gasto de agua debe ser mayor que cero, en litros por hectárea.'); return }
+    setSubmitted(true)
+    if (draftIssues.length) { setError(draftIssues[0].message); return }
+    const chosen = chosenOptions
     setBusy(true)
     try {
       const { application_number, ...values } = form
-      await mutate({ type: 'create_application_order', record: { ...values, id: orderId, ...(application_number ? { application_number: Number(application_number) } : {}), ...(imported ? { source_text: imported.source_text } : {}), water_l_ha: Number(form.water_l_ha), stage_ids: chosen.map(option => option.stage.id), products: rows.map(row => ({ product_id: row.product_id, dose: Number(row.dose) })) } })
+      await mutate({ type: 'create_application_order', record: { ...values, id: orderId, ...(application_number.trim() ? { application_number: Number(application_number) } : {}), ...(imported ? { source_text: imported.source_text } : {}), water_l_ha: Number(form.water_l_ha), stage_ids: chosen.map(option => option.stage.id), products: rows.map(row => ({ product_id: row.product_id, dose: Number(row.dose) })) } })
       onSaved?.()
       close()
       navigate(`/aplicaciones/${orderId}`, { state: { notice: 'La indicación se guardó correctamente.' } })
@@ -373,10 +355,10 @@ export function NewApplicationDialog({ close, imported, onSaved }: { close: () =
           {importContext && (importContext.cropSuggestionReason || importContext.warnings.length > 0) && <Alert><AlertTitle>Revisa las referencias del mensaje</AlertTitle><AlertDescription>{importContext.cropSuggestionReason && <p>{importContext.cropSuggestionReason}</p>}{importContext.warnings.filter(warning => warning !== importContext.cropSuggestionReason).map(warning => <p key={warning}>{warning}</p>)}</AlertDescription></Alert>}
           {!projects.length && <Alert><AlertTitle>Activa un proyecto de siembra</AlertTitle><AlertDescription>Necesitas un proyecto activo con etapas sembradas para indicar aplicaciones. <Link to="/proyectos">Consultar proyectos</Link></AlertDescription></Alert>}
           <FieldGroup className="field-grid">
-            <FormSelect label="Proyecto de temporada" value={form.project_id} required onChange={value => changeContext('project_id', value)} options={projects.map(project => ({ value: project.id, label: `${recordName(data.catalogs.agricultural_units, project.agricultural_unit_id)} · ${project.name} (${project.season})` }))} />
-            <FormSelect label="Campo" value={form.field_id} required disabled={!form.project_id} onChange={value => changeContext('field_id', value)} options={fields.map(field => ({ value: field.id, label: field.name }))} />
-            <FormSelect label="Cultivo" value={form.crop_id} required disabled={!form.field_id} onChange={value => changeContext('crop_id', value)} options={data.catalogs.crops.filter(crop => cropIds.has(crop.id)).map(crop => ({ value: crop.id, label: crop.name }))} help="Se muestran los cultivos de las etapas sembradas en este campo." />
-            <FormSelect label="Medio de aplicación" value={form.method_id} required onChange={value => update('method_id', value)} options={data.catalogs.application_methods.filter(method => method.active).map(method => ({ value: method.id, label: method.name }))} />
+            <FormSelect label="Proyecto de temporada" value={form.project_id} required onChange={value => changeContext('project_id', value)} options={projects.map(project => ({ value: project.id, label: `${recordName(data.catalogs.agricultural_units, project.agricultural_unit_id)} · ${project.name} (${project.season})` }))} error={issueFor('project_id')} />
+            <FormSelect label="Campo" value={form.field_id} required disabled={!form.project_id} onChange={value => changeContext('field_id', value)} options={fields.map(field => ({ value: field.id, label: field.name }))} error={issueFor('field_id')} />
+            <FormSelect label="Cultivo" value={form.crop_id} required disabled={!form.field_id} onChange={value => changeContext('crop_id', value)} options={data.catalogs.crops.filter(crop => cropIds.has(crop.id)).map(crop => ({ value: crop.id, label: crop.name }))} help="Se completa cuando las siembras identifican un único cultivo. Puedes revisar la selección." error={issueFor('crop_id')} />
+            <FormSelect label="Medio de aplicación" value={form.method_id} required onChange={value => update('method_id', value)} options={data.catalogs.application_methods.filter(method => method.active).map(method => ({ value: method.id, label: method.name }))} error={issueFor('method_id')} />
           </FieldGroup>
           {form.field_id && form.crop_id && <FieldGroup>
             <FormSelect label="Usar un grupo de siembra" value={groupId} onChange={id => {
@@ -386,27 +368,27 @@ export function NewApplicationDialog({ close, imported, onSaved }: { close: () =
               setSelected(group ? group.stage_ids.filter(stageId => options.some(option => option.stage.id === stageId)) : [])
             }} options={[{ value: 'manual', label: 'Seleccionar destinos manualmente' }, ...groups.map(group => ({ value: group.id, label: `${group.name} · ${group.stage_ids.filter(id => options.some(option => option.stage.id === id)).length} vigentes` }))]} help="Los grupos son una selección manual guardada. Puedes ajustar los destinos para esta indicación." />
             {staleMembers > 0 && <Alert><AlertTitle>Este grupo conserva etapas anteriores</AlertTitle><AlertDescription>{staleMembers} {staleMembers === 1 ? 'etapa ya no está disponible y quedó excluida' : 'etapas ya no están disponibles y quedaron excluidas'}. Solo se seleccionan sus siembras vigentes.</AlertDescription></Alert>}
-            <StageDestinationPicker options={options} selected={selected} onChange={ids => { setSelected(ids); setGroupId('manual'); setDestinationsReviewed(false); setNumberReviewed(false) }} error={targetError} />
+            <StageDestinationPicker options={options} selected={selected} onChange={ids => { setError(null); setSelected(ids); setGroupId('manual'); setDestinationsReviewed(false); setNumberReviewed(false) }} error={issueFor('destinations')} />
           </FieldGroup>}
           {!!importContext?.unresolvedDestinations.length && <Field orientation="horizontal"><Checkbox id={`${orderId}-destinations-reviewed`} checked={destinationsReviewed} onCheckedChange={checked => setDestinationsReviewed(checked === true)} /><FieldLabel htmlFor={`${orderId}-destinations-reviewed`}>Revisé {importContext.unresolvedDestinations.join(', ')} y confirmé que la selección incluye todos los destinos del mensaje.</FieldLabel></Field>}
           <FieldGroup>
-            <FormInput label="Número de aplicación en la etapa" value={form.application_number} onChange={value => update('application_number', value)} type="number" min="1" max="2147483647" step="1" required={!!imported} help={imported ? 'Número del mensaje, independiente del folio de la orden.' : 'Vacío: asigna el siguiente número disponible en cada etapa.'} />
+            <FormInput label="Número de aplicación en la etapa" value={form.application_number} onChange={value => update('application_number', value)} type="number" min="1" max="2147483647" step="1" required={!!imported} error={issueFor('application_number')} help={imported ? 'Número del mensaje, independiente del folio de la orden.' : 'Vacío: asigna el siguiente número disponible en cada etapa.'} />
             {!!chosenOptions.length && <p className="muted">{chosenOptions.map(option => `${option.lot.name} · Etapa ${option.stage.stage_number}: siguiente ${nextStageApplicationNumber(data, option.stage.id)}`).join('; ')}</p>}
             {!!unusualNumbers.length && <Field orientation="horizontal"><Checkbox id={`${orderId}-number-reviewed`} checked={numberReviewed} onCheckedChange={checked => setNumberReviewed(checked === true)} /><FieldLabel htmlFor={`${orderId}-number-reviewed`}>Revisé el historial y confirmo el número {form.application_number} para estas etapas, aunque difiera del siguiente disponible. Los conteos conservarán solo las aplicaciones registradas.</FieldLabel></Field>}
           </FieldGroup>
           <Separator />
           <FieldGroup>
-            <ProductMixtureEditor rows={rows} onChange={setRows} products={data.catalogs.products} error={productError} imported={!!imported} />
+            <ProductMixtureEditor rows={rows} onChange={next => { setError(null); setRows(next) }} products={data.catalogs.products} error={issueFor('products')} imported={!!imported} issues={visibleIssues} />
             <FieldGroup className="field-grid">
-              <FormInput label="Gasto de agua (L/ha)" value={form.water_l_ha} onChange={value => update('water_l_ha', value)} type="number" min="0.0001" step="any" required />
-              <FormInput label="Fecha de indicación" type="date" value={form.indicated_date} onChange={value => update('indicated_date', value)} required />
-              <FormInput label="Fecha programada" type="date" value={form.scheduled_date} onChange={value => update('scheduled_date', value)} min={form.indicated_date} required />
+              <FormInput label="Gasto de agua (L/ha)" value={form.water_l_ha} onChange={value => update('water_l_ha', value)} type="number" min="0.0001" step="any" required error={issueFor('water_l_ha')} />
+              <FormInput label="Fecha de indicación" type="date" value={form.indicated_date} onChange={value => update('indicated_date', value)} required error={issueFor('indicated_date')} />
+              <FormInput label="Fecha programada" type="date" value={form.scheduled_date} onChange={value => update('scheduled_date', value)} min={form.indicated_date} required error={issueFor('scheduled_date')} />
             </FieldGroup>
-            <TextField label="Nota de la aplicación" value={form.observations} onChange={value => update('observations', value)} help="Opcional, hasta 4,000 caracteres. Se conserva para todos los destinos de esta indicación." />
+            <TextField label="Nota de la aplicación" value={form.observations} onChange={value => update('observations', value)} error={issueFor('observations')} help="Opcional, hasta 4,000 caracteres. Se conserva para todos los destinos de esta indicación." />
           </FieldGroup>
           <Alert><AlertTitle>La indicación se conserva como historial</AlertTitle><AlertDescription>Una vez emitida, registra su realización o cancela los destinos pendientes. Para corregirla, cancela e indica nuevamente.</AlertDescription></Alert>
         </fieldset>
-        {importIncomplete && <p className="muted" role="status">Completa los campos obligatorios y las revisiones señaladas para habilitar la aprobación.</p>}
+        {(imported || submitted) && (draftIssues.length ? <Alert role="status"><AlertTitle>Pendientes para {imported ? 'aprobar' : 'guardar'}: {draftIssues.length}</AlertTitle><AlertDescription><ul className="list-disc pl-5">{draftIssues.map(issue => <li key={`${issue.field}:${issue.message}`}>{issue.message}</li>)}</ul></AlertDescription></Alert> : <p className="flex items-center gap-2" role="status"><Check aria-hidden="true" />Captura lista para {imported ? 'aprobar y guardar' : 'guardar'}.</p>)}
         <div className="dialog-actions"><Button type="button" variant="outline" onClick={dismissal.requestClose} disabled={busy}>Volver</Button><SaveButton busy={busy} disabled={importIncomplete}>{imported ? 'Aprobar y guardar indicación' : 'Guardar indicación'}</SaveButton></div>
       </form>
     </RecordDialog>

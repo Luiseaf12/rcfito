@@ -345,3 +345,12 @@ Nueve comprobaciones posteriores aprobadas: inicio y bundle con el texto corregi
 200 en Site y local, captura/configuración sin sesión 401 en ambos y salud Auth
 200. Sin escrituras de aplicaciones ni consumo del proveedor en la verificación.
 [Evidencia](TESTING.md#cultivo-registrado-en-primeras-aplicaciones).
+
+## Autocompletado y pendientes de aprobación
+
+2026-10-31: corrección autorizada con commit/push y publicación. Contexto único
+completado desde siembras; una validación compartida explica cada bloqueo y
+permite aprobar al resolverlos. 161 pruebas, tipos/build, QA demo de guardado y
+móvil aprobados, con revisión independiente sin pendientes. No requiere cambios
+de esquema, nuevas claves ni ajustes del proveedor. Publicación Sites y frontend
+Docker en curso. [Evidencia](TESTING.md#autocompletado-y-pendientes-de-aprobación).

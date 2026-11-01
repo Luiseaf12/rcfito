@@ -85,3 +85,12 @@ administrador. En modo gestionado permite clave password, modelo, probar y guard
 demo muestra la indisponibilidad explícita. La clave permanece solo en memoria
 durante la edición y se limpia al guardar. Cambiar entradas invalida la prueba;
 estado, carga, error y éxito conservan controles accesibles y diseño móvil.
+
+## Pendientes visibles al aprobar captura
+
+La revisión IA usa FieldError junto a los campos y Alert con la lista de
+pendientes antes del botón. La misma función pura controla botón y submit;
+cuando no hay pendientes anuncia Captura lista para aprobar y guardar. Conservar
+las selecciones resueltas, los valores del mensaje y la protección de descarte.
+Se verificaron errores recuperables, habilitación/guardado demo y 375 px.
+[Ficha](flows/ai-capture.md#autocompletado-y-pendientes-de-aprobación).

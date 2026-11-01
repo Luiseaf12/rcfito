@@ -135,16 +135,35 @@ const matchesDestination = (destination: ImportDestination, name: string) => {
   return aliases.some(alias => destinationName(alias) === destinationName(name))
 }
 
+/** The same current, complete destinations are used by inference and its picker. */
+export function currentApplicationDestinations(data: WorkspaceData, projectId?: string, fieldId?: string, cropId?: string): ImportDestination[] {
+  const projects = new Map(data.projects.filter(project => project.status === 'active' && (projectId === undefined || project.id === projectId) && data.catalogs.agricultural_units.some(unit => unit.id === project.agricultural_unit_id && unit.active)).map(project => [project.id, project]))
+  const lots = new Map(data.lots.filter(lot => {
+    const project = projects.get(lot.project_id)
+    return project && lot.active !== false && (!fieldId || lot.field_id === fieldId) && data.catalogs.fields.some(field => field.id === lot.field_id && field.active && field.agricultural_unit_id === project.agricultural_unit_id)
+  }).map(lot => [lot.id, lot]))
+  const subdivisions = new Map(data.subdivisions.filter(subdivision => subdivision.active && lots.has(subdivision.lot_id)).map(subdivision => [subdivision.id, subdivision]))
+  return data.stages.filter(stage => stage.status === 'planted' && Boolean(stage.actual_sowing_date) && subdivisions.has(stage.subdivision_id) && (!cropId || stage.crop_id === cropId) && data.catalogs.crops.some(crop => crop.id === stage.crop_id && crop.active)).map(stage => {
+    const subdivision = subdivisions.get(stage.subdivision_id)!
+    return { stage, subdivision, lot: lots.get(subdivision.lot_id)! }
+  })
+}
+
 /** Resolve only unambiguous references from the already authorized workspace. */
 export function resolveImportContext(data: WorkspaceData, extracted: ExtractedApplication, overrides: ImportContextOverrides = {}): ImportContext {
   const warnings: string[] = []
   const activeUnits = data.catalogs.agricultural_units.filter(unit => unit.active)
+  const activeProjects = data.projects.filter(project => project.status === 'active' && activeUnits.some(unit => unit.id === project.agricultural_unit_id))
+  const allDestinations = currentApplicationDestinations(data)
   let agriculturalUnitId = overrides.agriculturalUnitId === undefined ? uniqueRecord(activeUnits, extracted.agricultural_unit) : activeUnits.find(unit => unit.id === overrides.agriculturalUnitId)?.id ?? ''
-  const overriddenProject = overrides.projectId ? data.projects.find(project => project.id === overrides.projectId && project.status === 'active' && (!agriculturalUnitId || project.agricultural_unit_id === agriculturalUnitId) && activeUnits.some(unit => unit.id === project.agricultural_unit_id)) : undefined
+  const overriddenProject = overrides.projectId ? activeProjects.find(project => project.id === overrides.projectId && (!agriculturalUnitId || project.agricultural_unit_id === agriculturalUnitId)) : undefined
   if (overriddenProject && !agriculturalUnitId && overrides.agriculturalUnitId === undefined) agriculturalUnitId = overriddenProject.agricultural_unit_id
-  const projects = data.projects.filter(project => project.status === 'active' && project.agricultural_unit_id === agriculturalUnitId)
-  const projectId = overrides.projectId === undefined ? projects.length === 1 ? projects[0].id : '' : overriddenProject?.id ?? ''
-  const fields = data.catalogs.fields.filter(field => field.active && field.agricultural_unit_id === agriculturalUnitId)
+  const canInferUnit = overrides.agriculturalUnitId === undefined && !extracted.agricultural_unit
+  const projects = activeProjects.filter(project => agriculturalUnitId ? project.agricultural_unit_id === agriculturalUnitId : canInferUnit)
+  const matchingProjects = extracted.destinations.length ? projects.filter(project => extracted.destinations.every(name => allDestinations.some(destination => destination.lot.project_id === project.id && matchesDestination(destination, name)))) : []
+  const projectId = overrides.projectId === undefined ? matchingProjects.length === 1 ? matchingProjects[0].id : projects.length === 1 ? projects[0].id : '' : overriddenProject?.id ?? ''
+  if (!agriculturalUnitId && canInferUnit && projectId) agriculturalUnitId = activeProjects.find(project => project.id === projectId)!.agricultural_unit_id
+  const fields = data.catalogs.fields.filter(field => field.active && field.agricultural_unit_id === agriculturalUnitId && (!projectId || data.lots.some(lot => lot.project_id === projectId && lot.active !== false && lot.field_id === field.id)))
   let fieldId = overrides.fieldId === undefined ? uniqueRecord(fields, extracted.field) : fields.find(field => field.id === overrides.fieldId)?.id ?? ''
   const crops = data.catalogs.crops.filter(crop => crop.active)
   let cropId = overrides.cropId === undefined ? uniqueRecord(crops, extracted.crop) : crops.find(crop => crop.id === overrides.cropId)?.id ?? ''
@@ -153,16 +172,13 @@ export function resolveImportContext(data: WorkspaceData, extracted: ExtractedAp
   if (agriculturalUnitId && !projectId) warnings.push('Selecciona una temporada activa de la agrícola.')
   if (extracted.field && !fieldId) warnings.push('Selecciona el campo: el nombre del mensaje no tiene una coincidencia única activa.')
   if (extracted.crop && !cropId) warnings.push('Selecciona el cultivo: el nombre del mensaje no tiene una coincidencia única activa.')
-  const lots = new Map(data.lots.filter(lot => lot.project_id === projectId && lot.active !== false && fields.some(field => field.id === lot.field_id)).map(lot => [lot.id, lot]))
-  const subdivisions = new Map(data.subdivisions.filter(subdivision => subdivision.active && lots.has(subdivision.lot_id)).map(subdivision => [subdivision.id, subdivision]))
-  const available: ImportDestination[] = data.stages.filter(stage => stage.status === 'planted' && Boolean(stage.actual_sowing_date) && subdivisions.has(stage.subdivision_id) && crops.some(crop => crop.id === stage.crop_id)).map(stage => {
-    const subdivision = subdivisions.get(stage.subdivision_id)!
-    return { stage, subdivision, lot: lots.get(subdivision.lot_id)! }
-  })
+  const unresolvedContext = Boolean((overrides.fieldId || extracted.field) && !fieldId || (overrides.cropId || extracted.crop) && !cropId)
+  const available = unresolvedContext ? [] : allDestinations.filter(destination => destination.lot.project_id === projectId)
   const resolveNames = (field: string, crop: string) => extracted.destinations.map(name => ({ name, matches: available.filter(destination => matchesDestination(destination, name) && (!field || destination.lot.field_id === field) && (!crop || destination.stage.crop_id === crop)) }))
   let resolved = resolveNames(fieldId, cropId)
   const unambiguous = () => resolved.filter(row => row.matches.length === 1).map(row => row.matches[0])
-  const inferredFields = unique(unambiguous().map(destination => destination.lot.field_id))
+  const referencedScope = () => resolved.length && resolved.every(row => row.matches.length) ? resolved.flatMap(row => row.matches) : available.filter(destination => (!fieldId || destination.lot.field_id === fieldId) && (!cropId || destination.stage.crop_id === cropId))
+  const inferredFields = unique(referencedScope().map(destination => destination.lot.field_id))
   if (!fieldId && overrides.fieldId === undefined && !extracted.field && inferredFields.length === 1) fieldId = inferredFields[0]
   if (inferredFields.length > 1 && !fieldId) warnings.push('Los destinos pertenecen a distintos campos. Selecciona destinos de un mismo campo para la orden.')
   resolved = resolveNames(fieldId, cropId)
@@ -199,13 +215,18 @@ export function resolveImportContext(data: WorkspaceData, extracted: ExtractedAp
       cropSuggestionReason = compatibleHistory ? 'Los destinos no tienen un único campo y cultivo. Revisa las siembras y selecciona el cultivo.' : 'El historial y las siembras no permiten sugerir un cultivo común. Revisa las etapas y selecciona el cultivo.'
       warnings.push(cropSuggestionReason)
     }
-  } else if (!extracted.crop && !matched.length) {
-    cropSuggestionReason = 'Selecciona las siembras para consultar su aplicación anterior.'
+  } else if (!extracted.crop && !cropId && overrides.cropId === undefined) {
+    const scopedCrops = unique(referencedScope().map(destination => destination.stage.crop_id))
+    if (fieldId && scopedCrops.length === 1) {
+      suggestedCropId = scopedCrops[0]
+      cropId = suggestedCropId
+      cropSuggestionReason = 'Cultivo único de las siembras vigentes del campo y proyecto seleccionados.'
+    } else if (!matched.length) cropSuggestionReason = projectId ? 'Selecciona los destinos o el campo y cultivo que faltan para relacionar las siembras.' : 'Selecciona el proyecto de temporada para relacionar las siembras del mensaje.'
   }
   resolved = resolveNames(fieldId, cropId)
   const unresolvedDestinations = resolved.filter(row => row.matches.length !== 1).map(row => row.name)
   for (const row of resolved) {
-    if (row.matches.length !== 1) warnings.push(row.matches.length ? `«${row.name}» corresponde a varias siembras vigentes. Selecciona su destino explícitamente.` : `No hay una siembra vigente de «${row.name}» en el contexto seleccionado. Revisa sus destinos.`)
+    if (projectId && row.matches.length !== 1) warnings.push(row.matches.length ? `«${row.name}» corresponde a varias siembras vigentes. Selecciona su destino explícitamente.` : `No hay una siembra vigente de «${row.name}» en el contexto seleccionado. Revisa sus destinos.`)
   }
   if (!extracted.destinations.length) warnings.push('Selecciona los destinos de la aplicación; el mensaje no los identifica.')
   const selected = unique(resolved.filter(row => row.matches.length === 1).map(row => row.matches[0].stage.id))

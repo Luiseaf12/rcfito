@@ -11,7 +11,7 @@
     "build": "tsc -b && vite build --outDir dist/client && node scripts/build-site-worker.mjs",
     "preview": "npm run build:frontend && vite preview --host 127.0.0.1",
     "typecheck": "tsc -b",
-    "test": "tsx --test test/domain.test.ts test/catalogs.test.ts test/group-selection.test.ts test/connection.test.ts test/site-worker.test.mjs test/tunnel-publisher.test.mjs test/applications.test.ts test/application-import.test.ts test/application-ai.test.mjs test/ai-settings.test.mjs test/ai-settings-client.test.ts",
+    "test": "tsx --test test/domain.test.ts test/catalogs.test.ts test/group-selection.test.ts test/connection.test.ts test/site-worker.test.mjs test/tunnel-publisher.test.mjs test/applications.test.ts test/application-import.test.ts test/application-draft.test.ts test/application-ai.test.mjs test/ai-settings.test.mjs test/ai-settings-client.test.ts",
     "standards:check": "node .project-standards/check.mjs",
     "docs:check": "npm run standards:check",
     "build:frontend": "tsc -b && vite build"
