@@ -71,5 +71,5 @@ inferencia. No se capturó voz del usuario ni se consumió proveedor real. Graba
 con micrófono físico y reconocimiento real quedan como límites de esta evidencia.
 
 Selección de segundo lote homónimo verificada en navegador: una interpretación
-y dos consultas, sin inferencia al elegir. Suite final: 261 pruebas aprobadas.
+y dos consultas, sin inferencia al elegir. Suite final: 265 pruebas aprobadas.
 Despliegue de la revisión validada pendiente de confirmación nativa.

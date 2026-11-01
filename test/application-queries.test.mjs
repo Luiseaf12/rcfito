@@ -66,14 +66,14 @@ test('respuesta distingue unidades, promedio ponderado, órdenes/destinos y cons
   const data = result({ operation: 'uso_producto', status: 'all' });
   data.rows = [{ product_name: 'Producto de ejemplo', unit: 'ml', quantity: 1500, average_dose: 750, destination_count: 2 }];
   const answer = formatApplicationQueryAnswer(data);
-  assert.match(answer, /2 destinos en 1 orden/); assert.match(answer, /1.5 L y 1 kg/); assert.match(answer, /no equivalen a consumo real/); assert.match(answer, /750 ml\/ha/);
+  assert.match(answer, /2 destinos en 1 orden/); assert.match(answer, /1.50 L y 1.00 kg/); assert.match(answer, /no equivalen a consumo real/); assert.match(answer, /750.00 ml\/ha/);
 });
 
 test('detalle expone agua, equipo, aplicador y notas y cambios no inventa conteos de destinos', () => {
   const data = result({ operation: 'detalle', status: 'performed' });
   data.rows = [{ folio: 'F1', water_l_ha: 250, equipment: 'Equipo ejemplo', applicator: 'Persona ejemplo', observations: 'Nota ejemplo', products: [] }];
   const answer = formatApplicationQueryAnswer(data);
-  for (const text of ['250 L/ha', 'Equipo ejemplo', 'Persona ejemplo', 'Nota ejemplo']) assert.ok(answer.includes(text));
+  for (const text of ['250.00 L/ha', 'Equipo ejemplo', 'Persona ejemplo', 'Nota ejemplo']) assert.ok(answer.includes(text));
   data.query = { operation: 'cambios' }; data.summary = { event_count: 1, total_rows: 1 }; data.rows = [{ kind: 'indication', version: 1, reason: 'Motivo ejemplo' }];
   assert.doesNotMatch(formatApplicationQueryAnswer(data), /0 destinos/);
 });

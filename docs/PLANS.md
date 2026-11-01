@@ -39,7 +39,7 @@ Fecha de revisión: 2026-10-31.
 
 | RCF-027 | Documentar y aplicar dos decimales en reportes. | en curso | Agente principal | Regla local y formato compartido implementados; verificar dashboard/lotes/historiales y publicar en Sites conservando audiencia. | [Regla](FRONTEND.md#decimales-en-reportes) y [verificación](TESTING.md#decimales-en-reportes) |
 
-| RCF-028 | Consultas de aplicaciones por chat, audio y CLI compartido. | en verificación | Agente principal y especialistas frontend/backend | Código, 261 pruebas, 75 SQL y 19 HTTP nuevas, QA de navegador y migración operativa 7/0 completados. Publicar la revisión validada en Sites y frontend Docker conservando audiencia. | [Ficha de consultas](flows/application-chat.md) |
+| RCF-028 | Consultas de aplicaciones por chat, audio y CLI compartido. | en verificación | Agente principal y especialistas frontend/backend | Código, 265 pruebas, 75 SQL y 19 HTTP nuevas, QA de navegador y migración operativa 7/0 completados. Publicar la revisión validada en Sites y frontend Docker conservando audiencia. | [Ficha de consultas](flows/application-chat.md) |
 
 Estados y cierre: [DOCUMENTATION](../.project-standards/DOCUMENTATION.md#planes-decisiones-y-deuda).
 Una tarea registrada no autoriza implementarla. Conservar su ID y actualizar su

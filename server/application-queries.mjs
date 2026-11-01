@@ -157,7 +157,8 @@ export function createApplicationQueryRunner({ fetch: queryFetch = fetch, now = 
   return { run };
 }
 
-const queryNumber = value => new Intl.NumberFormat('es-MX', { maximumFractionDigits: 3 }).format(Number(value) || 0);
+const queryNumber = value => new Intl.NumberFormat('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(value) || 0);
+const queryCount = value => new Intl.NumberFormat('es-MX', { maximumFractionDigits: 0 }).format(Number(value) || 0);
 export function formatApplicationQueryAnswer(result) {
   if (result.clarification) {
     const choices = (result.choices ?? []).slice(0, 10).map(choice => [choice.name, choice.project_name, choice.season].filter(Boolean).join(' · '));
@@ -165,15 +166,15 @@ export function formatApplicationQueryAnswer(result) {
   }
   const summary = result.summary;
   const state = { performed: 'realizadas', indicated: 'indicadas', cancelled: 'canceladas', all: 'de todos los estados' }[result.query.status] ?? 'registradas';
-  const lines = result.query.operation === 'cambios' ? [] : [`Encontré ${queryNumber(summary.destination_count)} ${summary.destination_count === 1 ? 'destino' : 'destinos'} en ${queryNumber(summary.order_count)} ${summary.order_count === 1 ? 'orden' : 'órdenes'} (${state}).`];
+  const lines = result.query.operation === 'cambios' ? [] : [`Encontré ${queryCount(summary.destination_count)} ${summary.destination_count === 1 ? 'destino' : 'destinos'} en ${queryCount(summary.order_count)} ${summary.order_count === 1 ? 'orden' : 'órdenes'} (${state}).`];
   if (result.query.from || result.query.to) lines.push(`Periodo: ${result.query.from ?? 'sin inicio'} a ${result.query.to ?? 'sin fin'}.`);
   if (result.query.operation === 'uso_producto') {
     lines.push(`Cantidad calculada: ${queryNumber((summary.liquid_ml ?? 0) / 1000)} L y ${queryNumber((summary.solid_g ?? 0) / 1000)} kg.`);
     if (result.query.status !== 'performed') lines.push('Las cantidades incluyen indicaciones históricas y no equivalen a consumo real.');
-    for (const row of result.rows) lines.push(`${row.product_name ?? row.name}: ${queryNumber((row.quantity ?? row.total_quantity ?? 0) / 1000)} ${row.unit === 'g' ? 'kg' : 'L'}; ${queryNumber(row.destination_count)} destinos; dosis promedio ponderada ${queryNumber(row.average_dose)} ${row.unit}/ha${row.last_date ? `; última fecha ${row.last_date}` : ''}.`);
+    for (const row of result.rows) lines.push(`${row.product_name ?? row.name}: ${queryNumber((row.quantity ?? row.total_quantity ?? 0) / 1000)} ${row.unit === 'g' ? 'kg' : 'L'}; ${queryCount(row.destination_count)} destinos; dosis promedio ponderada ${queryNumber(row.average_dose)} ${row.unit}/ha${row.last_date ? `; última fecha ${row.last_date}` : ''}.`);
   } else if (result.query.operation === 'cambios') {
     const eventCount = summary.total_rows ?? result.rows.length;
-    lines.push(`${queryNumber(eventCount)} ${eventCount === 1 ? 'cambio registrado' : 'cambios registrados'}.`);
+    lines.push(`${queryCount(eventCount)} ${eventCount === 1 ? 'cambio registrado' : 'cambios registrados'}.`);
     for (const row of result.rows) lines.push(`${row.changed_at ?? ''} · ${row.kind === 'performance' ? 'Corrección real' : 'Revisión de indicación'} ${row.version ?? ''}: ${(row.reason ?? '').slice(0, 300)}`);
   } else {
     for (const row of result.rows) {
@@ -193,7 +194,7 @@ export function formatApplicationQueryAnswer(result) {
       }
     }
   }
-  if (result.incomplete_count) lines.push(`Se omitieron ${queryNumber(result.incomplete_count)} registros incompletos.`);
+  if (result.incomplete_count) lines.push(`Se omitieron ${queryCount(result.incomplete_count)} registros incompletos.`);
   if (result.truncated) lines.push('Hay más resultados. Acota los filtros o solicita la siguiente página.');
   if (result.sources_truncated) lines.push('Las fuentes enlazadas son una muestra de los registros usados en el cálculo.');
   if (!result.rows.length && !(summary.total_rows ?? summary.destination_count)) lines.push('No hay coincidencias con estos filtros dentro de tus permisos.');

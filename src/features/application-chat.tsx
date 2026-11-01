@@ -17,12 +17,13 @@ import { MessageScroller, MessageScrollerButton, MessageScrollerContent, Message
 import { Attachment, AttachmentActions, AttachmentContent, AttachmentDescription, AttachmentMedia, AttachmentTitle } from '@/components/ui/attachment'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { errorMessage } from './shared'
+import { reportNumber } from '@/lib/report-format'
 import './application-chat.css'
 
 type ChatMessage = { id: string; role: 'user' | 'assistant'; text: string; response?: ApplicationChatResponse; demo?: boolean; contextKey?: string }
 const statusLabels = { indicated: 'Indicadas', performed: 'Realizadas', cancelled: 'Canceladas', all: 'Todos los estados' }
 const suggestions = ['¿Qué aplicaciones están pendientes?', '¿Qué productos hemos usado?', 'Muéstrame el historial de aplicaciones']
-const number = (value: number, digits = 2) => value.toLocaleString('es-MX', { maximumFractionDigits: digits })
+const number = (value: number, digits = 2) => digits === 0 ? value.toLocaleString('es-MX', { maximumFractionDigits: 0 }) : reportNumber.format(value)
 const timestamp = (value: string) => Number.isFinite(Date.parse(value)) ? new Intl.DateTimeFormat('es-MX', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(value)) : 'Fecha no disponible'
 const recordText = (value: unknown) => typeof value === 'string' ? value : ''
 const recordObject = (value: unknown): value is Record<string, unknown> => Boolean(value) && typeof value === 'object' && !Array.isArray(value)
@@ -67,7 +68,7 @@ function ResponseEvidence({ response, choiceDisabled, onChoose }: { response: Ap
   const metrics: { label: string; value: string }[] = []
   const add = (key: string, label: string, divisor = 1, unit = '') => {
     const value = result.summary[key]
-    if (typeof value === 'number' && Number.isFinite(value)) metrics.push({ label, value: `${number(value / divisor)}${unit}` })
+    if (typeof value === 'number' && Number.isFinite(value)) metrics.push({ label, value: `${number(value / divisor, ['destination_count', 'order_count', 'event_count'].includes(key) ? 0 : 2)}${unit}` })
   }
   add('destination_count', 'Destinos')
   add('order_count', 'Órdenes')

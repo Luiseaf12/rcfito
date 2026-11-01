@@ -480,7 +480,7 @@ Publicación pendiente en [operación](OPERATIONS.md#dos-decimales-en-reportes).
 
 ## Consultas de aplicaciones por chat, audio y CLI
 
-Verificación 2026-11-01: `npm test` aprobó 261 pruebas integradas; tipos y build
+Verificación 2026-11-01: `npm test` aprobó 265 pruebas integradas; tipos y build
 aprobados. Pruebas nuevas cubren filtros, planes estructurados, Auth/perfil,
 formatos/firma/tamaño de audio, reutilización de configuración, límites, caché
 por usuario/revisión, invalidación, CLI login/refresh/logout, fuentes, cifras y
