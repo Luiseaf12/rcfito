@@ -130,8 +130,9 @@ credenciales privilegiadas.
 La revisión independiente detectó y se corrigieron un escape por doble
 decodificación y la pérdida de la URL al crecer los logs; se verificaron las
 correcciones con peticiones anónimas y pruebas HTTPS. Evidencia en
-[TESTING](TESTING.md#quick-tunnel-https). El endpoint estable y SMTP de recuperación
-siguen pendientes. Las pruebas demo y HTTP aisladas se conservan por separado.
+[TESTING](TESTING.md#quick-tunnel-https). RCF-010 quedó cerrado por confirmación
+del Propietario el 2026-11-01. SMTP de recuperación conserva su estado pendiente;
+las pruebas demo y HTTP aisladas se mantienen por separado.
 
 ## Registro automático de la conexión
 

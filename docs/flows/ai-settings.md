@@ -72,5 +72,6 @@ recarga con clave vacía/terminación enmascarada y cambio de modelo conservando
 clave. Revisión independiente sin hallazgos pendientes.
 
 No se crearon claves ni se enviaron peticiones a OpenAI durante QA. El
-Propietario ingresará sus datos desde esta sección para activar el proveedor.
+Propietario confirmó el 2026-11-01 el cierre de RCF-014; la activación dejó de
+figurar como pendiente. La evidencia anterior describe las pruebas de esa entrega.
 Resultado de publicación en [OPERATIONS](../OPERATIONS.md#configuración-de-ia-en-el-servidor).

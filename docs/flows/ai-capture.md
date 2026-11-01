@@ -3,8 +3,9 @@
 Fecha: 2026-10-31. Alcance autorizado por el Propietario: implementar,
 verificar, commit/push y publicar conservando la audiencia de Sites.
 Estado: implementación y pruebas aprobadas; código publicado en Sites versión 11.
-El Propietario decidió dejar la activación del proveedor pendiente, sin crear
-credenciales ni ejecutar inferencia real.
+La activación se aplazó en la entrega inicial. El 2026-11-01 el Propietario
+confirmó que RCF-014 ya quedó terminado y solicitó su cierre. Se conserva abajo
+la evidencia histórica de QA, sin atribuirle pruebas adicionales de esta revisión.
 
 ## Usuario, entrada y objetivo
 

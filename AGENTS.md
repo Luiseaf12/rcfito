@@ -15,13 +15,16 @@ dos migraciones aplicadas sin pendientes, con respaldo privado previo a la segun
 El HTTPS de prueba usa Cloudflare Quick Tunnel;
 su URL puede cambiar al reiniciar. Sites conserva `/supabase` y el monitor de
 Windows renueva el destino automáticamente al iniciar sesión; ver
-[conexión automática](docs/tunnel-auto-update.md). El endpoint de operación
-continua sigue pendiente.
+[conexión automática](docs/tunnel-auto-update.md). RCF-010 quedó cerrado por
+confirmación del Propietario el 2026-11-01; ver el estado en
+[OPERATIONS](docs/OPERATIONS.md#cierres-confirmados-por-el-propietario).
 
 [PRODUCT](docs/PRODUCT.md) conserva los contratos de negocio. La ampliación de
 aplicaciones/grupos está implementada y probada en demo/backend aislado;
-frontend Docker actualizado y comprobado; publicación en Sites confirmada. El reporte completo sigue fuera
-de alcance. El caso habitual confirma lo indicado; una opción explícita permite
+frontend Docker actualizado y comprobado; publicación en Sites confirmada.
+El Propietario confirmó el cierre del reporte completo (RCF-011) y de la captura
+con IA (RCF-014) el 2026-11-01. El caso habitual confirma lo indicado; una opción
+explícita permite
 cambiar productos/dosis/agua reales, conservando ambas versiones por destino.
 
 ## Lectura por tarea
@@ -35,6 +38,22 @@ cambiar productos/dosis/agua reales, conservando ambas versiones por destino.
 | Verificación | [TESTING](docs/TESTING.md). |
 | Ejecución y publicación | [OPERATIONS](docs/OPERATIONS.md) y [Supabase](docs/backend-deployment.md). |
 | Pendientes | [PLANS](docs/PLANS.md). |
+
+## Antes de desarrollar un pendiente
+
+Cada vez que el Propietario pida desarrollar uno de los pendientes:
+
+1. Leer su registro y la fuente de alcance vigente.
+2. Antes de comenzar la implementación, decirle qué dudas o aclaraciones se
+   necesitan sobre ese pendiente y plantearlas en una lista clara.
+3. Resolver las dudas que afecten el alcance o las reglas antes de implementar
+   la parte que depende de ellas. No asumir sus respuestas.
+4. Si no hay dudas, indicarlo expresamente antes de comenzar; no pedir una
+   confirmación adicional solo para cumplir este paso.
+
+Esta regla fue solicitada por el Propietario el 2026-11-01. Agregar una tarea al
+listado no inicia su desarrollo. El índice y el estado se mantienen en
+[PLANS](docs/PLANS.md).
 
 ## Comandos
 

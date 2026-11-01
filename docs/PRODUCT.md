@@ -15,7 +15,8 @@ agrupaciones guardadas, detalle y conteos por etapa, con subagentes. Esta
 ampliación está implementada, publicada en Docker/Sites y probada en demo y
 backend aislado. El frontend Docker ya consulta la lista real vacía
 con sesión administradora; no se insertaron aplicaciones para esa comprobación.
-El reporte completo queda para otra entrega. Al realizar una aplicación se
+El Propietario confirmó el 2026-11-01 que el reporte completo (RCF-011) quedó
+terminado y solicitó su cierre. Al realizar una aplicación se
 podrán cambiar productos, dosis y gasto de agua, conservando por separado lo
 indicado y lo realmente aplicado; esas diferencias serán excepcionales.
 
@@ -218,8 +219,9 @@ y sesión administradora; captura contra operación no ejercida en QA.
 
 ### Reporte
 
-Requisito de entrega posterior. La lista filtrada, el detalle y los conteos por
-etapa de esta ampliación no sustituyen el reporte completo.
+Estado: RCF-011 cerrado por confirmación del Propietario el 2026-11-01. Se
+conserva a continuación el contrato del reporte confirmado; la lista filtrada,
+el detalle y los conteos por etapa de la ampliación inicial eran un alcance distinto.
 
 Un solo reporte consultable con filtros por agrícola, campo, lote, etapa,
 cultivo, producto y rango de fechas. Debe permitir agrupar por esas mismas
@@ -228,7 +230,8 @@ con los destinos de las aplicaciones.
 
 El rango permite elegir fecha de indicación, programada o de realización; por
 defecto utiliza la fecha programada. Las columnas y la presentación de las
-agrupaciones se concretarán en la propuesta. No hay indicadores financieros.
+agrupaciones corresponden al reporte aceptado por el Propietario. No hay
+indicadores financieros.
 
 ### Usuarios y entorno
 
@@ -280,8 +283,9 @@ El estado de despliegue y los límites de esa evidencia constan en la
 
 ## Por concretar en la propuesta
 
-La entrega posterior concretará columnas, agrupaciones y presentación del
-reporte completo. La ampliación actual ya define destinos con estados propios,
+El reporte completo quedó cerrado por confirmación del Propietario el
+2026-11-01 (RCF-011). La propuesta de pantalla de recetas permanece pendiente
+en RCF-030. La ampliación de aplicaciones ya define destinos con estados propios,
 indicación histórica, excepción de realización y vigencia de grupos en la
 [ficha de aplicaciones](flows/applications.md).
 Las pantallas de catálogos y proyectos y su esquema ya se implementaron dentro
@@ -395,3 +399,24 @@ la configuración de IA. Se consultan pendientes, historial, uso de producto,
 detalle y cambios, con cantidades calculadas por código y fuentes verificables.
 Los permisos de lectura existentes gobiernan el ámbito; no hay escrituras desde
 el chat. Recorrido, alternativas y criterios en [la ficha](flows/application-chat.md).
+
+## Propuesta de pantalla de recetas
+
+RCF-030, solicitado el 2026-11-01. Pendiente de diseñar y presentar la propuesta;
+registrarla no acredita una pantalla implementada ni inicia su desarrollo.
+Antes de empezar se deben plantear las dudas conforme a AGENTS.
+
+La propuesta debe cubrir:
+
+- Elegir un grupo de lotes o un lote individual.
+- Mostrar la información de la última receta que afectó al lote seleccionado.
+- Permitir modificar esa información para guardar una nueva receta, conservando
+  la receta anterior y su historial.
+- Si la última receta que afectó al lote correspondía a un grupo de lotes,
+  proponer ese mismo grupo para la nueva receta.
+- Sugerir automáticamente el siguiente número de aplicación que corresponda
+  a cada combinación de lote y etapa, conforme a su numeración existente.
+
+La revisión de si la aplicación ya conserva el grupo del lote se sigue por
+separado en RCF-029. Las decisiones que falten se aclararán antes de desarrollar
+el pendiente, sin convertirlas en reglas implícitas.

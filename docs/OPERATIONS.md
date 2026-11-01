@@ -53,8 +53,9 @@ frontend, no la base local. Otros dispositivos necesitan un endpoint HTTPS
 accesible: el `127.0.0.1` del celular no señala este servidor. Un Site abierto en
 este mismo equipo podría requerir permisos de acceso a red local del navegador;
 ese recorrido no se ha verificado y el acceso recomendado ahora es la URL local.
-El acceso remoto de prueba usa el Quick Tunnel; un endpoint estable de operación
-requiere una decisión posterior.
+El acceso remoto documentado usa Quick Tunnel y el proxy del Site. RCF-010
+quedó cerrado por confirmación del Propietario el 2026-11-01; se conserva la
+configuración aceptada y los límites técnicos descritos en este documento.
 
 ## Quick Tunnel gratuito para pruebas
 
@@ -306,9 +307,9 @@ con el secreto anterior por un procedimiento privado y reconfigurar, o retirar e
 objeto mediante administración de R2 y volver a ingresar/probar/guardar la clave.
 No borrar el registro del túnel ni publicar respaldos, claves o entorno privado.
 
-La activación sigue pendiente de que el Propietario ingrese su clave y modelo en
-esta sección. La verificación de implementación usa dependencias ficticias y no
-confirma una conexión de proveedor real. Evidencia en
+El Propietario confirmó el 2026-11-01 el cierre de la activación en RCF-014.
+La verificación histórica de implementación usa dependencias ficticias y no
+se presenta como una nueva prueba de proveedor real. Evidencia en
 [TESTING](TESTING.md#configuración-de-ia-en-conexión-y-preferencias).
 
 2026-10-31: commit f83529da44d84a549d84270fd3cc652d67ff357f subido a GitHub
@@ -576,3 +577,12 @@ permisos privados. No copiar esa carpeta al publicar ni incluirla en Git.
 
 Publicación de la revisión validada: pendiente de resultado nativo de Sites y
 actualización del frontend Docker. [Ficha](flows/application-chat.md).
+
+## Cierres confirmados por el Propietario
+
+2026-11-01: el Propietario confirmó expresamente que RCF-010 (acceso remoto
+estable), RCF-011 (reporte completo) y RCF-014 (captura con IA) ya quedaron
+terminados y pidió cerrarlos. Esa confirmación es la evidencia de actualización
+del estado; no se ejecutó una nueva instalación, cambio de proveedor o prueba
+de disponibilidad durante esta revisión documental. Los registros históricos
+conservan sus resultados y los límites propios de Quick Tunnel.

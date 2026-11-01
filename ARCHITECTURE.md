@@ -55,7 +55,8 @@ cero pendientes; el navegador abre el acceso real y la API rechaza la consulta
 anónima. El Propietario completó la primera cuenta y confirmó su acceso; se
 verificaron sesión de administrador, guardado y relectura tras recargar, con
 confirmación SQL en la base real. No se cargaron fixtures. El acceso HTTPS de
-prueba se proporciona mediante Quick Tunnel; el endpoint estable sigue pendiente.
+prueba se proporciona mediante Quick Tunnel; RCF-010 quedó cerrado por
+confirmación del Propietario el 2026-11-01. Los límites técnicos se conservan en OPERATIONS.
 El frontend demo se probó por separado.
 La ampliación de aplicaciones se verificó en navegador demo y backend aislado;
 el frontend Docker actualizado se comprobó en 5180 con sesión administradora y
@@ -102,8 +103,8 @@ ver [OPERATIONS](docs/OPERATIONS.md).
 
 [TESTING](docs/TESTING.md) registra comandos y límites;
 [implementation-plan](docs/implementation-plan.md) conserva alcance, responsables
-y criterios. Aplicaciones/grupos están publicados; el reporte completo
-permanece fuera del alcance actual.
+y criterios. Aplicaciones/grupos están publicados; el Propietario confirmó el
+cierre del reporte completo (RCF-011) el 2026-11-01.
 Nuevos flujos conservan las fronteras de reglas/casos de uso, acceso a datos y
 presentación del [estándar de ingeniería](.project-standards/ENGINEERING.md).
 
@@ -124,8 +125,9 @@ registros previos y asigna su numeración en orden histórico determinista.
 
 Vite y Nginx reenvían únicamente `/api/application-draft` al Site. La clave de IA
 permanece en secretos del Worker, separada de Supabase y del navegador. El
-Propietario dejó su activación pendiente; el endpoint responde indisponibilidad
-explícita mientras falte configuración, y se puede completar manualmente.
+Propietario confirmó el cierre de la activación en RCF-014 el 2026-11-01.
+Si falta configuración, el endpoint responde indisponibilidad explícita y se
+puede completar la captura manualmente.
 
 ## Configuración de IA administrada
 
