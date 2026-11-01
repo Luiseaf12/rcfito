@@ -27,6 +27,8 @@ Fecha de revisión: 2026-10-31.
 
 | RCF-020 | Sinónimos de productos, conflictos y selector por nombre/ingredientes. | cerrada | Agente principal y revisión independiente | Commit cf245f9 en GitHub y Sites versión17; frontend Docker actualizado. 197 pruebas, 308 SQL, 87 HTTP y 16 verificaciones posteriores aprobadas. Respaldo/migración operativa5/0 confirmados. | [Ficha](flows/product-synonyms.md) y [operación](OPERATIONS.md#sinónimos-y-selector-de-productos) |
 
+| RCF-022 | Dashboard de productos realizados: tabla, ranking e historial. | en verificación | Agente principal y revisión independiente | Dominio, filtros y QA demo/móvil aprobados; cerrar validación limpia, commit/push y Sites. | [Ficha](flows/product-dashboard.md) |
+
 Estados y cierre: [DOCUMENTATION](../.project-standards/DOCUMENTATION.md#planes-decisiones-y-deuda).
 Una tarea registrada no autoriza implementarla. Conservar su ID y actualizar su
 fuente e índice juntos. Cerrar con evidencia, distinguiendo código, pruebas,

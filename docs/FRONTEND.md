@@ -114,3 +114,12 @@ mezcla compartido usa opciones ordenadas por nombre español/números: nombre e
 ingredientes configurados, código como identidad interna y ayuda separada.
 La revisión IA identifica alias y conserva el texto/unidad/dosis del mensaje.
 [Flujo y aceptación](flows/product-synonyms.md).
+
+## Dashboard de productos realizados
+
+Resumen (`/`) utiliza [product-dashboard](../src/features/product-dashboard.tsx):
+Card, FieldGroup/FormSelect, Table, Button y RecordDialog existentes. Filtros en
+la URL, tabla ordenable/paginada, ranking de diez productos e historial paginado
+por fecha real descendente; los cierres conservan filtros, orden y foco. Cantidad
+y dosis se ordenan por unidad. El móvil contiene el scroll en cada tabla.
+Reglas de cálculo, ámbito y QA en [la ficha](flows/product-dashboard.md).

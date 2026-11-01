@@ -423,3 +423,14 @@ aprobadas en Site/local: inicio, bundle/adaptador, editor de alias y captura,
 salud Auth 200; captura/configuración y sinónimos sin sesión 401. Sin consumo
 del proveedor ni escrituras ficticias en operación. Registro de evidencia en
 [TESTING](TESTING.md#sinónimos-y-selector-de-productos).
+
+## Dashboard de uso de productos
+
+Solicitud del 2026-11-01: implementar y publicar el dashboard de productos
+realizados con filtros de agrícola/cultivo/etapa. No requiere migraciones ni
+cambios de configuración, secretos o volúmenes. Publicar desde revisión limpia
+validada, conservando identidad, audiencia y entorno del Site. Las pruebas
+ficticias permanecen fuera de operación y del build publicado.
+
+Commit/push y resultado nativo de Sites: en curso.
+[Contrato y evidencia](flows/product-dashboard.md).

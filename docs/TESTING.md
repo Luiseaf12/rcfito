@@ -371,3 +371,21 @@ comprobaciones posteriores aprobaron: inicio/bundles/editores y salud Auth 200;
 captura/configuración y tabla de sinónimos sin sesión 401 en ambos orígenes.
 La configuración del proveedor se conservó; no se realizaron capturas ficticias
 ni mutaciones de productos reales para verificar la publicación.
+
+## Dashboard de uso de productos
+
+Pruebas de [product-usage](../test/product-usage.test.ts): nueve casos de conteos
+por destino, productos reales, unidades, ponderación, correcciones/snapshots,
+filtros, etapas cerradas de proyectos activos, permisos demo e incompletos.
+No se consultan datos ni se escriben fixtures en operación.
+
+QA en demo aislada en `http://127.0.0.1:5193/`: doce productos y quince destinos
+ficticios, con mezclas y dos agrícolas. Se verificaron tres filtros, conteos y
+cantidades, paginación de tabla/historial, última fecha y promedio ponderado,
+recarga conservando filtros, cierre con Escape/retorno de foco y orden por fecha.
+A 375 y 1440 px no hubo desbordamiento horizontal de página; las tablas mantienen
+scroll propio. URL de etapa inválida devuelve vacío y no amplía el ámbito. Cero
+errores de consola en este recorrido. No equivale a captura real en Supabase.
+
+Verificación de la revisión limpia y publicación: en curso.
+[Contrato y cierre](flows/product-dashboard.md#verificación-y-publicación).

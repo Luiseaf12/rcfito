@@ -156,3 +156,13 @@ Supabase carga la tabla de sinónimos y extiende save_product sin cambiar su fir
 Editor Productos y ProductMixtureEditor comparten el catálogo; la extracción IA
 conserva el nombre escrito y la vinculación determinista ocurre al revisar.
 [Ficha](docs/flows/product-synonyms.md) define límites y seguridad.
+
+## Dashboard de uso de productos
+
+[product-dashboard](src/features/product-dashboard.tsx) reemplaza el resumen de
+siembras de `/` por filtros, tabla, ranking e historial de productos realizados.
+[product-usage](src/domain/product-usage.ts) agrega snapshots reales del workspace
+ya autorizado, sin nuevas consultas ni mutaciones. Cantidades calculadas por
+unidad, promedio ponderado y conteos por destino se definen en
+[la ficha](docs/flows/product-dashboard.md). La carga es diferida y reutiliza el
+shell, sus errores y la hidratación vigente de correcciones reales.

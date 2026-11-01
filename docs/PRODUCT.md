@@ -354,3 +354,12 @@ de otro producto, incluidos inactivos; comprobar también renombres/códigos.
 El selector se ordena por nombre español/números y muestra una vez el nombre,
 seguido de ingredientes configurados; conservar identidad/código y snapshots
 históricos. Reglas exactas y aceptación: [ficha](flows/product-synonyms.md).
+
+## Dashboard de uso de productos
+
+Autorizado el 2026-11-01: en Resumen, tabla de productos realizados, ranking por
+aplicaciones e historial al seleccionar. Solo temporadas activas; filtros de
+agrícola, cultivo y número de etapa. Cantidades calculadas desde dosis/superficie
+reales, promedio ponderado, última fecha real y etapas distintas por producto.
+Conserva unidades y snapshots; no compara programado/ejecutado ni sustituye el
+reporte completo. [Contrato, recorrido y evidencia](flows/product-dashboard.md).

@@ -159,6 +159,30 @@
   --sidebar-ring: #d2e9a0;
 }
 body { min-width: 320px; font-size: 16px; line-height: 1.5; }
+.usage-dashboard { min-width: 0; }
+.usage-filters { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 20px; }
+.usage-filters>[data-slot=field] { min-width: 0; }
+.usage-scope { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 20px; color: var(--muted-foreground); font-size: 14px; overflow-wrap: anywhere; }
+.usage-metrics { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 16px; }
+.usage-metrics>[data-slot=card] { min-width: 0; }
+.usage-metric-value { display: block; font-size: 30px; font-weight: 500; line-height: 1.2; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.usage-metric-note { font-size: 12px; color: var(--muted-foreground); margin-top: 12px; }
+.usage-ranking { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px 32px; list-style: none; }
+.usage-ranking li { min-width: 0; }
+.usage-ranking-button { width: 100%; height: auto; display: flex; flex-direction: column; align-items: stretch; gap: 8px; padding-block: 12px; }
+.usage-ranking-label { display: flex; gap: 16px; align-items: baseline; justify-content: space-between; text-align: left; white-space: normal; }
+.usage-ranking-label>span { min-width: 0; overflow-wrap: anywhere; }
+.usage-ranking-label>strong { flex-shrink: 0; font-variant-numeric: tabular-nums; font-weight: 500; }
+.usage-ranking-track { height: 8px; border-radius: 4px; overflow: hidden; background: var(--secondary); }
+.usage-ranking-track>span { display: block; height: 100%; background: var(--ring); }
+.usage-table { min-width: 1080px; }
+.usage-numeric { text-align: right; font-variant-numeric: tabular-nums; }
+.usage-pagination { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-top: 20px; font-size: 14px; }
+.usage-history-summary { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 16px; }
+.usage-history-summary dt { font-size: 12px; color: var(--muted-foreground); }
+.usage-history-summary dd { font-size: 18px; margin-top: 8px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+@media(max-width:1000px) { .usage-metrics { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media(max-width:767px) { .usage-filters,.usage-ranking { grid-template-columns: minmax(0,1fr); } .usage-history-summary { grid-template-columns: minmax(0,1fr); } }
 button,a,input,select,textarea { -webkit-tap-highlight-color: transparent; }
 button:not(:disabled),[role=button] { cursor: pointer; }
 button:disabled { cursor: not-allowed; }
