@@ -119,8 +119,10 @@ desde el commit `5aa55844e6d73308acc83b357dc48bc87bddc504`. Sites devolvió
 `succeeded` para `appgdep_6ae68f83468c8191b9e3388adea83176`, versión
 `appgprj_6ae67ae019e88191a7012093bb19c505~appgver_a4f585c8f9a881919348a61c68ffc2fb`,
 en [RCFito](https://rcfito.paxxa.chatgpt.site). La audiencia privada se conservó.
-En navegador se comprobó el JSON alojado y la pantalla de acceso real; el login
-con la cuenta del Propietario sigue pendiente de confirmación.
+En navegador se comprobó el JSON alojado y la pantalla de acceso real.
+Posteriormente el Propietario confirmó su inicio de sesión en Sites; el comando
+`status` confirmó el mismo túnel activo. Este resultado cierra el acceso temporal
+de prueba de RCF-008; la dirección estable de operación permanece en RCF-010.
 
 ## GitHub y Sites
 

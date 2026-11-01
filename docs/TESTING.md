@@ -99,8 +99,13 @@ túnel y mostró `Invalid login credentials`; no hubo error de CORS ni se creó 
 cuenta. Esto acredita el recorrido de login fallido, no una sesión del Propietario.
 `npm test` aprobó 17/17; tipos/build y checker documental aprobados. Vite se
 configuró con `envDir: false` para no cargar el `.env` raíz durante el build.
-Login del Propietario a través del túnel pendiente de confirmación. No se acredita
-prueba en un celular ni disponibilidad continua. El túnel es temporal y de prueba;
+El Propietario confirmó el acceso desde el Site con «Ya inicié sesión».
+`node scripts/backend-tunnel.mjs status` confirmó el mismo túnel activo. La
+herramienta de navegador no permitió reinspeccionar la pestaña después de esa
+confirmación: el login exitoso se acredita por el Propietario, junto con las
+pruebas HTTPS y del formulario anteriores, sin atribuir otra comprobación
+automatizada de su sesión. No se acredita prueba en un celular ni disponibilidad
+continua. El túnel es temporal y de prueba;
 SMTP/recuperación sigue pendiente. Registro de versión en
 [OPERATIONS](OPERATIONS.md#quick-tunnel-gratuito-para-pruebas).
 
