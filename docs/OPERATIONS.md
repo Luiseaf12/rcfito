@@ -478,5 +478,14 @@ Solicitud del 2026-11-01 con commit/push y Sites: resumen por lote, productos e
 historial, Todas por defecto y cantidades ascendentes sin separar unidades. No
 requiere migración ni cambios de secretos/configuración o datos. Validar y
 empaquetar desde checkout limpio, conservando los cambios previos y la audiencia
-pública existente. QA y publicación: en curso.
+pública existente.
+
+Commit `ce7ed07fdd7c8ba593f4457627d96f20da488aaa` subido a GitHub y al
+repositorio del Site; checkout limpio aprobó 224 pruebas, tipos/build y checker.
+Sites confirmó `succeeded`, versión 20
+`appgprj_6ae67ae019e88191a7012093bb19c505~appgver_9a2dd438d2608191a66c40b00536ecce`,
+despliegue `appgdep_6ae7511fe7c881918829f8253bd77fac`, en
+[RCFito](https://rcfito.paxxa.chatgpt.site). Audiencia pública y entorno revisión 1
+conservados. Tres comprobaciones HTTP posteriores aprobaron inicio, bundle
+exacto y resumen por lote/Todas. Sin escrituras ficticias en operación.
 [Contrato](flows/product-dashboard.md#ampliación-resumen-por-lote).

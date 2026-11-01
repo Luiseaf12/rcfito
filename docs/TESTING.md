@@ -419,6 +419,9 @@ paginación de lotes/productos e historial exclusivo del lote comprobados. Escap
 y cierres devuelven foco; paginar lotes cierra el detalle anterior. Lector limitado
 a Ensenada, sin Culiacán. A 375/1440 px sin overflow de página; tablas con scroll
 propio y cero errores de consola. Revisión independiente integrada.
-224 pruebas integradas aprobadas; cierre limpio y publicación en verificación.
+Checkout limpio `ce7ed07fdd7c8ba593f4457627d96f20da488aaa`: 224/224 pruebas,
+tipos/build y checker aprobados. Sites versión 20 confirmó succeeded; tres
+comprobaciones posteriores de HTML/bundle exacto/dashboard HTTP 200 aprobadas.
+[Publicación](OPERATIONS.md#publicación-del-resumen-por-lote).
 Sin fixtures ni escrituras en operación.
 [Fuente](flows/product-dashboard.md#ampliación-resumen-por-lote).

@@ -31,7 +31,7 @@ Fecha de revisión: 2026-10-31.
 
 | RCF-022 | Dashboard de productos registrados: tabla, ranking e historial. | cerrada | Agente principal y revisión independiente | Commit 5266322 en GitHub y Sites versión 19; Todas por defecto, estado y temporadas anteriores. 215 pruebas, tipos/build, QA demo/móvil y tres comprobaciones HTTP aprobadas. | [Ficha](flows/product-dashboard.md) y [publicación](OPERATIONS.md#dashboard-de-uso-de-productos) |
 
-| RCF-023 | Resumen por lote, productos e historial y orden por cantidad. | en verificación | Agente principal y revisión independiente | Código, 224 pruebas y QA demo/móvil aprobados; validar y publicar la revisión limpia en Sites. | [Ficha](flows/product-dashboard.md#ampliación-resumen-por-lote) |
+| RCF-023 | Resumen por lote, productos e historial y orden por cantidad. | cerrada | Agente principal y revisión independiente | Commit ce7ed07 en GitHub y Sites versión 20; 224 pruebas, tipos/build, QA demo/móvil/lector y tres comprobaciones HTTP aprobadas. Todas por defecto y orden ascendente mixto conservados. | [Ficha](flows/product-dashboard.md#ampliación-resumen-por-lote) y [publicación](OPERATIONS.md#publicación-del-resumen-por-lote) |
 
 Estados y cierre: [DOCUMENTATION](../.project-standards/DOCUMENTATION.md#planes-decisiones-y-deuda).
 Una tarea registrada no autoriza implementarla. Conservar su ID y actualizar su
