@@ -92,9 +92,17 @@ conservación de consultas con acentos codificados. La URL se guarda ligada al I
 y arranque del contenedor, para invalidarla tras reinicios.
 
 Se configuró el Site por UI y mostró la pantalla real de acceso de Supabase.
-Login del Propietario a través del túnel y publicación de la conexión inicial:
-pendientes de confirmación. No se acredita prueba en un celular ni disponibilidad
-continua. El túnel es temporal y de prueba; SMTP/recuperación sigue pendiente.
+La conexión inicial fue publicada con resultado nativo `succeeded`, conservando
+la audiencia privada; el JSON alojado y el acceso real se comprobaron en navegador.
+El formulario publicado, con credenciales ficticias, alcanzó Auth a través del
+túnel y mostró `Invalid login credentials`; no hubo error de CORS ni se creó una
+cuenta. Esto acredita el recorrido de login fallido, no una sesión del Propietario.
+`npm test` aprobó 17/17; tipos/build y checker documental aprobados. Vite se
+configuró con `envDir: false` para no cargar el `.env` raíz durante el build.
+Login del Propietario a través del túnel pendiente de confirmación. No se acredita
+prueba en un celular ni disponibilidad continua. El túnel es temporal y de prueba;
+SMTP/recuperación sigue pendiente. Registro de versión en
+[OPERATIONS](OPERATIONS.md#quick-tunnel-gratuito-para-pruebas).
 
 ## Navegador de demostración
 

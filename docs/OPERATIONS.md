@@ -114,6 +114,14 @@ a pruebas/desarrollo: sin garantía de disponibilidad, con hasta 200 peticiones
 simultáneas y sin SSE. SMTP y enlaces de recuperación por correo siguen pendientes;
 esta conexión verifica acceso mediante contraseña, no esos flujos.
 
+Publicación confirmada el 2026-10-31: configuración inicial de Supabase preparada
+desde el commit `5aa55844e6d73308acc83b357dc48bc87bddc504`. Sites devolvió
+`succeeded` para `appgdep_6ae68f83468c8191b9e3388adea83176`, versión
+`appgprj_6ae67ae019e88191a7012093bb19c505~appgver_a4f585c8f9a881919348a61c68ffc2fb`,
+en [RCFito](https://rcfito.paxxa.chatgpt.site). La audiencia privada se conservó.
+En navegador se comprobó el JSON alojado y la pantalla de acceso real; el login
+con la cuenta del Propietario sigue pendiente de confirmación.
+
 ## GitHub y Sites
 
 El Propietario autorizó commit/push a
