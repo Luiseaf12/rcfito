@@ -37,8 +37,10 @@ WARN/ERROR. La migración operativa quedó aplicada con respaldo, ocho aplicadas
 cero pendientes. La prueba usa datos ficticios, sin escrituras de aplicaciones
 en operación. Sites confirmó succeeded para la fuente4b0a400; se conservaron
 audiencia y configuración. Once comprobaciones posteriores de Sites/Docker
-aprobaron bundle, tablas y protección de rutas. La verificación visual adicional
-de estas tablas todavía no está registrada.
+aprobaron bundle, tablas y protección de rutas. La verificación visual posterior
+con servicios ficticios confirmó la frase literal, procedencias y totales en
+escritorio y móvil de 375 px. Las tablas conservan un ancho legible con
+desplazamiento interno horizontal; el documento no se desborda.
 
 ## Contrato general del chat y audio
 

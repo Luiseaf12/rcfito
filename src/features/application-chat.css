@@ -34,9 +34,17 @@
   margin: 0;
 }
 
+.application-chat .chat-data-table {
+  min-width: 28rem;
+}
+
 .application-chat .chat-data-table :is(th, td) {
   white-space: normal;
   overflow-wrap: anywhere;
+}
+
+.application-chat .chat-data-table :is(th, td):first-child {
+  min-width: 10rem;
 }
 
 .application-chat .chat-data-table :is(th, td):not(:first-child) {
