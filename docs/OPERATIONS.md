@@ -520,7 +520,15 @@ lotes y Todas las aplicaciones se conservan por defecto; selección persistida e
 URL e identidad de temporada. Sin migraciones ni cambios en el backend o entorno.
 
 Implementado desde 4f78ff0 en worktree aislado, conservando la corrección de sesión
-y los cambios locales de otras tareas. 228 pruebas y tipos aprobados; QA demo y
-móvil, intersecciones y revisión independiente sin hallazgos. Pendiente cerrar
-checks/build desde revisión limpia y publicar con audiencia pública conservada.
+y los cambios locales de otras tareas. Commit 20c8ca6933727df3416092eed225ae1f9cb50aa5
+subido a GitHub y repositorio de Sites. Revisión limpia aprobó 228/228 pruebas,
+tipos/build y checker; QA demo/móvil e intersecciones aprobados, con revisión
+independiente sin hallazgos. Sites confirmó succeeded, versión 23
+appgprj_6ae67ae019e88191a7012093bb19c505~appgver_ae0c8d987b908191a75885fd77f9652f,
+despliegue appgdep_6ae75b41bb48819184b4410f0d3a72de a las
+2026-11-01T15:31:19Z, en [RCFito](https://rcfito.paxxa.chatgpt.site).
+Audiencia pública y entorno revisión 1 conservados. Tres comprobaciones HTTP 200
+posteriores verificaron HTML, bundle exacto y filtro Todos los lotes/Todas.
+Sin migraciones ni escrituras ficticias en operación; servidor/tab de QA cerrados.
+Recargar después de terminar cualquier captura abierta para recibir la versión.
 [Contrato](flows/product-dashboard.md#filtro-global-por-lote).
