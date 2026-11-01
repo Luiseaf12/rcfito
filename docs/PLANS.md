@@ -36,7 +36,7 @@ Fecha de revisión: 2026-11-01.
 | RCF-031 | Ordenar productos de una malla de mayor a menor por cantidad calculada. | pendiente | Por asignar | Al elegir una malla en el resumen y pulsar Ver productos, presentar sus productos en orden descendente por cantidad calculada. Plantear dudas antes de desarrollar. | [Orden solicitado](PRODUCT.md#orden-descendente-de-productos-de-una-malla) |
 | RCF-032 | Exportar a PDF los productos registrados y los filtros aplicados. | pendiente | Por asignar | Incluir todos los productos de los resultados filtrados y mostrar los filtros que originan esos resultados. Plantear dudas antes de desarrollar. | [Exportación solicitada](PRODUCT.md#exportación-de-productos-a-pdf) |
 
-| RCF-033 | Contexto implícito y tabla de productos aplicados por malla en consultas y CLI. | en verificación | Agente principal y especialistas | 281 pruebas,124 SQL de consultas y129 HTTP acumuladas aprobadas; frase literal por CLI/Auth/REST/SQL sin IA. Operación8/0 con respaldo. Publicar la misma revisión y comprobar tablas. | [Ficha](flows/application-chat.md#contexto-implícito-y-tabla-de-consumo-por-malla) |
+| RCF-033 | Contexto implícito y tabla de productos aplicados por malla en consultas y CLI. | cerrada | Agente principal y especialistas | Fuente4b0a400 en GitHub/Sites versión26 y Docker.281 pruebas,124 SQL,129 HTTP y11 comprobaciones posteriores aprobadas; CLI literal con última agrícola/temporada activa/lote único, tablas y0 tokens. Operación8/0 con respaldo. | [Ficha](flows/application-chat.md#contexto-implícito-y-tabla-de-consumo-por-malla) |
 
 Estados y cierre: [DOCUMENTATION](../.project-standards/DOCUMENTATION.md#planes-decisiones-y-deuda).
 Una tarea registrada no autoriza implementarla. Conservar su ID y actualizar su

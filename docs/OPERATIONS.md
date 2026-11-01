@@ -608,4 +608,12 @@ tablas. Se revalida el contexto después de cambios de asignaciones/estado.
 
 281 pruebas integradas,124 SQL de consultas y129 HTTP acumuladas aprobadas en
 aislamiento; incluye el pipeline literal del CLI con Auth/REST reales. La
-publicación de esta ampliación está pendiente de confirmación nativa.
+publicación de esta ampliación confirmó `succeeded` en Sites versión26 con fuente
+`4b0a4005005b3d7ff21875eaa6cdce28ab770a8f`. Frontend Docker actualizado desde
+el mismo checkout limpio; audiencia pública y entorno revisión1 conservados.
+Once comprobaciones posteriores de Sites/Docker aprobaron bundle, tablas y
+rechazo de consultas anónimas. No se ejecutó inferencia real para esta prueba.
+
+Versión nativa:
+`appgprj_6ae67ae019e88191a7012093bb19c505~appgver_cfd7c892272881918da5b451e57bc8e2`.
+Despliegue: `appgdep_6ae774fb57908191966de675183e20ec`.
