@@ -426,6 +426,58 @@ comprobaciones posteriores de HTML/bundle exacto/dashboard HTTP 200 aprobadas.
 Sin fixtures ni escrituras en operación.
 [Fuente](flows/product-dashboard.md#ampliación-resumen-por-lote).
 
+## Regresión de captura al volver a la ventana
+
+2026-11-01: fixture aislado con `WorkspaceProvider`, `App` y formularios reales,
+sesión y datos ficticios; sin acceso a operación. Un aviso `SIGNED_IN` del mismo
+usuario reproducía el cierre del diálogo y la pérdida del texto antes del cambio.
+Después de la corrección se comprobaron:
+
+- Alta de producto: nombre y foco conservados al repetir `SIGNED_IN`, renovar
+  con `TOKEN_REFRESHED` y fallar la siguiente consulta de datos.
+- Nueva indicación: nota y agua de 250 L/ha conservadas tras ambos avisos.
+- Consulta fallida: error visible con opción de actualizar, sin perder la captura.
+- Descarte explícito: sigue requiriendo confirmación; cerrar sesión muestra login
+  y retira el contenido de la cuenta.
+
+`npm test`: 224 aprobadas; TypeScript aprobado. El fixture y la captura de QA
+contienen únicamente ejemplos y no se incluyen en el build. Esta evidencia
+comprueba la reacción del frontend a los eventos de Auth; no acredita una
+recuperación de borradores después de recargar manualmente el documento.
+
+Publicación de la corrección: Docker sano y Sites versión 21 `succeeded`;
+HTML/bundle exacto comprobados en ambos destinos y nueve checks de conexión
+aprobados sin crear datos. Evidencia en
+[operación](OPERATIONS.md#captura-conservada-al-revalidar-sesión).
+
+## Filtro global por lote
+
+2026-11-01: cuatro casos en lot-usage.test.ts comprueban métricas, productos,
+ranking e historial limitados al lote, intersecciones con todos los filtros,
+identidades homónimas, IDs desconocidos/ajenos, jerarquía inválida y workspace de
+lector. 228 pruebas cliente y tipos aprobados. QA demo aislado en 5196 confirmó
+selección de dos lotes con resultados distintos, historial exclusivo, recarga,
+cambio de agrícola y limpieza. Todas y Todos los lotes por defecto; cantidades
+ascendentes mixtas conservadas. 375/1440 px sin overflow de página ni errores de
+consola. Revisión independiente sin hallazgos. Revisión limpia 20c8ca6: 228/228
+pruebas, tipos/build y checker aprobados. Sites versión 23 succeeded y tres
+comprobaciones HTTP 200 de HTML/bundle/filtro aprobadas. No hubo escrituras en operación.
+[Contrato](flows/product-dashboard.md#filtro-global-por-lote) y
+[publicación](OPERATIONS.md#publicación-del-filtro-global-por-lote).
+
+## Decimales en reportes
+
+2026-11-01, RCF-027: 228/228 pruebas cliente, tipos y checker aprobados; ocho
+comprobaciones puntuales de formato es-MX, redondeo hacia arriba/abajo, ceros
+finales, conversión y límites pequeñas/cantidades grandes aprobadas. QA demo
+local en 5196 confirmó métricas, tabla general, ranking con conteos enteros,
+resumen/productos por lote e historial. Ejemplos: 3.60 L, 28.00 ha y promedio
+128.57 ml/ha. Móvil a 375 px sin overflow de página y cero errores de consola.
+Autorrevisión: el cambio se limita al formato de salida, sin tocar dominio,
+ordenamiento, snapshots o formularios. Sin migraciones ni escrituras de datos
+operativos. [Regla](FRONTEND.md#decimales-en-reportes).
+Publicación pendiente en [operación](OPERATIONS.md#dos-decimales-en-reportes).
+
 ## Consultas de aplicaciones por chat, audio y CLI
 
 Verificación 2026-11-01: `npm test` aprobó 261 pruebas integradas; tipos y build

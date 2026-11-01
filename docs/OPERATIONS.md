@@ -490,6 +490,58 @@ conservados. Tres comprobaciones HTTP posteriores aprobaron inicio, bundle
 exacto y resumen por lote/Todas. Sin escrituras ficticias en operación.
 [Contrato](flows/product-dashboard.md#ampliación-resumen-por-lote).
 
+## Captura conservada al revalidar sesión
+
+2026-11-01: corregido el desmontaje de formularios al recibir de nuevo la sesión
+del mismo usuario. Se mantiene la consulta en segundo plano y se conserva el
+loader para inicio de conexión/cambio de identidad. No requiere migraciones,
+reinicio del backend ni cambios de configuración, secretos o volúmenes.
+
+Corrección `78182ba`, integrada con el cierre concurrente del resumen por lote en
+`e3182347b89c98e9c2daa390351fe1b3dcd3375f`. 224 pruebas, tipos/build y checker
+aprobados; QA aislado reprodujo la pérdida anterior y verificó nombre/nota/agua,
+renovación, error de consulta, descarte y cierre de sesión. Autorrevisión.
+Docker reconstruido y sano con el montaje público original. Sites confirmó
+`succeeded`, versión 21
+`appgprj_6ae67ae019e88191a7012093bb19c505~appgver_46f5ada9cf888191b905696a174dc531`,
+despliegue `appgdep_6ae752c343c48191b1a941d50778b34d` a las
+`2026-11-01T14:55:13Z`, en [RCFito](https://rcfito.paxxa.chatgpt.site).
+Audiencia pública y entorno revisión 1 conservados. Nueve comprobaciones de
+conexión posteriores aprobaron; HTML y hash del bundle coincidieron con la
+compilación validada tanto en Sites como en 5180. Sin escrituras de negocio.
+La versión nueva entra en vigor al recargar después de guardar o terminar una
+captura abierta; el despliegue no fuerza esa recarga del navegador.
+
+## Publicación del filtro global por lote
+
+Solicitud del 2026-11-01 con commit/push y Sites: agregar Lote al dashboard para
+actualizar métricas, tabla general, ranking, resumen e historiales. Todos los
+lotes y Todas las aplicaciones se conservan por defecto; selección persistida en
+URL e identidad de temporada. Sin migraciones ni cambios en el backend o entorno.
+
+Implementado desde 4f78ff0 en worktree aislado, conservando la corrección de sesión
+y los cambios locales de otras tareas. Commit 20c8ca6933727df3416092eed225ae1f9cb50aa5
+subido a GitHub y repositorio de Sites. Revisión limpia aprobó 228/228 pruebas,
+tipos/build y checker; QA demo/móvil e intersecciones aprobados, con revisión
+independiente sin hallazgos. Sites confirmó succeeded, versión 23
+appgprj_6ae67ae019e88191a7012093bb19c505~appgver_ae0c8d987b908191a75885fd77f9652f,
+despliegue appgdep_6ae75b41bb48819184b4410f0d3a72de a las
+2026-11-01T15:31:19Z, en [RCFito](https://rcfito.paxxa.chatgpt.site).
+Audiencia pública y entorno revisión 1 conservados. Tres comprobaciones HTTP 200
+posteriores verificaron HTML, bundle exacto y filtro Todos los lotes/Todas.
+Sin migraciones ni escrituras ficticias en operación; servidor/tab de QA cerrados.
+Recargar después de terminar cualquier captura abierta para recibir la versión.
+[Contrato](flows/product-dashboard.md#filtro-global-por-lote).
+
+## Dos decimales en reportes
+
+2026-11-01, RCF-027: regla local documentada y formato de presentación compartido
+aplicado a métricas, tablas generales/por lote e historial del dashboard. Se
+conservan cálculos, captura y conteos; sin migraciones ni cambios de configuración.
+228 pruebas, tipos/checker y QA demo/móvil aprobados. Autorrevisión. Pendiente
+publicación en Sites con la audiencia pública existente.
+[Regla](FRONTEND.md#decimales-en-reportes) y [QA](TESTING.md#decimales-en-reportes).
+
 ## Consultas por chat, audio y CLI
 
 2026-11-01: rutinas de lectura instaladas tras respaldo privado de PostgreSQL de

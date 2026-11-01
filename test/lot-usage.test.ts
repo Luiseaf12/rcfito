@@ -210,3 +210,64 @@ test('productos distintos cuenta identidades aunque una unidad histórica requie
   assert.equal(lot.applicationCount, 2)
   assert.deepEqual(lot.products.map(product => [product.unit, product.totalQuantity]), [['g', 400], ['ml', 800]])
 })
+
+
+test('el lote filtra métricas, productos, ranking e historial por identidad de temporada', () => {
+  const data = fixture()
+  addRecord(data, 'selected-a', { products: [liquid(100), solid(25)] })
+  addRecord(data, 'selected-b', { products: [liquid(200)] })
+  addRecord(data, 'other-lot', { stageId: 'stage-2', products: [solid(500)] })
+  addRecord(data, 'other-season', { stageId: 'stage-history', products: [solid(900)] })
+  const filtered = buildProductUsage(data, { lotId: 'lot-1' })
+  assert.equal(filtered.applicationCount, 2)
+  assert.equal(filtered.liquidMl, 2400)
+  assert.equal(filtered.solidG, 200)
+  assert.equal(filtered.products[0].productId, 'product-a')
+  assert.equal(filtered.products[0].applicationCount, 2)
+  assert.deepEqual(filtered.products.flatMap(product => product.history.map(row => row.targetId)).sort(), ['selected-a', 'selected-a', 'selected-b'])
+  const lots = buildLotUsage(data, { lotId: 'lot-1' })
+  assert.equal(lots.lots.length, 1)
+  assert.equal(lots.lots[0].lotId, 'lot-1')
+  assert.equal(lots.lots[0].applicationCount, filtered.applicationCount)
+  assert.equal(lots.lots[0].products.find(product => product.productId === 'product-a')!.totalQuantity, 2400)
+  assert.equal(buildProductUsage(data, { lotId: 'lot-history' }).solidG, 18000)
+  assert.equal(buildProductUsage(data).applicationCount, 4)
+})
+
+test('el filtro por lote se cruza con cultivo, etapa, estado y agrícola sin perder retiradas', () => {
+  const data = fixture()
+  addRecord(data, 'actual', { products: [liquid(100)] })
+  addRecord(data, 'pending', { status: 'indicated', products: [liquid(20)] })
+  addRecord(data, 'cancelled', { stageId: 'stage-lot-1-b', status: 'cancelled', products: [solid(50)] })
+  assert.equal(buildProductUsage(data, { lotId: 'lot-1' }).applicationCount, 3)
+  const filtered = buildProductUsage(data, { lotId: 'lot-1', cropId: 'crop-tomate', stageNumber: 2, status: 'cancelled', agriculturalUnitId: 'agri-ensenada' })
+  assert.equal(filtered.applicationCount, 1)
+  assert.equal(filtered.solidG, 200)
+  assert.equal(filtered.products[0].history[0].status, 'cancelled')
+  assert.equal(buildLotUsage(data, { lotId: 'lot-1', status: 'performed' }).lots[0].applicationCount, 1)
+  assert.equal(buildProductUsage(data, { lotId: 'lot-1', agriculturalUnitId: 'agri-culiacan' }).applicationCount, 0)
+  assert.equal(buildProductUsage(data, { lotId: 'lot-1', cropId: 'crop-pepino', stageNumber: 2 }).applicationCount, 0)
+})
+
+test('lote inexistente o relación ajena nunca amplían el resumen general ni el ranking', () => {
+  const data = fixture()
+  addRecord(data, 'missing-stage', { target: { stage_id: 'missing' } })
+  addRecord(data, 'foreign-project', { order: { project_id: 'project-culiacan', field_id: 'field-rio' } })
+  for (const lotId of ['lot-1', 'missing-lot', '__proto__']) {
+    const result = buildProductUsage(data, { lotId })
+    assert.equal(result.applicationCount, 0)
+    assert.deepEqual(result.products, [])
+    assert.equal(buildLotUsage(data, { lotId }).lots.length, 0)
+  }
+})
+
+test('el lector solo puede filtrar los lotes presentes en su workspace autorizado', () => {
+  const data = fixture()
+  addRecord(data, 'assigned')
+  addRecord(data, 'foreign', { stageId: 'stage-south' })
+  const reader = data.profiles.find(profile => profile.id === DEMO_READER_ID)!
+  const authorized = scopeWorkspace(data, reader)
+  assert.equal(buildProductUsage(authorized, { lotId: 'lot-1' }).applicationCount, 1)
+  assert.equal(buildProductUsage(authorized, { lotId: 'lot-3' }).applicationCount, 0)
+  assert.equal(buildLotUsage(authorized, { lotId: 'lot-3' }).lots.length, 0)
+})

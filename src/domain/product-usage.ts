@@ -1,8 +1,10 @@
+import { createUsageLotResolver } from './usage-lot'
 import { indicationForTarget } from './application-editing'
 import type { ApplicationTarget, ProductLine, WorkspaceData } from './model'
 
 export type ProductUsageFilters = {
   agriculturalUnitId?: string
+  lotId?: string
   cropId?: string
   stageNumber?: number
   status?: ApplicationTarget['status'] | 'all'
@@ -109,6 +111,7 @@ export function buildProductUsage(data: WorkspaceData, filters: ProductUsageFilt
   const fields = new Map(data.catalogs.fields.map(field => [field.id, field.name]))
   const groups = new Map<string, { key: string; productId: string; unit: ProductLine['unit']; history: ProductUsageHistory[] }>()
   const countedTargets = new Set<string>()
+  const resolveLot = filters.lotId ? createUsageLotResolver(data) : undefined
   let incompleteCount = 0
 
   for (const target of data.applicationTargets) {
@@ -118,6 +121,8 @@ export function buildProductUsage(data: WorkspaceData, filters: ProductUsageFilt
     const project = order && projects.get(order.project_id)
     if (!order || !project || (filters.cropId && order.crop_id !== filters.cropId)
       || (filters.stageNumber !== undefined && target.stage_number !== filters.stageNumber)) continue
+
+    if (filters.lotId && resolveLot?.(order, target.stage_id)?.id !== filters.lotId) continue
 
     if (!target.id || !target.stage_id || !Number.isInteger(target.stage_number) || target.stage_number < 1
       || !['indicated', 'performed', 'cancelled'].includes(target.status) || !positive(target.area_ha)) {

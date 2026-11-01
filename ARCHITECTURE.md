@@ -175,6 +175,10 @@ lote de temporada y reutiliza los snapshots/cálculos de product-usage. La
 [presentación por lote](src/features/lot-usage-panel.tsx) mantiene selección y
 paginación; [controles compartidos](src/features/product-usage-shared.tsx) reúnen
 formatos, paginación e historial, conservando el filtro del lote al abrirlo.
+[usage-lot](src/domain/usage-lot.ts) resuelve y valida la jerarquía histórica por
+ID para el filtro global y el resumen; ProductUsageFilters.lotId se aplica antes
+de agregar productos, métricas y ranking. La URL conserva el ID, y las opciones
+se derivan del workspace autorizado sin fusionar nombres repetidos.
 Sin nuevo adaptador, consulta ni migración. [Contrato](docs/flows/product-dashboard.md#ampliación-resumen-por-lote).
 
 ## Motor de consultas, chat y audio

@@ -122,7 +122,10 @@ Card, FieldGroup/FormSelect, Table, Button y RecordDialog existentes. Tabla
 principal ordenable/paginada, ranking de diez productos e historial paginado con
 estado y origen de fecha; al cerrar conserva filtros, orden y foco. Estado inicia
 en Todas las aplicaciones, sobre todas las temporadas autorizadas. Agrícola,
-cultivo, etapa y estado quedan en la URL. Dosis se ordena por unidad; cantidad sigue el orden numérico solicitado,
+lote, cultivo, etapa y estado quedan en la URL. Lote muestra campo, temporada y
+agrícola; Todos los lotes conserva el ámbito completo. Cambiar agrícola limpia
+lote y sus dependencias; los otros filtros se cruzan con el lote seleccionado.
+Las métricas, tabla general, ranking e historiales reciben el mismo lote. Dosis se ordena por unidad; cantidad sigue el orden numérico solicitado,
 con leyenda que distingue valores registrados y consumo real. El móvil contiene
 el scroll en cada tabla. [Contrato y QA](flows/product-dashboard.md).
 
@@ -136,6 +139,41 @@ al cerrar. Card/Table/Button/Alert/Empty existentes, scroll de tablas contenido.
 Por solicitud expresa, cantidad ascendente numérica en la tabla global y por
 lote, sin agrupar por unidad; g/ml se siguen mostrando como kg/L. Dosis ordenada
 por unidad y ranking por aplicaciones. [Contrato y QA](flows/product-dashboard.md#ampliación-resumen-por-lote).
+
+## Captura al recuperar el foco
+
+La confirmación o renovación de la sesión del mismo usuario actualiza los datos
+en segundo plano y mantiene montados la ruta, los formularios y su foco. La
+pantalla de carga bloqueante queda reservada al inicio de conexión y al cambio
+real de identidad. Cerrar sesión sigue retirando los datos de la cuenta.
+
+Corrección del 2026-11-01: el efecto dependía del objeto de sesión, que Supabase
+puede volver a emitir al regresar a una ventana. Activar el estado de carga en
+cada aviso sustituía la ruta por el skeleton de `App` y destruía su estado local.
+Se retiró únicamente esa activación repetida; las consultas, tokens y controles
+de acceso continúan funcionando. Esto no incorpora recuperación de borradores
+tras una recarga manual o cierre completo del navegador.
+
+## Decimales en reportes
+
+Regla solicitada por el Propietario el 2026-11-01: los valores decimales de los
+reportes se presentan redondeados a dos posiciones, con formato es-MX y ceros
+finales (12.345 → 12.35; 8 → 8.00). Aplica a cantidades, dosis, promedios y
+superficies en métricas, tablas generales, resúmenes por lote e historiales. Los
+conteos de aplicaciones, productos y etapas permanecen enteros; fechas y códigos
+no son medidas decimales. Los nuevos reportes deben reutilizar el mismo formato.
+
+El redondeo se realiza únicamente al presentar, después de convertir a la unidad
+mostrada (ml a L o g a kg). No redondear dosis guardadas, snapshots, resultados
+intermedios, sumas ni promedios; ordenar con el valor numérico original. Un valor
+positivo menor que 0.005 se muestra como 0.00 en esa unidad y conserva su valor
+interno. Los campos de captura mantienen su precisión y validaciones vigentes.
+
+Implementación compartida en [report-format](../src/lib/report-format.ts), usada
+por [product-usage-shared](../src/features/product-usage-shared.tsx). Aceptación:
+comprobar un redondeo hacia arriba/abajo, ceros finales, conversión L/kg y dosis
+ponderada; verificar todos los reportes existentes y que los conteos sigan
+enteros. Evidencia en [verificación](TESTING.md#decimales-en-reportes).
 
 ## Consultas por texto y audio
 

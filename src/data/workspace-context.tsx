@@ -44,7 +44,9 @@ export function WorkspaceProvider({children}:{children:ReactNode}) {
     const {data:{subscription}}=client.auth.onAuthStateChange((_event,next)=>{if(!alive)return;const identity=next?.user.id??null;if(identityRef.current!==identity){generation.current++;setData(emptyWorkspace());setError(null);setLoading(Boolean(next));identityRef.current=identity}setSession(next);if(!next){generation.current++;setData(emptyWorkspace());setLoading(false)}})
     return()=>{alive=false;subscription.unsubscribe()}
   },[client])
-  useEffect(()=>{if(client&&session){setLoading(true);void refresh().catch(()=>{})}},[client,session,refresh])
+  // Revalidating the same session must keep the route and its unsaved forms mounted.
+  // Initial connection and identity changes already enable the blocking loader above.
+  useEffect(()=>{if(client&&session){void refresh().catch(()=>{})}},[client,session,refresh])
   const mutate=useCallback(async(c:WorkspaceCommand)=>{
     if(profile.role!=='admin')throw new Error('Solo la administración puede guardar cambios.')
     setWarning(null)

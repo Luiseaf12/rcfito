@@ -55,6 +55,10 @@ Indicadas, Realizadas y Canceladas y se conserva en la URL.
   agrícola/cultivo/estado retira filtros dependientes incompatibles. Las selecciones
   permanecen en la URL, sin guardar datos de negocio.
 
+La presentación de cantidades, dosis y superficies sigue la regla de
+[dos decimales](../FRONTEND.md#decimales-en-reportes), también en resumen por lote,
+ranking e historial. Cálculos y ordenamiento conservan su precisión original.
+
 ## Presentación y permisos
 
 Reutiliza shell, Card, FieldGroup/FormSelect, Table, Button, Alert, Empty y
@@ -67,6 +71,34 @@ El dominio recibe el workspace ya autorizado. Demo usa scopeWorkspace y datos
 ficticios; Supabase mantiene Auth/RLS/asignaciones. No hay endpoint privilegiado,
 migración ni consultas nuevas que amplíen el acceso. QA nunca carga fixtures en
 operación ni modifica el `.env` preexistente.
+
+## Filtro global por lote
+
+Autorizado el 2026-11-01 con commit/push y Sites. El selector Lote inicia en Todos
+los lotes y usa el ID del lote de temporada; cada opción muestra nombre, campo,
+temporada y agrícola, incluyendo lotes retirados o sin aplicaciones. Opciones
+limitadas a las agrícolas disponibles y a la agrícola seleccionada.
+
+Recorrido: elegir agrícola y lote → consultar métricas, tabla general y ranking
+recalculados → abrir historial o productos del lote → cerrar conservando filtros.
+El lote se cruza con cultivo, etapa y estado; Todas sigue como estado inicial y
+la tabla conserva cantidad ascendente mixta. El resumen por lote recibe el mismo
+filtro. Cambiar agrícola limpia lote y sus filtros dependientes; los demás
+filtros conservan el lote y pueden producir un vacío explicativo. Todos los lotes
+retira solo ese filtro. Limpiar filtros los retira todos. La URL conserva lote
+para recarga y los IDs desconocidos/no asignados no amplían la consulta.
+
+La vinculación stage → subdivision → lot verifica proyecto, campo y agrícola en
+una función compartida por los dos cálculos; no se deduce identidad por nombre.
+Sin migraciones ni consultas nuevas. Cuatro pruebas adicionales comprueban el
+filtro en métricas/productos/ranking/historial, intersecciones y lectura autorizada,
+lotes homónimos y IDs ajenos o con jerarquía inválida. 228 pruebas y tipos
+aprobados; QA demo en 5196 confirma cambios al seleccionar, historial exclusivo,
+recarga, cambio de agrícola y limpieza, con Todas por defecto. 375/1440 px sin
+overflow de página ni errores de consola. Revisión independiente sin hallazgos.
+Revisión limpia 20c8ca6 aprobó 228/228 pruebas, tipos/build y checker. Subida a
+GitHub y repositorio de Sites; versión 23 publicada con resultado succeeded y
+tres comprobaciones HTTP posteriores aprobadas. [Evidencia](../OPERATIONS.md#publicación-del-filtro-global-por-lote).
 
 ## Verificación y publicación
 

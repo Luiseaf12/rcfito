@@ -1,3 +1,4 @@
+import { createUsageLotResolver } from './usage-lot'
 import type { ProjectLot, WorkspaceData } from './model'
 import {
   buildProductUsage, compareProductQuantity, summarizeProductUsage,
@@ -29,9 +30,7 @@ export function buildLotUsage(data: WorkspaceData, filters: ProductUsageFilters 
   const projects = new Map(data.projects.map(project => [project.id, project]))
   const agriculturalUnits = new Map(data.catalogs.agricultural_units.map(unit => [unit.id, unit]))
   const fields = new Map(data.catalogs.fields.map(field => [field.id, field]))
-  const stages = new Map(data.stages.map(stage => [stage.id, stage]))
-  const subdivisions = new Map(data.subdivisions.map(subdivision => [subdivision.id, subdivision]))
-  const lots = new Map(data.lots.map(lot => [lot.id, lot]))
+  const resolveLot = createUsageLotResolver(data)
   const targetLots = new Map<string, ProjectLot | null>()
   const invalidTargets = new Set<string>()
   const groups = new Map<string, {
@@ -44,18 +43,9 @@ export function buildLotUsage(data: WorkspaceData, filters: ProductUsageFilters 
     for (const history of product.history) {
       if (!targetLots.has(history.targetId)) {
         const order = orders.get(history.orderId)
-        const project = order && projects.get(order.project_id)
-        const field = order && fields.get(order.field_id)
-        const stage = stages.get(history.stageId)
-        const subdivision = stage && subdivisions.get(stage.subdivision_id)
-        const lot = subdivision && lots.get(subdivision.lot_id)
-        const valid = order && project && field && lot
-          && agriculturalUnits.has(project.agricultural_unit_id)
-          && lot.project_id === order.project_id && lot.field_id === order.field_id
-          && field.agricultural_unit_id === project.agricultural_unit_id
-          && Number.isFinite(lot.area_ha) && lot.area_ha > 0
-        targetLots.set(history.targetId, valid ? lot : null)
-        if (!valid) invalidTargets.add(history.targetId)
+        const lot = order && resolveLot(order, history.stageId)
+        targetLots.set(history.targetId, lot ?? null)
+        if (!lot) invalidTargets.add(history.targetId)
       }
       const lot = targetLots.get(history.targetId)
       if (!lot) continue
