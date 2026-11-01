@@ -2,7 +2,7 @@
 
 Autorización del Propietario: implementar la propuesta de edición, productos,
 dosis, fechas e historial; commit, push y publicación en Sites. Amplía la regla
-previa de indicación inmutable con revisiones registradas. Estado: implementada y verificada; publicación en curso.
+previa de indicación inmutable con revisiones registradas. Estado: implementada y publicada en Sites versión16; frontend Docker actualizado.
 
 ## Usuario, entrada y recorrido
 
@@ -66,4 +66,5 @@ mezcla nueva; corrección real conserva antes/después y conteos tras recargar.
 Lector consulta historial sin acciones de edición; móvil sin overflow de página.
 Respaldo privado validado y migración operativa confirmada (4 aplicadas/0
 pendientes), conteos de negocio intactos y sin eventos ficticios. Publicación
-y frontend Docker pendientes de confirmar en OPERATIONS.
+y frontend Docker confirmados desde el commit 7942b85, con 14 verificaciones
+posteriores aprobadas; IDs y detalles en OPERATIONS.

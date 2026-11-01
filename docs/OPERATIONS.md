@@ -381,5 +381,19 @@ No ejecutar preparación ni reset de operación.
 .artifacts/production-supabase/backups (367,912 bytes). Migración aplicada:
 cuatro registradas, cero pendientes. Conteos de órdenes, destinos por estado y
 productos originales/reales idénticos antes/después; cero eventos inventados.
-181 pruebas, 244 SQL, 71 HTTP aisladas y QA demo/móvil/lector aprobados. Frontend
-Docker y publicación de la revisión validada se confirman en el cierre posterior.
+181 pruebas, 244 SQL, 71 HTTP aisladas y QA demo/móvil/lector aprobados.
+
+Commit `7942b851259b80b7b53cfee9ae81ed139bf14776` subido a GitHub y al
+repositorio de Sites; se repitieron 181 pruebas, tipos, docs y build desde checkout
+limpio y se empaquetó ese mismo commit. Sites confirmó succeeded, versión 16
+`appgprj_6ae67ae019e88191a7012093bb19c505~appgver_1b63022b45748191b5ec8d450d7b83d3`,
+despliegue `appgdep_6ae6cf1eb7408191933a7aa7fa6ccaa7`; audiencia pública,
+R2 y entorno revisión1 conservados. No se leyó ni cambió la clave IA guardada.
+Frontend Docker reconstruido desde el mismo checkout con Compose explícito y
+montaje de configuración pública conservado; secretos y volúmenes intactos.
+
+Catorce comprobaciones posteriores aprobadas en Site y local: inicio, bundle con
+autocompletado previo, editor/historial y salud Auth 200; captura/configuración
+sin sesión e historial anónimo 401. Sin escrituras de aplicaciones ni consumo
+del proveedor en operación para verificar. Evidencia en
+[TESTING](TESTING.md#edición-de-aplicaciones-e-historial).

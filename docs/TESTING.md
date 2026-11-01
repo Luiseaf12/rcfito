@@ -339,3 +339,9 @@ conservó corrección y eventos. Móvil sin overflow de página (360/360), histo
 legible; lector demo consulta las versiones y carece de acciones de edición.
 Estas capturas solo acreditan demo local; permisos reales se verificaron en el
 backend aislado. Publicación y migración operativa en OPERATIONS.
+
+Publicación comprobada: Site versión16 y Docker sirven el mismo commit 7942b85.
+Catorce comprobaciones posteriores aprobadas: inicio/bundle/editor/historial y
+salud Auth 200 en ambos, captura/configuración e historial anónimo 401. Ledger
+operativo 4/0 y conteos de negocio intactos tras migrar. No se hicieron capturas
+ficticias ni correcciones de datos reales en operación para esta verificación.
