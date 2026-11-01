@@ -459,6 +459,8 @@ lector. 228 pruebas cliente y tipos aprobados. QA demo aislado en 5196 confirmó
 selección de dos lotes con resultados distintos, historial exclusivo, recarga,
 cambio de agrícola y limpieza. Todas y Todos los lotes por defecto; cantidades
 ascendentes mixtas conservadas. 375/1440 px sin overflow de página ni errores de
-consola. Revisión independiente sin hallazgos. No hubo escrituras en operación.
+consola. Revisión independiente sin hallazgos. Revisión limpia 20c8ca6: 228/228
+pruebas, tipos/build y checker aprobados. Sites versión 23 succeeded y tres
+comprobaciones HTTP 200 de HTML/bundle/filtro aprobadas. No hubo escrituras en operación.
 [Contrato](flows/product-dashboard.md#filtro-global-por-lote) y
 [publicación](OPERATIONS.md#publicación-del-filtro-global-por-lote).

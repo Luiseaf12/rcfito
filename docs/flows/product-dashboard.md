@@ -92,7 +92,9 @@ lotes homónimos y IDs ajenos o con jerarquía inválida. 228 pruebas y tipos
 aprobados; QA demo en 5196 confirma cambios al seleccionar, historial exclusivo,
 recarga, cambio de agrícola y limpieza, con Todas por defecto. 375/1440 px sin
 overflow de página ni errores de consola. Revisión independiente sin hallazgos.
-Publicación pendiente; [seguimiento](../OPERATIONS.md#publicación-del-filtro-global-por-lote).
+Revisión limpia 20c8ca6 aprobó 228/228 pruebas, tipos/build y checker. Subida a
+GitHub y repositorio de Sites; versión 23 publicada con resultado succeeded y
+tres comprobaciones HTTP posteriores aprobadas. [Evidencia](../OPERATIONS.md#publicación-del-filtro-global-por-lote).
 
 ## Verificación y publicación
 
