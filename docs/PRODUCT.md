@@ -420,3 +420,20 @@ La propuesta debe cubrir:
 La revisión de si la aplicación ya conserva el grupo del lote se sigue por
 separado en RCF-029. Las decisiones que falten se aclararán antes de desarrollar
 el pendiente, sin convertirlas en reglas implícitas.
+
+## Orden descendente de productos de una malla
+
+RCF-031, solicitado el 2026-11-01. Pendiente de desarrollar: cuando el usuario
+elige una malla en el resumen y pulsa **Ver productos**, los productos de esa
+selección deben aparecer de mayor a menor por la cantidad calculada. Este
+registro conserva el alcance solicitado; no cambia todavía el orden implementado.
+Antes de desarrollar se plantearán las dudas conforme a AGENTS.
+
+## Exportación de productos a PDF
+
+RCF-032, solicitado el 2026-11-01. Pendiente de desarrollar una exportación a PDF
+que muestre todos los productos registrados que correspondan a los resultados
+filtrados y los filtros aplicados para obtenerlos. La exportación debe incluir
+el conjunto completo de resultados, aunque la pantalla esté paginada.
+El diseño y las aclaraciones necesarias se revisarán con el Propietario antes
+de desarrollar, conforme a AGENTS.
