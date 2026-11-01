@@ -133,8 +133,11 @@ de prueba de RCF-008; la dirección estable de operación permanece en RCF-010.
 
 El Propietario autorizó commit/push a
 [Luiseaf12/rcfito](https://github.com/Luiseaf12/rcfito) y publicación en ChatGPT
-Sites. [hosting.json](../.openai/hosting.json) conserva la identidad y declara
-`dist` como salida estática. La audiencia nueva es privada y se conserva.
+Sites. [hosting.json](../.openai/hosting.json) conserva la identidad. El build
+actual produce un Worker con frontend embebido y un registro R2 de conexión;
+la base de negocio permanece en esta PC. Se conserva la audiencia configurada:
+la lectura previa al despliegue automático encontró el Site público (revisión 2).
+Los datos siguen exigiendo acceso de Supabase y el registro, su secreto adicional.
 
 Publicar la misma revisión validada: checks de [TESTING](TESTING.md), revisión
 del diff/exclusiones de secretos, commit y push; después empaquetar el build de

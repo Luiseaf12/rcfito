@@ -2,7 +2,7 @@
 
 El Propietario solicitó el 2026-10-31 que Sites actualice su conexión cuando
 cambie la dirección del túnel al reiniciar esta PC. Se conserva el Quick Tunnel
-gratuito y la audiencia privada del Site.
+gratuito y la audiencia que tenga configurada el Site.
 
 ## Funcionamiento
 
@@ -42,8 +42,10 @@ puerto, ruta, consulta o fragmento. Comprueba la salud del destino con clave
 pública antes de aceptarlo y no sigue redirecciones. El proxy nunca reenvía
 cookies o cabeceras de identidad de Sites; conserva JWT/apikey y cabeceras REST.
 
-La audiencia privada permanece igual. Auth/RLS de Supabase siguen autorizando
-los datos; publicar la dirección no concede permisos de cuenta.
+Auth/RLS de Supabase siguen autorizando los datos; publicar la dirección no
+concede permisos de cuenta. Antes de este despliegue Sites ya figuraba público
+(revisión de acceso 2); esta entrega conservó esa audiencia. El secreto adicional
+protege la escritura del registro incluso con el frontend público.
 
 ## Comandos
 
@@ -95,3 +97,15 @@ código. El Site y el publicador deben referirse al mismo backend y al mismo Sit
 La conexión local Docker continúa con `/supabase` de su propio Nginx.
 
 Evidencia y límites en [TESTING](TESTING.md#actualización-automática-del-túnel).
+
+## Cierre verificado
+
+La tarea está instalada y en ejecución. Sites confirmó el despliegue
+`appgdep_6ae69a6613b48191980d75618f20e62e`, versión
+`appgprj_6ae67ae019e88191a7012093bb19c505~appgver_4d4204125a3c819198c24cc227cd4415`,
+desde `8a4f4340140e568e73b0fcbac7c949baae07b56c`, con el secreto runtime aplicado y
+R2 operativo. Se reinició únicamente `rcfito-quick-tunnel`: cambió la URL, el
+monitor renovó el registro y las nueve comprobaciones HTTPS del Site volvieron a
+aprobar sin volver a publicar el frontend. La prueba completa de reinicio de
+Windows no se ejecutó; se verificó el trigger de inicio de sesión y la ejecución
+real de la tarea. La revisión y el build se aislaron de otro trabajo concurrente.

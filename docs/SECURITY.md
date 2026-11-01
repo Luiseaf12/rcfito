@@ -114,8 +114,9 @@ siguen pendientes. Las pruebas demo y HTTP aisladas se conservan por separado.
 
 ## Registro automático de la conexión
 
-El Worker de Sites conserva el acceso privado y autoriza el registro con un
-secreto adicional de actualización. El publicador local usa acceso de servicio
+El Worker de Sites respeta la audiencia configurada y autoriza el registro con un
+secreto adicional de actualización. En esta publicación la audiencia ya era
+pública; los datos siguen exigiendo sesión y permisos en Supabase. El publicador local usa acceso de servicio
 existente del Site; ambas credenciales permanecen fuera de Git, del navegador y
 de R2, en su carpeta local con ACL restringida. El servidor valida la dirección y
 su salud, fija una vigencia de 120 segundos y rechaza rutas o destinos ambiguos.

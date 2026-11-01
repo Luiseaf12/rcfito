@@ -45,7 +45,7 @@ try {
   const asset = await request(entry);
   assert.equal(asset.status, 200); assert.ok(asset.headers.get('content-type')?.includes('javascript'));
   await asset.body?.cancel();
-  pass('Frontend y JavaScript servidos por el Worker privado.');
+  pass('Frontend y JavaScript servidos por el Worker de Sites.');
 
   for (const path of ['/supabase/auth/v1/admin/users', '/supabase/rest/v1/%252e%252e/%252e%252e/project/default', '/supabase/project/default']) {
     assert.equal((await request(path)).status, 404);

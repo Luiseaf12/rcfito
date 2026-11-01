@@ -75,7 +75,7 @@ envía `/supabase/auth/v1`, `/supabase/rest/v1` y `/supabase/functions/v1` a la 
 API por la red Docker. No reenvía Studio ni rutas administrativas. El JSON se
 carga en ejecución y la normalización conserva el prefijo `/supabase`.
 
-El Site aloja el frontend privado y un Worker con proxy `/supabase` del mismo
+El Site aloja el frontend y un Worker con proxy `/supabase` del mismo
 origen. La configuración managed utiliza esa ruta fija y migra preferencias
 anteriores del mismo backend. El actualizador de Windows renueva en R2 únicamente
 la URL del Quick Tunnel y su vigencia; una URL caducada produce 503. Las sesiones,

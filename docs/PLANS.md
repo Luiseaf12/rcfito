@@ -11,9 +11,10 @@ Fecha de revisión: 2026-10-31.
 | RCF-005 | Revisar hallazgos de dependencias de desarrollo. | pendiente | Por asignar | Revisar las 6 alertas de tooling y actualizar con pruebas compatibles, sin cambios forzados. | [TESTING](TESTING.md#evidencia-de-primera-entrega-2026-10-31) |
 | RCF-006 | Completar revisión de accesibilidad. | pendiente | Por asignar | Verificar recorrido completo de teclado, zoom 200 %, altura reducida y contraste medido. | [TESTING](TESTING.md#navegador-de-demostración) |
 | RCF-007 | Resolver falso positivo de secreto en ejemplo Supabase. | cerrada | Agente principal | Ejemplos sustituidos por variables, configuración validada y alerta 1 resuelta como falso positivo. | [Seguridad](SECURITY.md#ejemplos-del-proveedor-y-alerta-de-github) |
-| RCF-008 | Habilitar acceso remoto HTTPS a Supabase local. | cerrada | Propietario y Agente principal | Quick Tunnel activo, 20 comprobaciones HTTPS aprobadas, Site privado publicado y login confirmado por el Propietario. Conservar PC/Docker activos y actualizar URL tras reinicio; endpoint estable en RCF-010. Móvil no probado. | [Quick Tunnel](OPERATIONS.md#quick-tunnel-gratuito-para-pruebas) y [evidencia](TESTING.md#quick-tunnel-https) |
+| RCF-008 | Habilitar acceso remoto HTTPS a Supabase local. | cerrada | Propietario y Agente principal | Quick Tunnel y login confirmados. Conservar PC/Docker activos; actualización automática en RCF-012 y endpoint de operación continua en RCF-010. Móvil no probado. | [Quick Tunnel](OPERATIONS.md#quick-tunnel-gratuito-para-pruebas) y [evidencia](TESTING.md#quick-tunnel-https) |
 | RCF-009 | Publicar la revisión con operación local verificada. | cerrada | Agente principal | Código subido y resultado nativo de publicación privada confirmado. Conservar audiencia y evidencia; conectividad remota separada en RCF-008. | [Publicación operativa](OPERATIONS.md#publicación-de-la-revisión-operativa) |
 | RCF-010 | Definir un endpoint estable para operación remota. | propuesta | Propietario | Elegir una solución estable cuando se requiera operación continua; el Quick Tunnel actual es temporal y gratuito para pruebas. | [Quick Tunnel](OPERATIONS.md#quick-tunnel-gratuito-para-pruebas) |
+| RCF-012 | Actualizar Sites automáticamente al cambiar el Quick Tunnel. | cerrada | Agente principal | Worker con ruta fija, registro R2 con caducidad y tarea Windows activos; 34 pruebas y nueve comprobaciones HTTPS antes/después de reiniciar el conector aprobadas. Conservar sesión Windows/Docker y credenciales privadas. | [Conexión automática](tunnel-auto-update.md) y [evidencia](TESTING.md#actualización-automática-del-túnel) |
 
 Estados y cierre: [DOCUMENTATION](../.project-standards/DOCUMENTATION.md#planes-decisiones-y-deuda).
 Una tarea registrada no autoriza implementarla. Conservar su ID y actualizar su
@@ -72,3 +73,10 @@ guardó en el navegador del Site y se publicó como valor inicial, con resultado
 nativo `succeeded`. El Propietario confirmó su login desde el Site mediante
 «Ya inicié sesión» y `status` confirmó el mismo túnel activo. RCF-008 queda cerrado
 para este acceso temporal de prueba; dirección estable separada en RCF-010.
+
+2026-10-31: el Propietario solicitó actualizar automáticamente Sites cuando cambie
+el túnel. Se publicó la ruta fija `/supabase` y se instaló el monitor de Windows
+con registro R2 limitado a URL/vigencia. La URL cambió al reiniciar solo el
+conector y se renovó sin republicar el Site; 34 pruebas y nueve verificaciones
+HTTPS antes/después aprobaron. El Site ya figuraba público al desplegar y esa
+audiencia se conservó. RCF-012 cerrado; el endpoint continuo sigue en RCF-010.

@@ -5,7 +5,7 @@ catálogos, usuarios/asignaciones y proyectos con lotes, subdivisiones y etapas.
 Las órdenes de aplicación y su reporte quedan para una entrega posterior.
 Reglas y alcance: [PRODUCT](docs/PRODUCT.md).
 
-[Abrir la versión privada en ChatGPT Sites](https://rcfito.paxxa.chatgpt.site).
+[Abrir RCFito en ChatGPT Sites](https://rcfito.paxxa.chatgpt.site).
 Su conexión inicial se prepara para Supabase mediante un Quick Tunnel temporal.
 La demostración identificada se elige desde Conexión y preferencias.
 La instalación real de este equipo se

@@ -12,8 +12,10 @@ identificada y adaptador real de Supabase Auth/REST/RPC. Supabase de operación 
 frontend Docker están iniciados localmente en `http://127.0.0.1:5180`. Primera
 cuenta, login de administrador y captura persistida tras recargar comprobados;
 migración aplicada sin pendientes. El HTTPS de prueba usa Cloudflare Quick Tunnel;
-su URL puede cambiar al reiniciar. El endpoint estable sigue pendiente; publicar
-Sites y arrancar el túnel son operaciones separadas.
+su URL puede cambiar al reiniciar. Sites conserva `/supabase` y el monitor de
+Windows renueva el destino automáticamente al iniciar sesión; ver
+[conexión automática](docs/tunnel-auto-update.md). El endpoint de operación
+continua sigue pendiente.
 
 [PRODUCT](docs/PRODUCT.md) conserva los contratos de negocio. Las aplicaciones
 y su reporte no forman parte de esta entrega. No asumir resuelta su aclaración

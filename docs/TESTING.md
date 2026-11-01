@@ -162,6 +162,17 @@ rechazo de redirecciones y cambio del destino tras una renovación. Revisión
 independiente realizada; se añadió timeout para que Docker no bloquee el monitor.
 
 La tarea Windows quedó instalada y en ejecución con ACL privada para sus
-credenciales. Publicación del Worker, aceptación del binding R2 y prueba de
-renovación tras reiniciar únicamente el conector: pendientes de verificación.
+credenciales y trigger de inicio de sesión. Sites confirmó `succeeded` para el
+Worker con R2 operativo y el secreto runtime aplicado. Antes del despliegue Sites
+ya figuraba público (revisión 2); se conservó esa audiencia y el secreto del
+registro bloqueó actualizaciones sin autorización adicional.
+
+`node scripts/site-connection-check.mjs` aprobó nueve comprobaciones: configuración
+managed estable, lease del arranque actual, Auth por el proxy, HTML/JS del Worker,
+rechazo de rutas administrativas y codificadas, datos/funciones sin sesión y
+escritura del registro sin secreto. Se reinició solo `rcfito-quick-tunnel`, cambió
+la URL y la tarea la registró sin ejecutar `once` ni republicar Sites; las nueve
+comprobaciones volvieron a aprobar. La bitácora del monitor confirmó el cambio.
 No se reinició la PC ni se modificaron datos de negocio para esta prueba.
+Los 34 tests y tipos/build se comprobaron sobre una revisión aislada que conserva
+fuera de esta publicación los cambios de aplicaciones agrícolas en curso.
