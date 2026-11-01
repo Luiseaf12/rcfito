@@ -28,7 +28,8 @@ exclusivo de prueba y `--cleanup` lo detiene y retira sus datos. Detalles en
 | HTTP real | 12 comprobaciones Auth/REST/Edge/RLS aprobadas con cuentas ficticias. |
 | Aislamiento | Integración final detenida y sus datos ficticios retirados; contenedores ajenos conservados. |
 | Compose | Composición Supabase validada con `docker compose config --quiet` y configuración ficticia; no inició operación. |
-| Imagen frontend | `docker build -t rcfito-web:0.1.0 .` aprobado; imágenes base fijadas por digest. No acredita publicación ni ejecución de operación. |
+| Imagen frontend | Build aprobado con bases fijadas por digest. Contenedor efímero `rcfito-web-qa-20261031` respondió HTTP 200 con título correcto en loopback:5189 y fue retirado. No acredita operación. |
+| Sites | Publicación privada exitosa confirmada por API nativa; inicio abierto en navegador. [Registro](OPERATIONS.md#primera-publicación-confirmada). |
 | Dependencias | `npm audit --omit=dev`: cero vulnerabilidades. Auditoría total: 6 de tooling (2 bajas y 4 moderadas), pendientes de revisión; no se aplicó actualización forzada. |
 
 ## Navegador de demostración
@@ -57,9 +58,8 @@ medido sigue pendiente hasta registrar la evidencia final. Fichas detalladas:
 
 El navegador probó la demostración. El backend HTTP se probó en un entorno
 independiente; no se acredita navegador → instalación de operación → respuesta.
-No hay endpoint HTTPS de operación configurado. La publicación Sites requiere
-su resultado nativo antes de declararla exitosa; tener identidad de Site no
-equivale a despliegue.
+No hay endpoint HTTPS de operación configurado. Sites confirmó su despliegue
+privado; esa publicación sirve la interfaz y no publica el Supabase local.
 
 El checker documental comprueba destinos locales, no anchors ni URLs externas.
 No certifica UX, RLS ni cálculos. Las referencias TS/TSX del bundle del estándar

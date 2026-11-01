@@ -5,6 +5,10 @@ catálogos, usuarios/asignaciones y proyectos con lotes, subdivisiones y etapas.
 Las órdenes de aplicación y su reporte quedan para una entrega posterior.
 Reglas y alcance: [PRODUCT](docs/PRODUCT.md).
 
+[Abrir la versión privada en ChatGPT Sites](https://rcfito.paxxa.chatgpt.site).
+Inicia con una demostración identificada; la conexión al Supabase de operación
+requiere configurar el servidor y su acceso HTTPS.
+
 React + TypeScript + Vite 8, controles shadcn/Radix y API de Supabase. El frontend
 puede explorarse con datos ficticios guardados solo en el navegador, o conectarse
 a un servidor Supabase configurado. La demostración no acredita autenticación ni

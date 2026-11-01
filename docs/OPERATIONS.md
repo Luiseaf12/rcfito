@@ -48,8 +48,7 @@ Sites. [hosting.json](../.openai/hosting.json) conserva la identidad y declara
 Publicar la misma revisión validada: checks de [TESTING](TESTING.md), revisión
 del diff/exclusiones de secretos, commit y push; después empaquetar el build de
 ese commit y guardar/desplegar la versión con Sites. Declarar éxito solo con el
-resultado nativo y URL devuelta. Al redactar este runbook, commit/push y despliegue
-estaban pendientes de cierre.
+resultado nativo y URL devuelta. La primera publicación está registrada abajo.
 
 La versión alojada puede explorar fixtures del navegador y configurar conexión
 real. Publicación privada no certifica seguridad de Supabase ni hace accesible
@@ -59,6 +58,18 @@ frontend para las altas privadas de cuentas.
 El workflow compartido ejecuta `npm run standards:check` en push/PR. Exigir
 `Estándar compartido / standards` para bloquear merges necesita protección de
 rama en GitHub por separado.
+
+## Primera publicación confirmada
+
+2026-10-31: commit de implementación
+`86711d964da6d943e5553a755e2253aa72b787c4` subido a `origin/main` y al repositorio
+del Site. El archivo de publicación se construyó desde esa revisión validada.
+Sites devolvió `succeeded` para el despliegue
+`appgdep_6ae680d202b481919285cb7aad2aff13`, versión
+`appgprj_6ae67ae019e88191a7012093bb19c505~appgver_84f6e068e00881919c6e4766da23893f`.
+URL privada: [RCFito](https://rcfito.paxxa.chatgpt.site). Se abrió su inicio en
+navegador y se conservó la audiencia privada. Revisiones documentales posteriores
+pueden tener otro commit/versión sin alterar esta evidencia de primera entrega.
 
 ## Respaldo y cambio de servidor
 

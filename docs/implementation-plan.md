@@ -86,7 +86,7 @@ builds y respaldos, manteniendo únicamente ejemplos ficticios de configuración
 | Navegador demo | A 1440 px: alta/búsqueda/detalle/descarte de catálogo, temporada duplicada, lote de 5 ha/default, planeación y siembra real; lector limitado. A 375 px: sin overflow general y buscador ajustado. |
 | Teclado, texto 200 % y contraste | Escape cierra menú móvil; resto de teclado completo, zoom 200 % y contraste medido pendientes. |
 | Revisión independiente de seguridad y flujo | Código revisado y defectos comunicados/corregidos; permisos/transacciones además probados en backend aislado. Navegador contra instalación de operación pendiente. |
-| Commit/push y versión desplegada en Sites | Pendiente. |
+| Commit/push y versión desplegada en Sites | Commit `86711d964da6d943e5553a755e2253aa72b787c4` subido a GitHub; despliegue privado exitoso y abierto en navegador. [Registro](OPERATIONS.md#primera-publicación-confirmada). |
 
 Los resultados se completan solo después de ejecutar el control. El índice de
 pendientes del proyecto permanece en [PLANS](PLANS.md).
