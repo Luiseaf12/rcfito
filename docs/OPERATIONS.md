@@ -311,4 +311,16 @@ esta sección. La verificación de implementación usa dependencias ficticias y 
 confirma una conexión de proveedor real. Evidencia en
 [TESTING](TESTING.md#configuración-de-ia-en-conexión-y-preferencias).
 
-Publicación de esta sección y actualización del frontend Docker en curso.
+2026-10-31: commit f83529da44d84a549d84270fd3cc652d67ff357f subido a GitHub
+y al repositorio de Sites, validado y empaquetado desde checkout limpio. Sites
+confirmó succeeded para la versión 13
+`appgprj_6ae67ae019e88191a7012093bb19c505~appgver_d735ab03e7e4819197ce74e9bfaf3af0`,
+despliegue `appgdep_6ae6b0768e108191ba3c6e27239e7177`, en
+[RCFito](https://rcfito.paxxa.chatgpt.site), conservando audiencia pública y entorno.
+El frontend Docker se reconstruyó desde el mismo commit con Compose explícito y
+montaje público conservado; backend y volúmenes no cambiaron.
+
+Trece comprobaciones posteriores aprobadas: HTML y bundle nuevo 200 en Site y
+local, GET/PUT de configuración y POST de prueba/captura anónimos 401 en ambos,
+y salud Auth 200. La vista publicada sin sesión no muestra controles de IA.
+No se guardó configuración ni se hizo inferencia con claves reales durante QA.

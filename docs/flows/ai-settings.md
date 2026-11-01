@@ -1,8 +1,7 @@
 # Configuración de IA desde Conexión y preferencias
 
 Fecha: 2026-10-31. Autorizado por el Propietario: implementar la sección,
-commit/push y publicar en Sites conservando audiencia. Estado: implementación
-verificada; publicación en curso.
+commit/push y publicar en Sites conservando audiencia. Estado: implementada y publicada en Sites versión 13; frontend Docker actualizado.
 
 ## Usuario, entrada y objetivo
 
