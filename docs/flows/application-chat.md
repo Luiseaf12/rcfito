@@ -72,7 +72,10 @@ de indicados y nombres/cantidades visibles juntos a 375 px, sin desbordamiento.
 La revisión operativa fue solo lectura bajo RLS; sus datos no se copian aquí.
 No hay migraciones ni escrituras de aplicaciones en esta corrección.
 
-Estado: verificado; publicación en curso.
+Estado: publicado en Sites versión28 y Docker desde la fuente8aea36e.
+Doce comprobaciones posteriores aprobaron bundle, interfaz y protección de
+endpoints. Audiencia y configuración conservadas; evidencia en
+[operación](../OPERATIONS.md#corrección-de-preguntas-equivalentes-de-productos).
 
 ## Contrato general del chat y audio
 
