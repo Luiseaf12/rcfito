@@ -10,6 +10,8 @@ export type ProductUsageFilters = {
 
 export type ProductUsageHistory = {
   targetId: string
+  stageId: string
+  productName: string
   orderId: string
   folio: string
   recordDate: string
@@ -53,6 +55,30 @@ export type ProductUsageResult = {
 const positive = (value: number) => Number.isFinite(value) && value > 0
 const productKey = (product: ProductLine) => JSON.stringify([product.product_id, product.unit])
 
+/** Quantity order follows the displayed L/kg number without combining units. */
+export function compareProductQuantity(a: ProductUsageSummary, b: ProductUsageSummary): number {
+  return a.totalQuantity / 1000 - b.totalQuantity / 1000
+    || a.name.localeCompare(b.name, 'es-MX') || a.key.localeCompare(b.key)
+}
+
+/** Recomputes a product from a validated subset without changing its snapshots. */
+export function summarizeProductUsage(
+  product: Pick<ProductUsageSummary, 'key' | 'productId' | 'unit'>,
+  records: ProductUsageHistory[],
+): ProductUsageSummary {
+  const history = [...records].sort((a, b) => b.recordDate.localeCompare(a.recordDate) || a.targetId.localeCompare(b.targetId))
+  const totalQuantity = history.reduce((sum, record) => sum + record.quantity, 0)
+  const accumulatedAreaHa = history.reduce((sum, record) => sum + record.areaHa, 0)
+  return {
+    ...product, name: history[0]?.productName ?? '',
+    applicationCount: new Set(history.map(record => record.targetId)).size,
+    totalQuantity, accumulatedAreaHa, averageDose: accumulatedAreaHa ? totalQuantity / accumulatedAreaHa : 0,
+    lastRecordedDate: history[0]?.recordDate ?? '',
+    destinationCount: new Set(history.map(record => record.stageId)).size,
+    history,
+  }
+}
+
 function validDate(value: string | null): value is string {
   if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false
   const date = new Date(`${value}T00:00:00.000Z`)
@@ -81,7 +107,7 @@ export function buildProductUsage(data: WorkspaceData, filters: ProductUsageFilt
   const orders = new Map(data.applicationOrders.map(order => [order.id, order]))
   const agriculturalUnits = new Map(data.catalogs.agricultural_units.map(unit => [unit.id, unit.name]))
   const fields = new Map(data.catalogs.fields.map(field => [field.id, field.name]))
-  const groups = new Map<string, { summary: ProductUsageSummary; stageIds: Set<string>; latestTargetId: string }>()
+  const groups = new Map<string, { key: string; productId: string; unit: ProductLine['unit']; history: ProductUsageHistory[] }>()
   const countedTargets = new Set<string>()
   let incompleteCount = 0
 
@@ -124,16 +150,12 @@ export function buildProductUsage(data: WorkspaceData, filters: ProductUsageFilt
       const key = productKey(product)
       let group = groups.get(key)
       if (!group) {
-        group = { summary: {
-          key, productId: product.product_id, name: product.product_name, unit: product.unit,
-          applicationCount: 0, totalQuantity: 0, accumulatedAreaHa: 0, averageDose: 0,
-          lastRecordedDate: '', destinationCount: 0, history: [],
-        }, stageIds: new Set<string>(), latestTargetId: '' }
+        group = { key, productId: product.product_id, unit: product.unit, history: [] }
         groups.set(key, group)
       }
-      const summary = group.summary
       const history: ProductUsageHistory = {
-        targetId: target.id, orderId: order.id, folio: order.folio, recordDate, status: target.status, source,
+        targetId: target.id, stageId: target.stage_id, productName: product.product_name,
+        orderId: order.id, folio: order.folio, recordDate, status: target.status, source,
         agriculturalUnitName: agriculturalUnits.get(project.agricultural_unit_id) ?? 'Agrícola no disponible',
         projectName: order.project_name ?? project.name, season: project.season,
         fieldName: order.field_name ?? fields.get(order.field_id) ?? 'Campo no disponible',
@@ -141,27 +163,12 @@ export function buildProductUsage(data: WorkspaceData, filters: ProductUsageFilt
         cropName: target.crop_name, areaHa: target.area_ha, dose: product.dose,
         quantity: product.dose * target.area_ha,
       }
-      // A stable tie-breaker makes the selected name independent of source-array order.
-      if (!summary.lastRecordedDate || history.recordDate > summary.lastRecordedDate
-        || (history.recordDate === summary.lastRecordedDate && history.targetId.localeCompare(group.latestTargetId) < 0)) {
-        summary.name = product.product_name
-        summary.lastRecordedDate = history.recordDate
-        group.latestTargetId = history.targetId
-      }
-      summary.applicationCount++
-      summary.totalQuantity += history.quantity
-      summary.accumulatedAreaHa += history.areaHa
-      summary.history.push(history)
-      group.stageIds.add(target.stage_id)
+      group.history.push(history)
     }
   }
 
-  const products = [...groups.values()].map(({ summary, stageIds }) => {
-    summary.averageDose = summary.totalQuantity / summary.accumulatedAreaHa
-    summary.destinationCount = stageIds.size
-    summary.history.sort((a, b) => b.recordDate.localeCompare(a.recordDate) || a.targetId.localeCompare(b.targetId))
-    return summary
-  }).sort((a, b) => b.applicationCount - a.applicationCount || a.name.localeCompare(b.name, 'es-MX') || a.key.localeCompare(b.key))
+  const products = [...groups.values()].map(group => summarizeProductUsage(group, group.history))
+    .sort((a, b) => b.applicationCount - a.applicationCount || a.name.localeCompare(b.name, 'es-MX') || a.key.localeCompare(b.key))
 
   return {
     products, applicationCount: countedTargets.size, incompleteCount,

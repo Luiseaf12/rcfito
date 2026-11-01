@@ -122,6 +122,17 @@ Card, FieldGroup/FormSelect, Table, Button y RecordDialog existentes. Tabla
 principal ordenable/paginada, ranking de diez productos e historial paginado con
 estado y origen de fecha; al cerrar conserva filtros, orden y foco. Estado inicia
 en Todas las aplicaciones, sobre todas las temporadas autorizadas. Agrícola,
-cultivo, etapa y estado quedan en la URL. Cantidad y dosis se ordenan por unidad,
+cultivo, etapa y estado quedan en la URL. Dosis se ordena por unidad; cantidad sigue el orden numérico solicitado,
 con leyenda que distingue valores registrados y consumo real. El móvil contiene
 el scroll en cada tabla. [Contrato y QA](flows/product-dashboard.md).
+
+## Resumen por lote y orden por cantidad
+
+[LotUsagePanel](../src/features/lot-usage-panel.tsx) añade tabla de lotes, Ver
+productos y detalle en la misma página. El historial reutiliza ProductHistory
+con contexto del lote; Escape/retorno de foco y filtros se conservan. Tabla y
+detalles paginados; foco en el título de productos al abrir y retorno al botón
+al cerrar. Card/Table/Button/Alert/Empty existentes, scroll de tablas contenido.
+Por solicitud expresa, cantidad ascendente numérica en la tabla global y por
+lote, sin agrupar por unidad; g/ml se siguen mostrando como kg/L. Dosis ordenada
+por unidad y ranking por aplicaciones. [Contrato y QA](flows/product-dashboard.md#ampliación-resumen-por-lote).

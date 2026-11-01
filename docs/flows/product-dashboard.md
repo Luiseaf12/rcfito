@@ -70,6 +70,38 @@ operación ni modifica el `.env` preexistente.
 
 ## Verificación y publicación
 
+### Ampliación: resumen por lote
+
+Autorizada el 2026-11-01 con commit/push y Sites. Una malla puede contener más de
+un lote; esta entrega agrupa por identidad del lote de su proyecto/temporada, sin
+crear una entidad malla ni mezclar lotes del mismo nombre. Usa los filtros globales
+y Todas por defecto. Recorrido: filtrar → consultar lotes → Ver productos → abrir
+historial del producto de ese lote → cerrar conservando contexto y foco.
+
+El resumen muestra superficie configurada del lote, aplicaciones por destino,
+productos distintos y última fecha registrada. Varias subdivisiones o etapas no
+se confunden con una aplicación física única. Una mezcla con varios productos
+cuenta una sola vez por destino. La superficie configurada no se multiplica por
+aplicaciones ni por productos. Se conservan subdivisiones retiradas y etapas
+cerradas; faltantes de relación no se agrupan por un nombre ambiguo.
+
+Por solicitud explícita, las tablas de productos (global y por lote) inician por
+cantidad ascendente sin separar líquidos/sólidos: comparar el número de L/kg
+mostrado, conservando la unidad en cada fila. No sumar masas y volúmenes entre sí.
+Esto sustituye el orden inicial por conteo y la agrupación por unidad al ordenar
+cantidad. El ranking conserva aplicaciones descendentes y el historial sus fechas.
+El historial de un producto abierto desde un lote contiene únicamente ese lote.
+Sin datos se muestra vacío explicativo; errores de carga conservan recuperación
+del shell y las validaciones de historial existentes. No hay migraciones ni
+ampliación de permisos; cálculo sobre el workspace autorizado.
+
+Estado de la ampliación: implementación, 224 pruebas y QA demo aprobados. Se
+comprobaron lotes homónimos de temporadas distintas, conteos/superficie, orden
+ascendente con L/kg intercalados, historial exclusivo, paginación y retorno de
+foco. Lector limitado y 375/1440 px sin overflow de página; cero errores de
+consola. Revisión independiente integrada. Revisión limpia y publicación: en
+verificación.
+
 La primera revisión pasó 206 pruebas desde checkout limpio y QA de filtros,
 paginación, dosis ponderada, lector demo y 375/1440 px. La rectificación a Todas
 por defecto agrega casos de estados, temporadas anteriores y snapshots de

@@ -471,3 +471,12 @@ conservados. Doce comprobaciones posteriores en Site/local aprobaron HTML,
 bundle exacto, selector de clasificación, conexión del mismo origen y rechazo
 del catálogo anónimo 401. Sin escrituras de prueba en operación. Contrato y
 límites de QA en [la ficha](flows/ingredient-classifications.md).
+
+## Publicación del resumen por lote
+
+Solicitud del 2026-11-01 con commit/push y Sites: resumen por lote, productos e
+historial, Todas por defecto y cantidades ascendentes sin separar unidades. No
+requiere migración ni cambios de secretos/configuración o datos. Validar y
+empaquetar desde checkout limpio, conservando los cambios previos y la audiencia
+pública existente. QA y publicación: en curso.
+[Contrato](flows/product-dashboard.md#ampliación-resumen-por-lote).

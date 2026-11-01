@@ -367,3 +367,13 @@ histórica del destino para los demás estados. No equivalen a consumo real al
 incluir indicadas/canceladas; la fecha identifica su origen. No hay comparación
 programado/ejecutado y no sustituye el reporte completo.
 [Contrato, recorrido y evidencia](flows/product-dashboard.md).
+
+## Resumen por lote en el dashboard
+
+El Propietario confirmó el 2026-11-01 que una malla puede abarcar varios lotes y
+autorizó el resumen por lote, productos e historial, conservando Todas por defecto.
+Se agrupa por identidad de lote/temporada y se cuenta por destino de aplicación.
+Productos globales y del lote ordenados inicialmente por cantidad numérica
+ascendente sin separar líquidos/sólidos, conservando la unidad visible. Esta
+petición sustituye el orden por unidades al consultar cantidades; el ranking
+sigue por conteos. [Recorrido y cálculos](flows/product-dashboard.md#ampliación-resumen-por-lote).

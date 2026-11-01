@@ -160,6 +160,10 @@
 }
 body { min-width: 320px; font-size: 16px; line-height: 1.5; }
 .usage-dashboard { min-width: 0; }
+.usage-lots-section { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+.usage-lot-table { min-width: 900px; }
+.usage-lot-products-table { min-width: 850px; }
+.usage-lot-note { color: var(--muted-foreground); font-size: 14px; margin-bottom: 16px; }
 .usage-filters { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 20px; }
 .usage-filters>[data-slot=field] { min-width: 0; }
 .usage-scope { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 20px; color: var(--muted-foreground); font-size: 14px; overflow-wrap: anywhere; }

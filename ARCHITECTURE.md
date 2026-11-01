@@ -167,3 +167,12 @@ reales corregidos; indicadas/canceladas resuelven su indicación histórica por
 destino con indicationForTarget. Cantidades por unidad, promedio ponderado y
 fechas según estado se definen en [la ficha](docs/flows/product-dashboard.md).
 Carga diferida, shell y errores existentes conservados.
+
+## Resumen por lote
+
+[lot-usage](src/domain/lot-usage.ts) agrupa destinos validados por identidad del
+lote de temporada y reutiliza los snapshots/cálculos de product-usage. La
+[presentación por lote](src/features/lot-usage-panel.tsx) mantiene selección y
+paginación; [controles compartidos](src/features/product-usage-shared.tsx) reúnen
+formatos, paginación e historial, conservando el filtro del lote al abrirlo.
+Sin nuevo adaptador, consulta ni migración. [Contrato](docs/flows/product-dashboard.md#ampliación-resumen-por-lote).

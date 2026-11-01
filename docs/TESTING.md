@@ -405,3 +405,20 @@ aislados aprobados. QA demo de relación, recarga, búsqueda, inactivos, lector
 y formulario móvil; autorrevisión de permisos/persistencia. Doce comprobaciones
 posteriores en Site/local aprobaron sin escrituras ficticias en operación.
 [Evidencia y límites](flows/ingredient-classifications.md#verificación).
+
+## Resumen por lote
+
+[lot-usage.test.ts](../test/lot-usage.test.ts) comprueba identidad de lotes y
+temporadas, destinos únicos con mezclas, superficies sin multiplicar, historia
+del producto restringida al lote, filtros/estados, permisos y relaciones
+incompletas. Orden numérico ascendente con g/ml intercalados y desempates
+estables; comparte snapshots de indicaciones revisadas y realizaciones.
+QA demo aislada en 5195 con trece lotes y productos g/ml intercalados:
+Todas por defecto, conteos/superficies, lotes homónimos de distintas temporadas,
+paginación de lotes/productos e historial exclusivo del lote comprobados. Escape
+y cierres devuelven foco; paginar lotes cierra el detalle anterior. Lector limitado
+a Ensenada, sin Culiacán. A 375/1440 px sin overflow de página; tablas con scroll
+propio y cero errores de consola. Revisión independiente integrada.
+224 pruebas integradas aprobadas; cierre limpio y publicación en verificación.
+Sin fixtures ni escrituras en operación.
+[Fuente](flows/product-dashboard.md#ampliación-resumen-por-lote).
