@@ -343,3 +343,14 @@ motivo y conserva antes/después, autor, fecha y versión. No cambia folio,
 número por etapa, destinos, estado ni conteos. El lector consulta historial
 asignado sin editar. Esta ampliación sustituye la restricción anterior de cancelar
 y emitir de nuevo para corregir; [contrato de edición](flows/application-editing.md).
+
+## Sinónimos y selección de productos
+
+El administrador mantiene hasta 20 sinónimos por producto (2–80 caracteres).
+Nombre/código/sinónimos exactos y únicos de un producto activo completan su código
+en la captura IA; similitudes o ambigüedades requieren selección. El lector solo
+consulta. Bloquear conflictos normalizados y parecidos entre sinónimos y términos
+de otro producto, incluidos inactivos; comprobar también renombres/códigos.
+El selector se ordena por nombre español/números y muestra una vez el nombre,
+seguido de ingredientes configurados; conservar identidad/código y snapshots
+históricos. Reglas exactas y aceptación: [ficha](flows/product-synonyms.md).

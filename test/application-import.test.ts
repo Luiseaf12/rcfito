@@ -104,6 +104,61 @@ test('nombres ambiguos, inactivos o aproximados requieren selección explícita'
   assert.match(matchImportedProducts([{ name: products[0].name, dose: 1, unit: null }], products)[0].issue, /unidad/)
 })
 
+test('matching exacto por código o sinónimo trae el ID conservando nombre, dosis y unidad del mensaje', () => {
+  const catalog = [{ ...products[0], synonyms: ['Ácido alternativo'] }]
+  const alias = matchImportedProducts([{ name: '  ACIDO_alternativo ', dose: 123.5, unit: 'ml' }], catalog)[0]
+  assert.equal(alias.productId, 'liquid-a')
+  assert.equal(alias.matchKind, 'synonym')
+  assert.equal(alias.matchedSynonym, 'Ácido alternativo')
+  assert.equal(alias.sourceName, '  ACIDO_alternativo ')
+  assert.equal(alias.dose, '123.5')
+  assert.equal(alias.unit, 'ml')
+  assert.equal(alias.issue, '')
+  const code = matchImportedProducts([{ name: 'demo_a', dose: 10, unit: 'ml' }], catalog)[0]
+  assert.equal(code.productId, 'liquid-a')
+  assert.equal(code.matchKind, 'code')
+  const name = matchImportedProducts([{ name: 'PRODUCTO-ÁCIDO A', dose: 10, unit: 'ml' }], catalog)[0]
+  assert.equal(name.matchKind, 'name')
+})
+
+test('la unión de nombres, códigos y sinónimos nunca da prioridad que esconda ambigüedad', () => {
+  const first = { ...products[0], synonyms: ['Nombre cruzado'] }
+  const second = { ...products[1], name: 'Nombre cruzado', code: 'liquid-code' }
+  const matches = matchImportedProducts([{ name: 'Nombre cruzado', dose: 333, unit: 'ml' }], [first, second])[0]
+  assert.equal(matches.productId, '')
+  assert.equal(matches.candidates.length, 2)
+  assert.match(matches.issue, /varias coincidencias/)
+  const codeConflict = matchImportedProducts([{ name: 'DEMO-A', dose: 10, unit: 'ml' }], [first, { ...second, name: 'Otro producto', synonyms: ['DEMO A'] }])[0]
+  assert.equal(codeConflict.productId, '')
+  assert.equal(codeConflict.candidates.length, 2)
+  const sameId = matchImportedProducts([{ name: 'Producto Acido A', dose: 1, unit: 'ml' }], [{ ...products[0], synonyms: ['Producto-Acido A'], code: 'productoacidoa' }])[0]
+  assert.equal(sameId.productId, 'liquid-a', 'tres términos del mismo registro siguen siendo un solo producto')
+})
+
+test('errata y prefijo de un sinónimo solo sugieren candidatos; cortos requieren exactitud', () => {
+  const catalog = [{ ...products[0], synonyms: ['Referencia alternativa', 'Wex A', 'ABC'] }]
+  for (const name of ['Referencia alternativx', 'Referencia alter', 'Wex B']) {
+    const row = matchImportedProducts([{ name, dose: 333, unit: 'ml' }], catalog)[0]
+    assert.equal(row.productId, '', name)
+    assert.equal(row.candidates[0].id, 'liquid-a', name)
+    assert.match(row.issue, /parecidos/)
+  }
+  assert.deepEqual(matchImportedProducts([{ name: 'ABD', dose: 1, unit: 'ml' }], catalog)[0].candidates, [])
+  assert.equal(matchImportedProducts([{ name: 'A B C', dose: 1, unit: 'ml' }], catalog)[0].productId, 'liquid-a')
+})
+
+test('alias de un producto inactivo no se selecciona y uno activo conserva conflicto de unidad', () => {
+  const inactive = { ...products[0], active: false, synonyms: ['Alias retirado'] }
+  assert.equal(matchImportedProducts([{ name: 'Alias retirado', dose: 333, unit: 'ml' }], [inactive])[0].productId, '')
+  const active = { ...inactive, active: true }
+  const row = matchImportedProducts([{ name: 'Alias retirado', dose: 333, unit: 'g' }], [active])[0]
+  assert.equal(row.productId, active.id)
+  assert.equal(row.matchKind, 'synonym')
+  assert.equal(row.unit, 'g')
+  assert.equal(row.dose, '333')
+  assert.match(row.issue, /mensaje usa g\/ha.*catálogo ml\/ha/)
+})
+
 test('resuelve agrícola, temporada activa, campo, medio y destinos únicos por nombre o código', () => {
   const data = fixture()
   const before = structuredClone(data)

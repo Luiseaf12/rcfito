@@ -47,7 +47,7 @@ type Raw = Record<string, unknown>
 const string = (value:unknown) => typeof value==='string'?value:''
 const n = (value:unknown) => Number(value??0)
 export async function loadWorkspace(client:SupabaseClient, attempt=0):Promise<WorkspaceData> {
-  const tables=[...catalogKinds,'product_ingredients','profiles','user_agricultural_units','sowing_projects','project_lots','lot_subdivisions','sowing_stages','application_orders','application_order_products','application_targets','application_actual_products','application_changes','sowing_groups','sowing_group_members']
+  const tables=[...catalogKinds,'product_ingredients','product_synonyms','profiles','user_agricultural_units','sowing_projects','project_lots','lot_subdivisions','sowing_stages','application_orders','application_order_products','application_targets','application_actual_products','application_changes','sowing_groups','sowing_group_members']
   const relationKeys: Record<string, string[]> = { product_ingredients:['product_id','active_ingredient_id'],user_agricultural_units:['user_id','agricultural_unit_id'],application_order_products:['order_id','product_id'],application_actual_products:['target_id','product_id'],sowing_group_members:['group_id','stage_id'] }
   const entries=await Promise.all(tables.map(async table=>{
     const rows:Raw[]=[]; let offset=0
@@ -64,7 +64,7 @@ export async function loadWorkspace(client:SupabaseClient, attempt=0):Promise<Wo
   }))
   const raw=Object.fromEntries(entries)
   const d=emptyWorkspace()
-  for(const kind of catalogKinds) d.catalogs[kind]=raw[kind].map(row=>({...row,id:string(row.id),name:string(row.name),active:row.active===true,...(kind==='products'?{family_id:row.product_family_id as string|null,default_dose:n(row.default_dose),ingredients:raw.product_ingredients.filter(i=>i.product_id===row.id).map(i=>({ingredient_id:string(i.active_ingredient_id),concentration:i.concentration as string|null}))}:{})})) as CatalogRecord[]
+  for(const kind of catalogKinds) d.catalogs[kind]=raw[kind].map(row=>({...row,id:string(row.id),name:string(row.name),active:row.active===true,...(kind==='products'?{family_id:row.product_family_id as string|null,default_dose:n(row.default_dose),synonyms:raw.product_synonyms.filter(s=>s.product_id===row.id).map(s=>string(s.name)),ingredients:raw.product_ingredients.filter(i=>i.product_id===row.id).map(i=>({ingredient_id:string(i.active_ingredient_id),concentration:i.concentration as string|null}))}:{})})) as CatalogRecord[]
   d.projects=raw.sowing_projects.map(row=>({id:string(row.id),agricultural_unit_id:string(row.agricultural_unit_id),name:string(row.name),season:string(row.season),start_date:string(row.start_date),status:row.status as 'draft'|'active'|'closed'}))
   d.lots=raw.project_lots.map(row=>({id:string(row.id),project_id:string(row.project_id),field_id:string(row.field_id),code:string(row.code),name:string(row.name),area_ha:n(row.area_ha),infrastructure_type_id:string(row.infrastructure_type_id),active:row.active===true,field_name_snapshot:string(row.field_name),infrastructure_name_snapshot:string(row.infrastructure_type_name)}))
   d.subdivisions=raw.lot_subdivisions.map(row=>({id:string(row.id),lot_id:string(row.lot_id),name:string(row.name),area_ha:n(row.area_ha),active:row.active===true}))
@@ -105,7 +105,7 @@ export async function writeCommand(client:SupabaseClient,c:WorkspaceCommand):Pro
     }
     case 'save_catalog': {
       const r=c.record
-      if(c.kind==='products') {await rpc('save_product',{p_data:{...clean(r,['id','code','name','active','unit','default_dose','brand_id']),code:r.code||r.name,product_family_id:r.family_id||null,brand_id:r.brand_id||null},p_ingredients:(r.ingredients??[]).map(i=>({active_ingredient_id:i.ingredient_id,concentration:i.concentration||null}))});break}
+      if(c.kind==='products') {await rpc('save_product',{p_data:{...clean(r,['id','code','name','active','unit','default_dose','brand_id','synonyms']),code:r.code||r.name,product_family_id:r.family_id||null,brand_id:r.brand_id||null},p_ingredients:(r.ingredients??[]).map(i=>({active_ingredient_id:i.ingredient_id,concentration:i.concentration||null}))});break}
       const values={...clean(r,['code','name','active','agricultural_unit_id','crop_id']),code:r.code||r.name}
       if(r.id)await update(c.kind,r.id,values);else {const {error}=await client.from(c.kind).insert(values);if(error)throw error}break
     }

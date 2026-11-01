@@ -351,6 +351,97 @@ async function verifyApplicationChanges(adminToken, readerToken, noAccessToken, 
   check(otherCreation.status === 200 && otherRevision.status === 200 && ownHistory.status === 200 && ownHistory.data.length === 5 && hiddenHistory.data?.length === 0 && hiddenProducts.data?.length === 0 && noAccessHistory.data?.length === 0 && inactiveHistory.data?.length === 0 && [401, 403].includes(anonHistory.status), 'Edición: RLS real limita eventos/productos históricos por agrícola y sesión activa');
   console.log(`Integración edición: ${assertionCount - previousAssertions} comprobaciones HTTP/Auth/REST/RLS nuevas aprobadas.`);
 }
+async function verifyProductSynonyms(adminToken, readerToken, noAccessToken) {
+  const previousAssertions = assertionCount;
+  let productSequence = 0;
+  const productData = (name, synonyms) => ({
+    code: `QA-SN-${suffix}-${++productSequence}`, name, unit: 'ml', default_dose: 7, active: true,
+    ...(synonyms === undefined ? {} : { synonyms }),
+  });
+  const save = (data, token = adminToken, ingredients = []) => request('/rest/v1/rpc/save_product', token, { p_data: data, p_ingredients: ingredients });
+  const readAliases = (id, token = adminToken) => request(`/rest/v1/product_synonyms?product_id=eq.${id}&select=id,product_id,name,normalized_name,created_by,created_at&order=normalized_name.asc`, token);
+  const readProduct = (id) => request(`/rest/v1/products?id=eq.${id}&select=id,code,name,unit,default_dose,active`, adminToken);
+  const create = async (data) => {
+    const result = await save(data);
+    if (result.status !== 200 || typeof result.data !== 'string') throw new Error('Sinónimos: no se pudo crear un producto ficticio por RPC.');
+    return { ...data, id: result.data };
+  };
+  const primary = await create(productData('Estelar mezcla QA', ['  ÁLGA+Plús  ', 'ZEQ', 'WexA', 'abcdefghijklm']));
+  const secondary = await create(productData('Júpiter micronutriente QA'));
+  const inactive = await create({ ...productData('Reserva inactiva QA', ['Cobalto vital']), active: false });
+  const firstAliases = await readAliases(primary.id);
+  check(firstAliases.status === 200 && firstAliases.data.length === 4 && firstAliases.data.some(row => row.name === 'ÁLGA+Plús' && row.normalized_name === 'algaplus') && firstAliases.data.every(row => row.id && row.product_id === primary.id && row.created_by && row.created_at), 'Sinónimos: RPC conserva nombre legible, normalización compacta y procedencia por REST');
+
+  const preserved = await save({ ...primary, synonyms: undefined, default_dose: 9 });
+  const afterOmission = await readAliases(primary.id);
+  check(preserved.status === 200 && JSON.stringify(afterOmission.data) === JSON.stringify(firstAliases.data), 'Sinónimos: omitir el campo conserva aliases e identidad de sus registros');
+  const activeReaders = await Promise.all([readAliases(primary.id, readerToken), readAliases(primary.id, noAccessToken)]);
+  const inactiveAliases = await readAliases(inactive.id, readerToken);
+  check(activeReaders.every(result => result.status === 200 && result.data.length === 4) && inactiveAliases.status === 200 && inactiveAliases.data.length === 1, 'Sinónimos: catálogos comunes se leen por usuarios activos incluso sin agrícola asignada o producto inactivo');
+  const inactiveUser = await adminCreate(`qa-synonyms-inactive-${suffix}@example.invalid`);
+  const inactiveToken = await login(inactiveUser.email);
+  sql(`update public.profiles set role='admin',active=false where id='${inactiveUser.id}';`);
+  const deniedReads = await Promise.all([readAliases(primary.id, publicKey), readAliases(primary.id, inactiveToken)]);
+  check([401, 403].includes(deniedReads[0].status) && deniedReads[1].status === 200 && deniedReads[1].data.length === 0, 'Sinónimos: anónimo y JWT de perfil desactivado no revelan filas');
+  const deniedWrites = await Promise.all([
+    save({ ...secondary, synonyms: ['Prohibido lector'] }, readerToken),
+    save({ ...secondary, synonyms: ['Prohibido anónimo'] }, publicKey),
+    save({ ...secondary, synonyms: ['Prohibido inactivo'] }, inactiveToken),
+  ]);
+  check(deniedWrites.every(result => [401, 403].includes(result.status)), 'Sinónimos: RPC exige administrador activo con Auth real');
+  const firstAlias = firstAliases.data[0];
+  const directInsert = await request('/rest/v1/product_synonyms', adminToken, { product_id: secondary.id, name: 'Atajo ficticio' });
+  const directUpdate = await request(`/rest/v1/product_synonyms?id=eq.${firstAlias.id}`, adminToken, { name: 'Atajo ficticio' }, 'PATCH');
+  const directDelete = await request(`/rest/v1/product_synonyms?id=eq.${firstAlias.id}`, adminToken, undefined, 'DELETE');
+  check(directInsert.status === 403 && directUpdate.status === 403 && directDelete.status === 403, 'Sinónimos: tabla rechaza INSERT/PATCH/DELETE directos incluso al administrador');
+
+  const invalidAliases = [null, 'No es lista', [123], ['a'], ['x'.repeat(81)], ['---'], ['Duplicado útil', 'duplicado-util'], [primary.name], [primary.code], Array.from({ length: 21 }, () => randomUUID())];
+  const rejectedLimits = [];
+  for (const synonyms of invalidAliases) rejectedLimits.push(await save({ ...primary, default_dose: 999, synonyms }));
+  const afterInvalid = await readAliases(primary.id), unchangedPrimary = await readProduct(primary.id);
+  check(rejectedLimits.every(result => result.status >= 400) && Number(unchangedPrimary.data[0].default_dose) === 9 && JSON.stringify(afterInvalid.data) === JSON.stringify(firstAliases.data), 'Sinónimos: límites, tipos, vacíos y duplicados propios se rechazan con rollback de producto y aliases');
+
+  const conflictTerms = ['algá plus', primary.name, primary.code, 'Algaplus eco', 'Xalgaplus', 'algaplut', 'WexB', 'abcxefghijylm', inactive.name, inactive.code, 'Cobalto vital'];
+  const conflictResults = [];
+  for (const alias of conflictTerms) conflictResults.push(await save({ ...secondary, default_dose: 999, synonyms: [alias] }));
+  const unchangedSecondary = await readProduct(secondary.id), noSecondaryAliases = await readAliases(secondary.id);
+  check(conflictResults.every(result => result.status >= 400) && Number(unchangedSecondary.data[0].default_dose) === 7 && noSecondaryAliases.data.length === 0, 'Sinónimos: bloquea equivalencias, prefijos y distancia por nombre/código/alias, incluidos inactivos, sin cambios parciales');
+  const shortAllowed = await save({ ...secondary, synonyms: ['ZEP', 'ZEQP'] });
+  const shortAliases = await readAliases(secondary.id);
+  check(shortAllowed.status === 200 && shortAliases.data.length === 2, 'Sinónimos: términos cortos distintos solo se comparan por igualdad exacta');
+  const shortExact = await save({ ...secondary, synonyms: ['z-e-q'] });
+  check(shortExact.status >= 400 && (await readAliases(secondary.id)).data.length === 2, 'Sinónimos: igualdad compacta de un término corto también se bloquea');
+
+  const inverseName = await save({ ...secondary, name: 'ALGÁ PLUS', synonyms: undefined });
+  const inverseCode = await save({ ...secondary, code: 'Cobalto-vital', synonyms: undefined });
+  const directName = await request(`/rest/v1/products?id=eq.${secondary.id}`, adminToken, { name: 'Algaplut' }, 'PATCH');
+  const directCode = await request(`/rest/v1/products?id=eq.${secondary.id}`, adminToken, { code: 'Algaplus eco' }, 'PATCH');
+  check(inverseName.status >= 400 && inverseCode.status >= 400 && directName.status >= 400 && directCode.status >= 400 && (await readProduct(secondary.id)).data[0].name === secondary.name, 'Sinónimos: control inverso protege nombres/códigos por RPC y PATCH directo');
+  const officialLegacyA = await create(productData('Producto legado turquesa'));
+  const officialLegacyB = await create(productData('Producto legado turquese'));
+  check(officialLegacyA.id !== officialLegacyB.id, 'Sinónimos: nombres oficiales parecidos entre sí continúan permitidos sin aliases en conflicto');
+
+  const maxAliases = Array.from({ length: 20 }, () => `QA${randomUUID().replaceAll('-', '')}${randomUUID().replaceAll('-', '')}${randomUUID().slice(0, 14)}`);
+  const boundaryData = productData('Límites de aliases QA', maxAliases);
+  const boundary = await create(boundaryData);
+  const boundaryAliases = await readAliases(boundary.id);
+  check(maxAliases.every(name => name.length === 80) && boundaryAliases.data.length === 20 && boundaryAliases.data.every(row => maxAliases.includes(row.name)), 'Sinónimos: acepta veinte aliases de ochenta caracteres sin truncarlos');
+  const twoCharacter = await save({ ...boundary, synonyms: ['QX'] });
+  check(twoCharacter.status === 200 && (await readAliases(boundary.id)).data[0].name === 'QX', 'Sinónimos: acepta el límite inferior de dos caracteres');
+  const cleared = await save({ ...secondary, synonyms: [] });
+  check(cleared.status === 200 && (await readAliases(secondary.id)).data.length === 0, 'Sinónimos: lista vacía borra explícitamente los aliases del producto');
+
+  const raceA = await create(productData('Identidad concurrente mercurio QA'));
+  const raceB = await create(productData('Identidad concurrente saturno QA'));
+  const race = await Promise.all([
+    save({ ...raceA, default_dose: 11, synonyms: ['Hidrógeno lunar'] }),
+    save({ ...raceB, default_dose: 12, synonyms: ['Hidrogeno lunax'] }),
+  ]);
+  const raceAliases = await request(`/rest/v1/product_synonyms?product_id=in.(${raceA.id},${raceB.id})&select=product_id,name`, adminToken);
+  const raceProducts = await Promise.all([readProduct(raceA.id), readProduct(raceB.id)]);
+  check(race.filter(succeeded).length === 1 && race.filter(result => result.status >= 400).length === 1 && raceAliases.data.length === 1 && raceProducts.every((result, index) => Number(result.data[0].default_dose) === (succeeded(race[index]) ? index === 0 ? 11 : 12 : 7)), 'Sinónimos: carrera HTTP serializa un único propietario y revierte íntegro al competidor');
+  console.log(`Integración sinónimos: ${assertionCount - previousAssertions} comprobaciones HTTP/Auth/REST/RLS nuevas aprobadas.`);
+}
 try {
   const admin = await adminCreate(`qa-admin-${suffix}@example.invalid`, { display_name: 'QA Admin', role: 'admin' });
   const reader = await adminCreate(`qa-reader-${suffix}@example.invalid`, { display_name: 'QA Lector' });
@@ -388,6 +479,7 @@ try {
   assert(createdUnits.status === 200 && createdUnits.data.length === 1 && createdUnits.data[0].id === ids.unitA, 'La cuenta creada consulta solo la agrícola asignada');
   await verifyApplications(adminToken, readerToken, noAccessToken, create.data);
   await verifyApplicationChanges(adminToken, readerToken, noAccessToken, create.data);
+  await verifyProductSynonyms(adminToken, readerToken, noAccessToken);
   sql(`update public.profiles set active=false where id='${reader.id}';`);
   const revoked = await request('/rest/v1/agricultural_units?select=id', readerToken);
   assert(revoked.status === 200 && revoked.data.length === 0, 'Desactivación bloquea JWT de lector ya emitido');

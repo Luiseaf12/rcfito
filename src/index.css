@@ -398,6 +398,8 @@ button:disabled { cursor: not-allowed; }
 .destination-area { white-space: nowrap; font-size: 14px; align-self: center; }
 .application-mixture-row { display: grid; grid-template-columns: minmax(0,1.5fr) minmax(0,1fr) 44px; gap: 12px; align-items: end; }
 .application-mixture-row>[data-slot=field] { min-width: 0; }
+.product-select-options { width: var(--radix-select-trigger-width); max-width: calc(100vw - 32px); }
+.product-select-options [data-slot=select-item] { white-space: normal; overflow-wrap: anywhere; align-items: flex-start; }
 .application-status-counts,.stage-application-summary { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .stage-application-summary { margin-top: 14px; }
 .stage-application-summary>.text-link { font-size: 13px; }

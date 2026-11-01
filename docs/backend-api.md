@@ -211,3 +211,22 @@ El adaptador comprueba coherencia de revisiones/referencias y reintenta una vez
 la lectura si cambió entre peticiones REST; no entrega un workspace incoherente.
 Los campos reales corregidos se hidratan desde el evento correspondiente.
 Flujo y aceptación: [edición](flows/application-editing.md).
+
+## Sinónimos de productos
+
+La migración aditiva `20261101124719_product_synonyms.sql` incorpora `product_synonyms`: `id,product_id,
+name,normalized_name,created_by,created_at`. La clave normalizada compacta es
+única global; lectura a cuentas activas bajo RLS, sin DML directo del cliente.
+El reemplazo conserva auditoría privada con antes/después, autor y fecha.
+
+`save_product(p_data,p_ingredients)` mantiene su firma: `p_data.synonyms` es
+lista opcional de strings. Omitir conserva; [] retira; lista explícita sustituye
+atómicamente junto con producto e ingredientes. Hasta 20, 2–80 caracteres cada
+uno, sin vacíos, duplicados ni equivalentes al nombre/código propio. Comparación
+NFD/sin diacríticos/minúsculas/separadores compactados; conflictos exactos y por
+prefijo/distancia definidos en la [ficha](flows/product-synonyms.md).
+
+Todos los productos, incluso inactivos, reservan sus aliases. El servidor valida
+alias contra nombre/código/alias ajenos y renombres contra aliases ajenos; lock
+global de catálogo y triggers protegen concurrencia y rutas DML. No se reescriben
+productos históricos ni se generan sinónimos supuestos en la migración.

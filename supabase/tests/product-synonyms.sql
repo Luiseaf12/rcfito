@@ -1,0 +1,126 @@
+-- Fixtures ficticios en PostgreSQL efímero; nunca operación ni .env del usuario.
+begin;
+do $$ begin if current_database()<>'rcfito_test' then raise exception 'Pruebas limitadas a rcfito_test'; end if; end $$;
+create or replace function pg_temp.assert_true(value boolean,description text) returns void language plpgsql as $$begin if value is distinct from true then raise exception 'FAIL: %',description; end if; raise notice 'PASS: %',description; end $$;
+create or replace function pg_temp.expect_error(statement text,pattern text,description text) returns void language plpgsql as $$
+begin begin execute statement; exception when others then if sqlerrm !~* pattern then raise exception 'FAIL: %; error inesperado: %',description,sqlerrm; end if; raise notice 'PASS: %',description; return; end; raise exception 'FAIL: %; la operación debía fallar',description; end $$;
+insert into auth.users(id,email) values('d1000000-0000-4000-8000-000000000001','syn-admin@example.invalid'),('d1000000-0000-4000-8000-000000000002','syn-reader@example.invalid');
+update public.profiles set role='admin' where id='d1000000-0000-4000-8000-000000000001';
+insert into public.products(id,code,name,unit,default_dose,active) values
+('d2000000-0000-4000-8000-000000000001','SYN-A','Producto matriz','g',10,true),
+('d2000000-0000-4000-8000-000000000002','BETA100','Sulfato brillante','ml',20,true),
+('d2000000-0000-4000-8000-000000000003','SYN-C','Producto inactivo','g',30,false);
+insert into public.active_ingredients(id,code,name) values('d3000000-0000-4000-8000-000000000001','SYN-ING','Ingrediente ficticio');
+insert into public.product_ingredients(product_id,active_ingredient_id,concentration) values('d2000000-0000-4000-8000-000000000001','d3000000-0000-4000-8000-000000000001','50 g/L');
+create function pg_temp.synonym_data(p_id text default 'd2000000-0000-4000-8000-000000000001') returns jsonb language sql as $$select jsonb_build_object('id',id,'code',code,'name',name,'unit',unit,'default_dose',default_dose,'active',active) from public.products where id=p_id::uuid$$;
+create function pg_temp.synonym_ingredients() returns jsonb language sql as $$select '[{"active_ingredient_id":"d3000000-0000-4000-8000-000000000001","concentration":"50 g/L"}]'::jsonb$$;
+select pg_temp.assert_true((select count(*)=0 from public.product_synonyms),'sinónimos heredados empiezan vacíos sin inventar entradas');
+set local role authenticated;
+set local request.jwt.claim.sub='d1000000-0000-4000-8000-000000000001';
+select pg_temp.assert_true(rcfito_private.product_term_normalized('  VÍBE---C / 016 ')='vibe c 016' and rcfito_private.product_term_compact('  VÍBE---C / 016 ')='vibec016','normalización SQL NFD, acentos y separadores coincide con compact');
+select pg_temp.assert_true(rcfito_private.product_terms_conflict('Vibe-C','vibec') and not rcfito_private.product_terms_conflict('---','***'),'compact exacto ignora separadores y vacíos no coinciden');
+select pg_temp.assert_true(not rcfito_private.product_terms_conflict('abc','abd') and not rcfito_private.product_terms_conflict('abc','abcd'),'términos menores de cuatro solo conflicto exacto');
+select pg_temp.assert_true(rcfito_private.product_terms_conflict('Wex A','wexB') and rcfito_private.product_terms_conflict('abcd','abcd 123456789'),'cuatro caracteres detectan sustitución y prefijo');
+select pg_temp.assert_true(not rcfito_private.product_terms_conflict('abcde','abdce'),'transposición usa Levenshtein y no Damerau');
+select pg_temp.assert_true(not rcfito_private.product_terms_conflict('abcdefghi','xbcdefghx') and rcfito_private.product_terms_conflict('abcdefghij','xbcdefghix'),'dos ediciones se permiten desde mínimo diez caracteres');
+select pg_temp.assert_true(not rcfito_private.product_terms_conflict('abcdefghij','xycdefghix') and rcfito_private.product_terms_conflict('abcdefghij','abxycdefghij'),'frontera de tres ediciones y dos inserciones');
+select pg_temp.expect_error($q$select public.save_product(pg_temp.synonym_data()||'{"synonyms":null}',pg_temp.synonym_ingredients())$q$,'lista','sinónimos nulos explícitos son inválidos');
+select pg_temp.expect_error($q$select public.save_product(pg_temp.synonym_data()||'{"synonyms":[23]}',pg_temp.synonym_ingredients())$q$,'texto','cada sinónimo debe ser texto');
+select pg_temp.expect_error($q$select public.save_product(pg_temp.synonym_data()||'{"synonyms":[""]}',pg_temp.synonym_ingredients())$q$,'2 a 80','sinónimo vacío rechazado');
+select pg_temp.expect_error($q$select public.save_product(pg_temp.synonym_data()||'{"synonyms":["--"]}',pg_temp.synonym_ingredients())$q$,'letra o número','sinónimo sin clave normalizada rechazado');
+select pg_temp.expect_error($q$select public.save_product(pg_temp.synonym_data()||'{"synonyms":["x"]}',pg_temp.synonym_ingredients())$q$,'2 a 80','sinónimo de un carácter rechazado');
+select pg_temp.expect_error($q$select public.save_product(pg_temp.synonym_data()||jsonb_build_object('synonyms',array[repeat('x',81)]),pg_temp.synonym_ingredients())$q$,'2 a 80','sinónimo mayor de ochenta caracteres rechazado');
+select pg_temp.expect_error($q$select public.save_product(pg_temp.synonym_data()||jsonb_build_object('synonyms',(select array_agg('Marca ficticia '||i) from generate_series(1,21)i)),pg_temp.synonym_ingredients())$q$,'máximo 20','máximo veinte sinónimos por producto');
+select pg_temp.expect_error($q$select public.save_product(pg_temp.synonym_data()||'{"synonyms":["Aurora norte","Áurora-norte"]}',pg_temp.synonym_ingredients())$q$,'repita','duplicados propios compactos se rechazan');
+select pg_temp.expect_error($q$select public.save_product(pg_temp.synonym_data()||'{"synonyms":["  Próducto-Matriz  "]}',pg_temp.synonym_ingredients())$q$,'mismo producto','alias equivalente al nombre propio se rechaza');
+select pg_temp.expect_error($q$select public.save_product(pg_temp.synonym_data()||'{"synonyms":["syn a"]}',pg_temp.synonym_ingredients())$q$,'mismo producto','alias equivalente al código propio se rechaza');
+select pg_temp.expect_error($q$select public.save_product(pg_temp.synonym_data()||'{"synonyms":["Sulfato brillanto"]}',pg_temp.synonym_ingredients())$q$,'Sulfato brillanto.*Sulfato brillante','alias similar a nombre ajeno identifica producto conflicto');
+select pg_temp.expect_error($q$select public.save_product(pg_temp.synonym_data()||'{"synonyms":["BETA101"]}',pg_temp.synonym_ingredients())$q$,'BETA101.*BETA100','alias similar a código ajeno rechazado');
+select pg_temp.expect_error($q$select public.save_product(pg_temp.synonym_data()||'{"synonyms":["Producto inactivx"]}',pg_temp.synonym_ingredients())$q$,'Producto inactivo','producto inactivo reserva también nombre oficial');
+select public.save_product(pg_temp.synonym_data()||'{"synonyms":["  Fúlgor   boreal!  ","Producto matris","Aurora dorada","Aurora doradaz"]}',pg_temp.synonym_ingredients());
+select pg_temp.assert_true((select count(*)=4 and bool_and(created_by='d1000000-0000-4000-8000-000000000001') and bool_and(created_at is not null) from public.product_synonyms),'alta de alias conserva autor y fecha de servidor');
+select pg_temp.assert_true((select name='Fúlgor   boreal!' and normalized_name='fulgorboreal' from public.product_synonyms where normalized_name='fulgorboreal'),'nombre visible recortado y clave compacta generada');
+select pg_temp.assert_true((select count(*)=2 from public.product_synonyms where normalized_name like 'auroradorada%'),'alias propios parecidos son válidos porque apuntan al mismo ID');
+reset role;
+create temp table synonym_original as select array_agg(id order by normalized_name) ids from public.product_synonyms;
+set local role authenticated;
+select public.save_product(pg_temp.synonym_data(),pg_temp.synonym_ingredients());
+reset role;
+select pg_temp.assert_true((select array_agg(id order by normalized_name) from public.product_synonyms)=(select ids from synonym_original),'omitir synonyms preserva las asociaciones e IDs existentes');
+select pg_temp.assert_true((select count(*)=1 and bool_and("before"='{}' and cardinality("after")=4 and changed_by='d1000000-0000-4000-8000-000000000001' and changed_by_name<>'') from rcfito_private.product_synonym_changes),'reemplazo queda auditado sin evento falso al omitir');
+set local role authenticated;
+select pg_temp.expect_error($q$select public.save_product(pg_temp.synonym_data('d2000000-0000-4000-8000-000000000002')||'{"synonyms":["Fulgor boreak"]}','[]')$q$,'Fulgor boreak.*Fúlgor.*Producto matriz','alias cercano a alias ajeno identifica término y producto');
+select pg_temp.expect_error($q$select public.save_product(pg_temp.synonym_data('d2000000-0000-4000-8000-000000000002')||'{"synonyms":["Fulgor boreal extendido"]}','[]')$q$,'Fúlgor','prefijo largo de alias ajeno rechazado');
+update public.products set active=false where id='d2000000-0000-4000-8000-000000000001';
+select pg_temp.expect_error($q$select public.save_product(pg_temp.synonym_data('d2000000-0000-4000-8000-000000000002')||'{"synonyms":["fulgor-boreal"]}','[]')$q$,'Producto matriz','alias de producto inactivo permanece reservado');
+select pg_temp.expect_error($q$insert into public.products(code,name,unit) values('SYN-D','Fulgor boreal','g')$q$,'sinónimo.*Producto matriz','INSERT directo valida nombre contra alias ajeno');
+select pg_temp.expect_error($q$update public.products set name='Fulgor boreak' where id='d2000000-0000-4000-8000-000000000002'$q$,'sinónimo','PATCH directo valida nombre similar contra alias ajeno');
+select pg_temp.expect_error($q$update public.products set code='fulgorboreak' where id='d2000000-0000-4000-8000-000000000002'$q$,'código.*sinónimo','PATCH directo valida código contra alias ajeno');
+select pg_temp.expect_error($q$select public.save_product(pg_temp.synonym_data('d2000000-0000-4000-8000-000000000002')||'{"name":"Fulgor boreal"}','[]')$q$,'sinónimo','RPC valida inverso de nombre contra alias ajeno');
+select pg_temp.expect_error($q$select public.save_product(pg_temp.synonym_data()||'{"name":"Fulgor boreal"}',pg_temp.synonym_ingredients())$q$,'mismo producto','rename no convierte alias retenido en nombre propio duplicado');
+insert into public.products(code,name,unit) values('SYN-WA','Wex A','ml'),('SYN-WB','Wex B','ml');
+select pg_temp.assert_true((select count(*)=2 from public.products where name in ('Wex A','Wex B')),'nombres oficiales parecidos no quedan bloqueados entre sí');
+select pg_temp.expect_error($q$select public.save_product(pg_temp.synonym_data()||'{"synonyms":["wexC"]}',pg_temp.synonym_ingredients())$q$,'Wex','alias de cuatro caracteres detecta Wex A y Wex B');
+savepoint synonym_limits;
+select public.save_product(pg_temp.synonym_data()||jsonb_build_object('synonyms',array['ZX',repeat('q',80)]),pg_temp.synonym_ingredients());
+select pg_temp.assert_true((select min(char_length(name))=2 and max(char_length(name))=80 from public.product_synonyms where product_id='d2000000-0000-4000-8000-000000000001'),'límites de dos y ochenta caracteres admitidos');
+select public.save_product(pg_temp.synonym_data()||jsonb_build_object('synonyms',(select array_agg('Variante propia '||i) from generate_series(1,20)i)),pg_temp.synonym_ingredients());
+select pg_temp.assert_true((select count(*)=20 from public.product_synonyms where product_id='d2000000-0000-4000-8000-000000000001'),'veinte alias admitidos sin confundir variantes propias');
+rollback to synonym_limits;
+release savepoint synonym_limits;
+
+-- Un fallo posterior a reemplazar aliases debe revertir composición y catálogo.
+reset role;
+create temp table synonym_before_failure as select
+  (select to_jsonb(p) from public.products p where id='d2000000-0000-4000-8000-000000000001') product,
+  (select jsonb_agg(to_jsonb(i) order by active_ingredient_id) from public.product_ingredients i where product_id='d2000000-0000-4000-8000-000000000001') ingredients,
+  (select jsonb_agg(to_jsonb(s) order by normalized_name) from public.product_synonyms s where product_id='d2000000-0000-4000-8000-000000000001') synonyms,
+  (select count(*) from rcfito_private.product_synonym_changes) audit_count;
+set local role authenticated;
+select pg_temp.expect_error($q$select public.save_product(pg_temp.synonym_data()||'{"name":"Nombre posterior fallido","code":"SYN-FAILED","synonyms":["Referencia estelar"]}',pg_temp.synonym_ingredients()||pg_temp.synonym_ingredients())$q$,'duplicate key','fallo de ingredientes revierte modificación conjunta');
+reset role;
+select pg_temp.assert_true((select to_jsonb(p) from public.products p where id='d2000000-0000-4000-8000-000000000001')=(select product from synonym_before_failure),'fallo conserva producto y dosis anteriores');
+select pg_temp.assert_true((select jsonb_agg(to_jsonb(i) order by active_ingredient_id) from public.product_ingredients i where product_id='d2000000-0000-4000-8000-000000000001')=(select ingredients from synonym_before_failure),'fallo conserva composición anterior');
+select pg_temp.assert_true((select jsonb_agg(to_jsonb(s) order by normalized_name) from public.product_synonyms s where product_id='d2000000-0000-4000-8000-000000000001')=(select synonyms from synonym_before_failure) and (select count(*) from rcfito_private.product_synonym_changes)=(select audit_count from synonym_before_failure),'fallo conserva alias, IDs, autores y auditoría');
+set local role authenticated;
+select pg_temp.expect_error($q$select public.save_product('{"code":"SYN-CREATE-FAILED","name":"Alta fallida","unit":"g","synonyms":["Fulgor boreal"]}','[]')$q$,'sinónimo','conflicto de alias revierte también alta del producto');
+select pg_temp.assert_true((select count(*)=0 from public.products where code='SYN-CREATE-FAILED'),'alta fallida no deja producto parcial');
+select pg_temp.expect_error($q$delete from public.products where id='d2000000-0000-4000-8000-000000000001'$q$,'foreign key','alias vigente protege referencia al producto');
+select pg_temp.expect_error($q$insert into public.product_synonyms(product_id,name,created_by) values('d2000000-0000-4000-8000-000000000001','Atajo','d1000000-0000-4000-8000-000000000001')$q$,'permission denied','administrador no inserta aliases directamente');
+select pg_temp.expect_error('update public.product_synonyms set name=''Atajo''','permission denied','administrador no modifica aliases directamente');
+select pg_temp.expect_error('delete from public.product_synonyms','permission denied','administrador no elimina aliases directamente');
+select pg_temp.expect_error('select * from rcfito_private.product_synonym_changes','permission denied','auditoría de reemplazos es privada');
+select public.save_product(pg_temp.synonym_data()||'{"synonyms":[]}',pg_temp.synonym_ingredients());
+select pg_temp.assert_true((select count(*)=0 from public.product_synonyms where product_id='d2000000-0000-4000-8000-000000000001'),'lista vacía retira explícitamente los aliases');
+select public.save_product(pg_temp.synonym_data('d2000000-0000-4000-8000-000000000002')||'{"synonyms":["Fulgor boreal"]}');
+select pg_temp.assert_true((select product_id='d2000000-0000-4000-8000-000000000002' from public.product_synonyms where normalized_name='fulgorboreal'),'alias retirado puede asignarse de forma explícita a otro producto');
+select set_config('test.disposable_product',public.save_product('{"code":"SYN-TEMP","name":"Producto temporal","unit":"ml","synonyms":["Zafiro efímero"]}','[]')::text,true);
+select public.save_product(pg_temp.synonym_data(current_setting('test.disposable_product'))||'{"synonyms":[]}','[]');
+delete from public.products where id=current_setting('test.disposable_product')::uuid;
+select pg_temp.assert_true((select count(*)=0 from public.products where id=current_setting('test.disposable_product')::uuid),'auditoría privada no bloquea eliminación permitida tras retirar aliases');
+reset role;
+select pg_temp.assert_true((select count(*)=2 from rcfito_private.product_synonym_changes where product_id=current_setting('test.disposable_product')::uuid),'auditoría privada conserva alta y retiro aunque se elimine producto sin uso');
+select pg_temp.expect_error('update rcfito_private.product_synonym_changes set product_name=''Atajo''','mediante RPC','auditoría privada no se reescribe');
+select pg_temp.assert_true((select not prosecdef from pg_proc where oid='public.save_product(jsonb,jsonb)'::regprocedure) and (select prosecdef from pg_proc where oid='rcfito_private.save_product(jsonb,jsonb)'::regprocedure),'wrapper invoker y mutador privado definer con autorización');
+select pg_temp.assert_true((select relrowsecurity from pg_class where oid='public.product_synonyms'::regclass),'tabla de aliases expuesta tiene RLS');
+select pg_temp.assert_true(exists(select 1 from pg_trigger where tgrelid='public.products'::regclass and tgname='lock_product_terms' and (tgtype&1)=0),'lock global de catálogo se adquiere por statement antes de filas');
+set local role authenticated;
+set local request.jwt.claim.sub='d1000000-0000-4000-8000-000000000002';
+select pg_temp.assert_true((select count(*)=1 from public.product_synonyms),'lector activo consulta catálogo común de aliases');
+select pg_temp.expect_error($q$select public.save_product(pg_temp.synonym_data('d2000000-0000-4000-8000-000000000002')||'{"synonyms":[]}','[]')$q$,'administrador','lector no cambia sinónimos por RPC');
+select pg_temp.expect_error('delete from public.product_synonyms','permission denied','lector no cambia sinónimos por tabla');
+reset role;
+update public.profiles set active=false where id='d1000000-0000-4000-8000-000000000002';
+set local role authenticated;
+select pg_temp.assert_true((select count(*)=0 from public.product_synonyms),'perfil inactivo pierde lectura de aliases con JWT previo');
+reset role;
+update public.profiles set active=false where id='d1000000-0000-4000-8000-000000000001';
+set local role authenticated;
+set local request.jwt.claim.sub='d1000000-0000-4000-8000-000000000001';
+select pg_temp.expect_error($q$select public.save_product('{"code":"NO","name":"No","unit":"g","synonyms":[]}','[]')$q$,'administrador','administrador inactivo no usa mutador privilegiado');
+reset role;
+set local role anon;
+select pg_temp.expect_error('select * from public.product_synonyms','permission denied','anónimo no consulta aliases');
+select pg_temp.expect_error($q$select public.save_product(null,null)$q$,'permission denied','anónimo no llama save_product');
+reset role;
+rollback;

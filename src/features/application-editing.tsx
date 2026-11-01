@@ -100,7 +100,7 @@ export function EditApplicationDialog({ order, target, close, completed }: { ord
             <FormInput label="Equipo utilizado" value={form.equipment} onChange={value => update('equipment', value)} />
             <FormInput label="Aplicador (opcional)" value={form.applicator} onChange={value => update('applicator', value)} />
           </FieldGroup>}
-          <ProductMixtureEditor rows={rows} onChange={next => { setError(null); setRows(next) }} products={data.catalogs.products} original={seed.products} error={issues.products} issues={Object.entries(issues).map(([field,message])=>({field,message}))} />
+          <ProductMixtureEditor rows={rows} onChange={next => { setError(null); setRows(next) }} products={data.catalogs.products} activeIngredients={data.catalogs.active_ingredients} original={seed.products} error={issues.products} issues={Object.entries(issues).map(([field,message])=>({field,message}))} />
           <FieldGroup>
             <FormInput label={correcting ? 'Gasto de agua real (L/ha)' : 'Gasto de agua (L/ha)'} type="number" min="0.0001" step="any" value={form.water_l_ha} onChange={value => update('water_l_ha', value)} required error={issues.water_l_ha} />
             <TextField label={correcting ? 'Observaciones de la realización' : 'Nota de la aplicación'} value={form.observations} onChange={value => update('observations', value)} error={issues.observations} help="Opcional, hasta 4,000 caracteres." />

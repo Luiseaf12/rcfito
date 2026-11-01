@@ -48,12 +48,17 @@ export function applyCommand(input: WorkspaceData, command: WorkspaceCommand, pr
       const errors = validateCatalogEdit(d, command.kind, row)
       const message = Object.values(errors)[0]
       if (message) fail(message)
+      if (command.kind === 'products') {
+        if (row.synonyms === undefined) delete row.synonyms
+        else row.synonyms = row.synonyms.map(synonym => synonym.trim())
+      }
       const index=d.catalogs[command.kind].findIndex(r=>r.id===row.id)
       if(index<0) d.catalogs[command.kind].push({...row,id:uuid()}); else d.catalogs[command.kind][index]={...d.catalogs[command.kind][index],...row}
       break
     }
     case 'delete_catalog': {
       const {kind,id}=command
+      if (kind === 'products' && (catalog(kind, id)?.synonyms?.length ?? 0) > 0) fail('Retira los sinónimos del producto antes de eliminarlo. Los nombres alternativos conservan su referencia.')
       const referenced = kind==='agricultural_units' ? d.projects.some(p=>p.agricultural_unit_id===id)||d.catalogs.fields.some(f=>f.agricultural_unit_id===id)||d.assignments.some(a=>a.agricultural_unit_id===id)
         :kind==='fields'?d.lots.some(l=>l.field_id===id)
         :kind==='crops'?d.stages.some(s=>s.crop_id===id)||d.catalogs.varieties.some(v=>v.crop_id===id)

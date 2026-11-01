@@ -288,7 +288,7 @@ export function NewApplicationDialog({ close, imported, onSaved }: { close: () =
           </FieldGroup>
           <Separator />
           <FieldGroup>
-            <ProductMixtureEditor rows={rows} onChange={next => { setError(null); setRows(next) }} products={data.catalogs.products} error={issueFor('products')} imported={!!imported} issues={visibleIssues} />
+            <ProductMixtureEditor rows={rows} onChange={next => { setError(null); setRows(next) }} products={data.catalogs.products} activeIngredients={data.catalogs.active_ingredients} error={issueFor('products')} imported={!!imported} issues={visibleIssues} />
             <FieldGroup className="field-grid">
               <FormInput label="Gasto de agua (L/ha)" value={form.water_l_ha} onChange={value => update('water_l_ha', value)} type="number" min="0.0001" step="any" required error={issueFor('water_l_ha')} />
               <FormInput label="Fecha de indicación" type="date" value={form.indicated_date} onChange={value => update('indicated_date', value)} required error={issueFor('indicated_date')} />
@@ -435,7 +435,7 @@ function PerformDialog({ order, targets, close, completed }: { order: Applicatio
             </FieldGroup>
             <TextField label="Observaciones de la realización" value={form.observations} onChange={value => update('observations', value)} />
             <Field orientation="horizontal"><Checkbox id={changedId} checked={changed} onCheckedChange={value => setChanged(value === true)} /><div><FieldLabel htmlFor={changedId}>Hubo cambios en productos, dosis o agua</FieldLabel><FieldDescription>Activa esta opción solo si lo aplicado fue diferente. La indicación original siempre se conserva.</FieldDescription></div></Field>
-            {changed ? <FieldSet className="flex flex-col gap-5"><FieldLegend>Lo realmente aplicado</FieldLegend><FieldDescription>Estos valores se guardarán para todos los destinos seleccionados.</FieldDescription><ProductMixtureEditor rows={rows} onChange={setRows} products={data.catalogs.products} original={indication.products} error={productError} /><FormInput label="Gasto de agua real (L/ha)" type="number" value={water} onChange={setWater} min="0.0001" step="any" required /></FieldSet> : <Alert><AlertTitle>Confirmación de lo indicado</AlertTitle><AlertDescription>Al registrar la realización, confirmas que se aplicaron exactamente los productos, dosis y gasto de agua mostrados arriba.</AlertDescription></Alert>}
+            {changed ? <FieldSet className="flex flex-col gap-5"><FieldLegend>Lo realmente aplicado</FieldLegend><FieldDescription>Estos valores se guardarán para todos los destinos seleccionados.</FieldDescription><ProductMixtureEditor rows={rows} onChange={setRows} products={data.catalogs.products} activeIngredients={data.catalogs.active_ingredients} original={indication.products} error={productError} /><FormInput label="Gasto de agua real (L/ha)" type="number" value={water} onChange={setWater} min="0.0001" step="any" required /></FieldSet> : <Alert><AlertTitle>Confirmación de lo indicado</AlertTitle><AlertDescription>Al registrar la realización, confirmas que se aplicaron exactamente los productos, dosis y gasto de agua mostrados arriba.</AlertDescription></Alert>}
           </FieldGroup>
         </fieldset>
         <div className="dialog-actions"><Button type="button" variant="outline" onClick={dismissal.requestClose} disabled={busy}>Volver</Button><SaveButton busy={busy}>Confirmar realización</SaveButton></div>

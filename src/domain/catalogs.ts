@@ -1,4 +1,5 @@
 import type { CatalogKind, CatalogRecord, WorkspaceData } from './model'
+import { compactProductTerm, validateProductSynonyms } from './product-synonyms.ts'
 
 // Applications may not be installed yet. Both editions use the same catalog rules.
 type CatalogEditContext = Pick<WorkspaceData, 'catalogs' | 'lots' | 'stages'> & {
@@ -39,8 +40,9 @@ export function validateCatalogEdit(data: CatalogEditContext, kind: CatalogKind,
   const errors: Record<string, string> = {}
   const existing = data.catalogs[kind].find(record => record.id === row.id)
   const normalize = (value: string) => value.trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('es-MX')
+  const unchangedProductName = kind === 'products' && existing && existing.name.trim() === row.name.trim()
   if (!row.name.trim()) errors.name = 'Escribe el nombre del registro.'
-  else if (data.catalogs[kind].some(record => record.id !== row.id && normalize(record.name) === normalize(row.name) &&
+  else if (!unchangedProductName && data.catalogs[kind].some(record => record.id !== row.id && (kind === 'products' ? compactProductTerm(record.name) === compactProductTerm(row.name) : normalize(record.name) === normalize(row.name)) &&
     (kind !== 'fields' || record.agricultural_unit_id === row.agricultural_unit_id) &&
     (kind !== 'varieties' || record.crop_id === row.crop_id))) errors.name = 'Ya existe un registro con ese nombre en este ámbito.'
 
@@ -55,6 +57,7 @@ export function validateCatalogEdit(data: CatalogEditContext, kind: CatalogKind,
   if (kind === 'fields') relation('agricultural_units', row.agricultural_unit_id, existing?.agricultural_unit_id, 'agricultural_unit_id', 'una agrícola activa')
   if (kind === 'varieties') relation('crops', row.crop_id, existing?.crop_id, 'crop_id', 'un cultivo activo')
   if (kind === 'products') {
+    Object.assign(errors, validateProductSynonyms(data.catalogs.products, row))
     if (!['g', 'ml'].includes(row.unit ?? '')) errors.unit = 'Selecciona gramos o mililitros.'
     if (!Number.isFinite(row.default_dose) || row.default_dose! < 0) errors.default_dose = 'Captura una dosis válida mayor o igual a cero.'
     if (row.brand_id) relation('brands', row.brand_id, existing?.brand_id, 'brand_id', 'una marca activa')

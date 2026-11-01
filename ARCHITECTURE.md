@@ -147,3 +147,12 @@ en Supabase; [editor e historial](src/features/application-editing.tsx) y
 La [migración](supabase/migrations/20261101051210_application_revision_history.sql)
 mantiene eventos append-only y referencias de productos con RLS. Flujo completo
 en [edición](docs/flows/application-editing.md).
+
+## Resolución de sinónimos de productos
+
+[product-synonyms](src/domain/product-synonyms.ts) reúne normalización, conflictos,
+orden y etiquetas; catálogo y matcher de importación lo consumen. Adaptador
+Supabase carga la tabla de sinónimos y extiende save_product sin cambiar su firma.
+Editor Productos y ProductMixtureEditor comparten el catálogo; la extracción IA
+conserva el nombre escrito y la vinculación determinista ocurre al revisar.
+[Ficha](docs/flows/product-synonyms.md) define límites y seguridad.

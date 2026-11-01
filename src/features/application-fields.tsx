@@ -2,6 +2,8 @@ import { useId } from 'react'
 import { Droplets, Plus, X } from 'lucide-react'
 import type { CatalogRecord, ProductLine } from '@/domain/model'
 import type { ApplicationDraftIssue } from '@/domain/application-draft'
+import { buildProductOptions, compactProductTerm } from '@/domain/product-synonyms'
+import { matchImportedProducts } from '@/domain/application-import'
 import { Button } from '@/components/ui/button'
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel, FieldLegend, FieldSet } from '@/components/ui/field'
 import { Textarea } from '@/components/ui/textarea'
@@ -32,17 +34,17 @@ export function validateProducts(rows: ProductDraft[]) {
   return ''
 }
 
-export function ProductMixtureEditor({ rows, onChange, products, original = [], error, imported = false, issues = [] }: {
+export function ProductMixtureEditor({ rows, onChange, products, activeIngredients = [], original = [], error, imported = false, issues = [] }: {
   rows: ProductDraft[]
   onChange: (rows: ProductDraft[]) => void
   products: CatalogRecord[]
+  activeIngredients?: CatalogRecord[]
   original?: ProductLine[]
   error?: string
   imported?: boolean
   issues?: ApplicationDraftIssue[]
 }) {
-  const originalIds = new Set(original.map(product => product.product_id))
-  const options = products.filter(product => product.active || originalIds.has(product.id))
+  const options = buildProductOptions(products, activeIngredients, original)
   const updateRow = (key: string, change: Partial<ProductDraft>) => onChange(rows.map(row => row.key === key ? { ...row, ...change } : row))
   return (
     <FieldSet>
@@ -53,13 +55,15 @@ export function ProductMixtureEditor({ rows, onChange, products, original = [], 
           const product = products.find(item => item.id === row.product_id)
           const indicated = original.find(item => item.product_id === row.product_id)
           const unit = indicated?.unit || product?.unit
+          const synonym = row.sourceName && product?.synonyms?.find(name => compactProductTerm(name) === compactProductTerm(row.sourceName!))
+          const suggestions = imported && row.sourceName && !product ? matchImportedProducts([{name:row.sourceName,unit:row.importUnit ?? null,dose:null}],products)[0].candidates : []
           return (
             <FieldGroup className="application-mixture-row" key={row.key}>
-              <FormSelect label={row.sourceName ? `Producto ${index + 1}: ${row.sourceName}` : `Producto ${index + 1}`} value={row.product_id} onChange={id => {
+              <FormSelect wrapOptions label={row.sourceName ? `Producto ${index + 1}: ${row.sourceName}` : `Producto ${index + 1}`} value={row.product_id} onChange={id => {
                 const chosen = products.find(item => item.id === id)
                 const previous = original.find(item => item.product_id === id)
                 updateRow(row.key, { product_id: id, dose: imported ? row.dose : String(previous?.dose ?? chosen?.default_dose ?? '') })
-              }} options={options.map(item => ({ value: item.id, label: `${item.code || item.id} · ${item.name}${!item.active ? ' (inactivo, indicado)' : ''}`, disabled: rows.some(other => other.key !== row.key && other.product_id === item.id) }))} required error={issues.find(issue => issue.field === `product:${index}`)?.message} help={product ? `Código: ${product.code || product.id} · Unidad del catálogo: ${unit}/ha` : 'Selecciona un producto del catálogo.'} />
+              }} options={options.map(item => ({ ...item, disabled: rows.some(other => other.key !== row.key && other.product_id === item.value) }))} required error={issues.find(issue => issue.field === `product:${index}`)?.message} help={product ? `Código: ${product.code || product.id} · Unidad del catálogo: ${unit}/ha${synonym ? ` · El mensaje dice «${row.sourceName}»: sinónimo registrado de ${product.name}.` : ''}` : suggestions.length ? `Posibles coincidencias: ${suggestions.map(item=>item.name).join(', ')}. Selecciona el producto correcto.` : 'Selecciona un producto del catálogo.'} />
               <FormInput label={unit ? `Dosis (${unit}/ha)` : 'Dosis por hectárea'} value={row.dose} onChange={dose => updateRow(row.key, { dose })} type="number" min="0.000001" step="any" required error={issues.find(issue => issue.field === `dose:${index}`)?.message} />
               <Button type="button" variant="outline" size="icon" aria-label={`Quitar producto ${index + 1}`} onClick={() => onChange(rows.filter(item => item.key !== row.key))}><X /></Button>
               {imported && row.sourceName && <div className="col-span-full flex flex-col gap-2">

@@ -1,4 +1,5 @@
 import type { ApplicationTarget, CatalogRecord, LotSubdivision, ProjectLot, SowingStage, WorkspaceData } from './model'
+import { compactProductTerm, compareProductsByName, similarProductTerms } from './product-synonyms.ts'
 
 export type ExtractedProduct = { name: string; dose: number | null; unit: 'g' | 'ml' | null }
 export type ExtractedApplication = {
@@ -83,23 +84,29 @@ export type ImportedProductMatch = {
   unit: 'g' | 'ml' | null
   candidates: CatalogRecord[]
   issue: string
+  matchKind?: 'name' | 'code' | 'synonym'
+  matchedSynonym?: string
 }
 
 export function matchImportedProducts(products: readonly ExtractedProduct[], catalogProducts: readonly CatalogRecord[]): ImportedProductMatch[] {
-  const active = catalogProducts.filter(product => product.active)
+  const active = catalogProducts.filter(product => product.active).slice().sort(compareProductsByName)
   return products.map(source => {
-    const name = normalizeImportName(source.name)
-    const exact = active.filter(product => normalizeImportName(product.name) === name)
+    const name = compactProductTerm(source.name)
+    const terms = (product: CatalogRecord) => [product.name, product.code, ...(product.synonyms ?? [])].filter((term): term is string => typeof term === 'string')
+    const exact = name ? active.filter(product => terms(product).some(term => compactProductTerm(term) === name)) : []
     const product = exact.length === 1 ? exact[0] : undefined
-    const candidates = exact.length ? exact : active.filter(candidate => {
-      const candidateName = normalizeImportName(candidate.name)
-      return name.length >= 3 && (candidateName.includes(name) || name.includes(candidateName))
-    }).slice(0, 10)
-    const issue = !product ? exact.length > 1 ? 'Hay varias coincidencias de nombre. Selecciona el producto correcto.' : 'Selecciona un producto activo del catálogo.'
+    const candidates = exact.length ? exact : active.filter(candidate => terms(candidate).some(term => {
+      const compared = compactProductTerm(term)
+      // Keep older partial-name suggestions, without turning them into an ID.
+      return similarProductTerms(source.name, term) || Math.min(name.length, compared.length) >= 4 && (name.includes(compared) || compared.includes(name))
+    })).slice(0, 10)
+    const matchedSynonym = product?.synonyms?.find(synonym => compactProductTerm(synonym) === name)
+    const matchKind: ImportedProductMatch['matchKind'] = !product ? undefined : compactProductTerm(product.name) === name ? 'name' : product.code && compactProductTerm(product.code) === name ? 'code' : 'synonym'
+    const issue = !product ? exact.length > 1 ? 'Hay varias coincidencias entre nombres, códigos o sinónimos. Selecciona el producto correcto.' : candidates.length ? 'Hay productos parecidos, pero no una coincidencia exacta. Selecciona el producto correcto.' : 'Selecciona un producto activo del catálogo.'
       : source.unit === null ? 'Confirma la unidad del mensaje antes de aprobar.'
       : product.unit !== source.unit ? `El mensaje usa ${source.unit}/ha y el catálogo ${product.unit ?? 'una unidad sin definir'}/ha. Aclara la unidad antes de aprobar.`
       : source.dose === null ? 'Completa la dosis del mensaje antes de aprobar.' : ''
-    return { sourceName: source.name, productId: product?.id ?? '', dose: source.dose == null ? '' : String(source.dose), unit: source.unit, candidates, issue }
+    return { sourceName: source.name, productId: product?.id ?? '', dose: source.dose == null ? '' : String(source.dose), unit: source.unit, candidates, issue, ...(matchKind ? { matchKind } : {}), ...(matchKind === 'synonym' && matchedSynonym ? { matchedSynonym } : {}) }
   })
 }
 

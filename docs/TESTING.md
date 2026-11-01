@@ -345,3 +345,23 @@ Catorce comprobaciones posteriores aprobadas: inicio/bundle/editor/historial y
 salud Auth 200 en ambos, captura/configuración e historial anónimo 401. Ledger
 operativo 4/0 y conteos de negocio intactos tras migrar. No se hicieron capturas
 ficticias ni correcciones de datos reales en operación para esta verificación.
+
+## Sinónimos y selector de productos
+
+2026-11-01: 197 pruebas npm, TypeScript, build y docs:check aprobados. Incluyen
+12 casos nuevos de sinónimos/etiquetas y cuatro de matching; conservación de
+nombres oficiales heredados parecidos y bloqueo de borrar productos con aliases.
+SQL aislado: 308 controles (64 nuevos). HTTP/Auth/REST/RLS: 87 (16 nuevos), con
+carrera entre sinónimos similares y un único ganador. Validaciones Unicode,
+límites, inactivos, inversión por renombre/DML, omisión/reemplazo y rollback
+producto/composición/alias/auditoría comprobados; stacks QA retirados.
+
+UI demo aislada 5185: alta de alias, detalle, persistencia tras recarga y búsqueda;
+alias casi igual en otro producto bloqueado identificando al dueño y conservando
+entradas. Descarte protegido. Revisión ficticia con nombre alterno resolvió el
+producto/código y grabó la indicación con nombre oficial, dosis500ml y agua660.
+La extracción del ejemplo se sustituyó solo en el harness ignorado de QA; no se
+consumió el proveedor ni se probaron capturas ficticias en operación. Selector
+Álamo/Beta/Zeta con ingredientes largos, sin nombre duplicado y sin overflow
+móvil: página375/375, opciones276/276. Lector sin edición, aliases consultables.
+Migración operativa con respaldo validado y ledger5/0; publicación en curso.

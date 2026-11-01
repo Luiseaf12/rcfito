@@ -196,3 +196,13 @@ exigen motivo y escriben evento/snapshots/referencias de forma atómica. Origina
 y eventos anteriores no se reescriben; FK y unidad protegen productos que solo
 figuren en historial. Correcciones reales mantienen estado y límite de cierre.
 [Contrato](backend-api.md#revisiones-y-correcciones-de-aplicaciones).
+
+## Sinónimos de productos
+
+RLS permite lectura de sinónimos solo a usuarios activos del catálogo común.
+Escritura mediante save_product con perfil administrador activo y validación
+atómica; cliente sin DML sobre sinónimos ni auditoría privada. Triggers y lock
+de catálogo evitan eludir conflictos cambiando nombres/códigos directamente o
+guardando concurrentemente. Inactivos siguen reservando sus nombres alternos.
+La captura solo completa coincidencias exactas y únicas; nunca decide por
+similitud. [Contrato](backend-api.md#sinónimos-de-productos).

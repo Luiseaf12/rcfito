@@ -104,3 +104,13 @@ y confirmación de descarte. La vista distingue última revisión de la indicaci
 histórica de cada destino, conserva la original y compara eventos antes/después.
 Validación de versiones evita aplicar cambios que el usuario no vio. El lector
 solo consulta su historial. [Ficha y evidencia](flows/application-editing.md).
+
+## Sinónimos y selector de productos
+
+Productos conserva Ver/Editar y añade renglones de sinónimos al formulario de
+administrador, detalle de consulta y búsqueda por alias. Guardado único,
+validación visible y descarte protegido con componentes existentes. El editor de
+mezcla compartido usa opciones ordenadas por nombre español/números: nombre e
+ingredientes configurados, código como identidad interna y ayuda separada.
+La revisión IA identifica alias y conserva el texto/unidad/dosis del mensaje.
+[Flujo y aceptación](flows/product-synonyms.md).

@@ -25,6 +25,8 @@ Fecha de revisión: 2026-10-31.
 
 | RCF-019 | Editar aplicaciones con productos, dosis, fechas e historial. | cerrada | Agente principal y revisión independiente | Commit 7942b85 en GitHub y Sites versión 16; frontend Docker actualizado. 181 pruebas, 244 SQL, 71 HTTP y 14 verificaciones posteriores aprobadas. Respaldo y migración operativa 4/0 confirmados, sin cambiar conteos. | [Ficha de edición](flows/application-editing.md) y [operación](OPERATIONS.md#edición-de-aplicaciones-e-historial) |
 
+| RCF-020 | Sinónimos de productos, conflictos y selector por nombre/ingredientes. | en curso | Agente principal y revisión independiente | 197 pruebas, 308 SQL, 87 HTTP y QA aprobados; respaldo/migración operativa5/0 confirmados. Pendiente frontend Docker y Sites. | [Ficha](flows/product-synonyms.md) y [operación](OPERATIONS.md#sinónimos-y-selector-de-productos) |
+
 Estados y cierre: [DOCUMENTATION](../.project-standards/DOCUMENTATION.md#planes-decisiones-y-deuda).
 Una tarea registrada no autoriza implementarla. Conservar su ID y actualizar su
 fuente e índice juntos. Cerrar con evidencia, distinguiendo código, pruebas,

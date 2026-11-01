@@ -143,3 +143,11 @@ sugerencia de cultivo histórica y móvil 375 px sin overflow comprobados. Escap
 protege el borrador. La revisión independiente cerró sus hallazgos. Evidencia y
 límites completos en [TESTING](../TESTING.md#captura-con-ia-número-por-etapa-y-nota).
 Publicación y activación real se registran por separado en [OPERATIONS](../OPERATIONS.md#captura-con-ia-y-nota-actualización).
+
+## Productos reconocidos por sinónimos
+
+La extracción conserva el nombre del mensaje. La revisión busca coincidencia
+exacta única entre nombre/código/sinónimos de productos activos; recupera su ID
+y código, identifica el alias y mantiene dosis/unidad del mensaje. Parecidos o
+ambigüedades requieren selección. El selector presenta nombre e ingredientes,
+ordenado alfabéticamente. [Sinónimos](product-synonyms.md).

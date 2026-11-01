@@ -162,3 +162,11 @@ esquema anterior sin aplicaciones se admite; otros errores impiden confirmar
 la carga en lugar de desbloquear silenciosamente. No se modifican snapshots ni
 se crean fixtures en operación. Quedan fuera de esta evidencia la edición real
 de registros operativos, zoom/contraste y los casos anteriores aún pendientes.
+
+## Sinónimos en Productos
+
+El mantenimiento de administrador añade renglones de nombres alternos, con
+conflictos globales exactos/aproximados e información conservada ante errores.
+Ver y buscar incluyen sinónimos; el lector solo consulta. Producto/composición/
+sinónimos se guardan atómicamente. Reglas, recorrido de captura y evidencia en
+la [ficha de sinónimos](product-synonyms.md).

@@ -397,3 +397,17 @@ autocompletado previo, editor/historial y salud Auth 200; captura/configuración
 sin sesión e historial anónimo 401. Sin escrituras de aplicaciones ni consumo
 del proveedor en operación para verificar. Evidencia en
 [TESTING](TESTING.md#edición-de-aplicaciones-e-historial).
+
+## Sinónimos y selector de productos
+
+Solicitud autorizada para commit/push y Sites conservando audiencia. Aplicar la
+migración aditiva de sinónimos antes del frontend nuevo, con respaldo privado
+validado y sin preparación/reset de operación. No se requieren cambios del
+proveedor IA ni claves.
+
+2026-11-01: respaldo privado custom validado (419,056 bytes) antes de aplicar
+`20261101124719_product_synonyms.sql`. Ledger coherente con cinco aplicadas y
+cero pendientes; conteos de órdenes, destinos por estado y productos originales/
+reales intactos. Cero sinónimos inventados. 197 pruebas cliente, 308 SQL aisladas,
+87 HTTP y QA demo/móvil/lector aprobados; revisión independiente integrada.
+Frontend Docker y publicación en Sites pendientes de confirmación.
