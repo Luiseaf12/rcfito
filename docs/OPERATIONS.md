@@ -215,3 +215,24 @@ volúmenes. La guía aún no acredita un simulacro de migración de operación.
 Recuperar una versión de Sites revierte el frontend, no datos ni migraciones.
 Conservar versión anterior y respaldos antes de cambios de esquema. La
 actualización del bundle sigue [STANDARDS](STANDARDS.md#actualización).
+
+## Publicación de edición de catálogos
+
+2026-10-31: commit `5768f9aede41854566a723ce3cd90afb2a0dbbe4` subido a
+GitHub y al repositorio de Sites, integrado sobre la entrega de aplicaciones
+recién publicada. Se resolvieron conflictos conservando ambos recorridos y se
+repitieron 71 pruebas, tipos/build y control documental. Evidencia de catálogos y
+65 comprobaciones SQL aisladas en [TESTING](TESTING.md#edición-válida-de-catálogos-2026-10-31).
+
+Sites confirmó `succeeded`, versión 10
+`appgprj_6ae67ae019e88191a7012093bb19c505~appgver_740df350e8a0819186ad66eb0f97046c`,
+despliegue `appgdep_6ae69fd97eec81919ee75b7eb10fa509`, en
+[RCFito](https://rcfito.paxxa.chatgpt.site). Se conservó la audiencia pública
+existente y el registro de conexión. La apertura de origen se repitió tras
+integrar para verificar el commit exacto antes de empaquetar.
+
+El frontend Docker se reconstruyó desde ese mismo checkout validado, mediante
+un override de contexto de build y los Compose originales con `.env.example`
+explícito. Conserva el montaje público existente y el backend. HTML y bundle de
+catálogos devolvieron HTTP 200 en `http://127.0.0.1:5180`. No se aplicaron
+migraciones ni se generaron datos de prueba en operación para esta mejora.
