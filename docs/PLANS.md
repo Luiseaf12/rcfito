@@ -37,7 +37,7 @@ Fecha de revisión: 2026-10-31.
 
 | RCF-026 | Filtro global por lote para productos, ranking e historial. | cerrada | Agente principal y revisión independiente | Commit 20c8ca6 en GitHub y Sites versión 23; revisión limpia con 228 pruebas, tipos/build/checker, QA demo/móvil y tres comprobaciones HTTP aprobados. Todas y audiencia conservadas. | [Ficha](flows/product-dashboard.md#filtro-global-por-lote) y [operación](OPERATIONS.md#publicación-del-filtro-global-por-lote) |
 
-| RCF-027 | Documentar y aplicar dos decimales en reportes. | en curso | Agente principal | Regla local y formato compartido implementados; verificar dashboard/lotes/historiales y publicar en Sites conservando audiencia. | [Regla](FRONTEND.md#decimales-en-reportes) y [verificación](TESTING.md#decimales-en-reportes) |
+| RCF-027 | Documentar y aplicar dos decimales en reportes. | cerrada | Agente principal | Commit 672dd1b en GitHub y Sites versión 24; 228 pruebas, ocho comprobaciones de formato, tipos/build/checker, QA demo/móvil y tres checks HTTP aprobados. Cálculos y conteos conservados. | [Regla](FRONTEND.md#decimales-en-reportes) y [verificación](TESTING.md#decimales-en-reportes) |
 
 Estados y cierre: [DOCUMENTATION](../.project-standards/DOCUMENTATION.md#planes-decisiones-y-deuda).
 Una tarea registrada no autoriza implementarla. Conservar su ID y actualizar su
