@@ -173,8 +173,24 @@ el despliegue privado `appgdep_6ae68cadfc808191b252cb2f5ffc3e2e`, versión
 `appgprj_6ae67ae019e88191a7012093bb19c505~appgver_7df53f12cd1c81919a8d30452da082b9`,
 en [RCFito](https://rcfito.paxxa.chatgpt.site). Los commits documentales posteriores
 conservan esta evidencia de publicación de la revisión operativa. Actualizar el
-frontend alojado no habilita por sí mismo acceso remoto a la BD; esa conexión
-sigue en RCF-008.
+frontend alojado no habilita por sí mismo acceso remoto a la BD; ese acceso se
+verificó posteriormente en RCF-008 y su actualización automática en RCF-012.
+
+## Despliegue de aplicaciones y grupos
+
+2026-10-31: esquema aplicado en operación después de generar un respaldo privado
+de PostgreSQL (284149 bytes). `backend-local.mjs --check` confirmó dos migraciones
+aplicadas y cero pendientes. La segunda es aditiva y conserva la primera revisión;
+no se cargaron fixtures ni se publicaron datos operativos.
+
+La interfaz del módulo y el backend aislado pasaron su revisión funcional. Build,
+54 pruebas, tipos y docs aprobaron en el checkout aislado de la entrega. El
+frontend Docker actualizado quedó sano; el navegador en 5180 mostró sesión
+administradora y lista real de aplicaciones vacía, sin errores ni inserciones.
+Falta publicar el commit consolidado en Sites, conservando su audiencia pública
+vigente. Las nueve comprobaciones HTTPS previas aprobaron; no sustituyen el
+resultado nativo del despliegue nuevo. Actualizar aquí la revisión y ese resultado;
+el detalle de QA está en [TESTING](TESTING.md#aplicaciones-y-grupos-cierre-en-curso).
 
 ## Respaldo y cambio de servidor
 

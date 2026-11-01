@@ -8,7 +8,8 @@ o lector; los claims editables del usuario no conceden privilegios. Un usuario
 desactivado pierde lectura aun conservando un JWT previamente emitido.
 
 El administrador mantiene datos y asignaciones. El lector consulta agrícolas
-asignadas, campos y sus proyectos/lotes/subdivisiones/etapas. Los catálogos
+asignadas, campos y sus proyectos/lotes/subdivisiones/etapas, aplicaciones y
+grupos. Los catálogos
 comunes permiten consulta a cuentas activas. Se rechazan mutaciones del lector
 y acceso anónimo. El menú refleja permisos; la frontera efectiva es el servidor.
 
@@ -18,6 +19,15 @@ Compensa un fallo de asignación retirando la cuenta recién creada; si también
 falla esa compensación informa resultado parcial. El primer administrador sigue
 el procedimiento privado de [backend-deployment](backend-deployment.md), nunca
 un registro público de administrador.
+
+Las seis tablas nuevas de aplicaciones/grupos conceden lectura bajo RLS;
+mutaciones solo por RPC. Los wrappers públicos son invoker y los mutadores
+privados comprueban sesión y administrador activo antes de elevar privilegios.
+La indicación y los resultados terminales son históricos; firmas y bloqueos
+permiten reintentos sin duplicar destinos ni conteos. Las guardas también impiden
+cerrar etapas/proyectos con indicadas pendientes y cambiar la unidad de productos
+usados. Los integrantes retirados de un grupo se conservan, sin volverlos
+destinos de una nueva orden.
 
 ## Secretos y entornos
 
@@ -79,6 +89,14 @@ registrada en GitHub.
 aislados: rechazo de anónimo/lector, asignaciones y JWT de perfil desactivado.
 El stack de QA quedó detenido y sus datos ficticios retirados; otros stacks no
 se modificaron. Comandos y alcance: [TESTING](TESTING.md).
+
+Ampliación de aplicaciones: 116 comprobaciones SQL y 40 HTTP reales aprobadas en
+entornos aislados, con revisión independiente. En operación se generó un respaldo
+privado y se aplicó la migración aditiva (dos aplicadas/cero pendientes), sin
+fixtures. El frontend Docker actualizado mostró sesión administradora y lista
+real vacía en 5180, sin insertar datos. La lectura está comprobada; los recorridos
+de captura de aplicaciones siguen siendo demo o integración aislada. Capturas de QA solo
+con datos demo; no incluir datos o cuentas reales en Git.
 
 La instalación de operación local está iniciada con secretos privados y sus
 siete servicios sanos. Se verificaron primera cuenta, login y captura desde el

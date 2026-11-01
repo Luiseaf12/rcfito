@@ -11,6 +11,7 @@ Node.js 24 y npm. Ejecutar `npm ci` antes de checks de aplicación.
 | `npm run build` | Tipos y build Vite de producción a `dist/`. |
 | `npm run docs:check` | Versión, hashes, mapa, enlaces de entradas y excepciones del estándar. |
 | `node scripts/backend-test.mjs` | SQL, RLS y transacciones en PostgreSQL efímero, sin puertos. |
+| `node scripts/backend-applications-test.mjs` | Migraciones y 116 comprobaciones SQL de regresión/aplicaciones en contenedor efímero; Auth stub. |
 | `node scripts/backend-integration.mjs --fresh --cleanup` | Auth, REST, RPC, Edge y RLS reales en stack Supabase aislado. |
 | `node scripts/backend-tunnel-check.mjs` | HTTPS, CORS, rutas bloqueadas, Auth y rechazos sin sesión sobre el Quick Tunnel activo. No crea datos de operación. |
 
@@ -133,6 +134,40 @@ medido sigue pendiente hasta registrar la evidencia final. Fichas detalladas:
 [catálogos](flows/catalogs.md), [proyectos](flows/sowing-projects.md) y
 [navegación](flows/navigation.md).
 
+## Aplicaciones y grupos: cierre en curso
+
+Evidencia del 2026-10-31:
+
+- `npm test`: 54/54 aprobadas, incluidas las 20 de
+  [aplicaciones](../test/applications.test.ts); `npm run typecheck` aprobado.
+- SQL aislado: 116 comprobaciones (48 previas y 68 nuevas). HTTP con Supabase
+  real aislado: 40 comprobaciones (12 previas y 28 de aplicaciones). El entorno
+  exclusivo se detuvo y sus fixtures se retiraron.
+- Demo en navegador, puerto 5174: crear indicación de un destino; abrir
+  realización con cambios desmarcados y mezcla de lectura; confirmar y observar
+  el destino realizado. Crear otra orden y registrar la excepción: producto A
+  1 ml/ha frente a producto B 2 g/ha, agua 1 frente a 2 L/ha; el detalle conservó
+  ambas mezclas. Crear y guardar un grupo manual con una etapa vigente.
+- Reutilizar el grupo en una nueva indicación; cancelar un destino, rechazar
+  motivo vacío y guardar con motivo. A 375 px no hubo desbordamiento general
+  (documento de 360 px frente a viewport de 375 px).
+- Revisión independiente y correcciones comprobadas en código: dosis hasta seis
+  decimales, área de selección de 44 px y sin Editar para grupos de proyecto cerrado;
+  SQL con diferencia real, nombres de grupos únicos, snapshots y bloqueos ordenados.
+- Antes de aplicar el esquema de operación se generó un respaldo privado de
+  PostgreSQL de 284149 bytes. Migración aditiva aplicada; ledger: dos aplicadas y
+  cero pendientes. No se cargaron fixtures en operación.
+
+En demo a 375 px se comprobó el lector sin Nueva indicación. Build, 54 pruebas,
+tipos y docs aprobaron en el checkout aislado de esta entrega. El frontend Docker
+quedó sano y el navegador en 5180 mostró sesión administradora, lista real de
+aplicaciones vacía y ausencia de errores, sin insertar datos. Las nueve
+comprobaciones HTTPS del Site aprobaron antes de publicar aplicaciones; el
+resultado nativo de esa publicación sigue pendiente. Teclado completo y texto
+200 % no están acreditados. La lectura real comprobada no equivale a ejecutar
+captura de aplicaciones contra operación. Las capturas de esta ampliación
+usan únicamente datos demo. Matriz: [aplicaciones](flows/applications.md#éxito-y-evidencia).
+
 ## Límites de cobertura
 
 El navegador documentado probó la demostración. El backend HTTP se probó en un
@@ -141,8 +176,8 @@ guardado, recarga y comprobación SQL de una agrícola, además de salud y recha
 de acceso sin sesión. Los demás flujos reales no se infieren de esa captura.
 El HTTPS exterior temporal tiene la evidencia separada de Quick Tunnel arriba;
 no acredita una dirección estable ni disponibilidad de operación. Sites confirmó
-su despliegue privado; servir la interfaz y arrancar el túnel son operaciones
-separadas.
+sus revisiones anteriores; la audiencia vigente y el registro automático se
+documentan abajo. Servir la interfaz y arrancar el túnel son operaciones separadas.
 
 El checker documental comprueba destinos locales, no anchors ni URLs externas.
 No certifica UX, RLS ni cálculos. Las referencias TS/TSX del bundle del estándar

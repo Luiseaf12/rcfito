@@ -1,4 +1,5 @@
 import type { CatalogKind, CatalogRecord, UserProfile, WorkspaceCommand, WorkspaceData } from './model'
+import { applyApplicationCommand } from './applications'
 
 const fail = (message: string): never => { throw new Error(message) }
 const validDate = (value: string) => /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(`${value}T12:00:00Z`)) && new Date(`${value}T12:00:00Z`).toISOString().slice(0,10) === value
@@ -7,7 +8,7 @@ const uuid = () => crypto.randomUUID()
 const normalized = (value:string) => value.trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es-MX')
 
 export function scopeWorkspace(data: WorkspaceData, profile: UserProfile): WorkspaceData {
-  const result = structuredClone(data)
+  const result = structuredClone({ ...data, applicationOrders: data.applicationOrders ?? [], applicationTargets: data.applicationTargets ?? [], sowingGroups: data.sowingGroups ?? [] })
   if (profile.role === 'admin') return result
   const allowed = new Set(result.assignments.filter(a => a.user_id === profile.id).map(a=>a.agricultural_unit_id))
   result.catalogs.agricultural_units = result.catalogs.agricultural_units.filter(a=>allowed.has(a.id))
@@ -19,6 +20,10 @@ export function scopeWorkspace(data: WorkspaceData, profile: UserProfile): Works
   result.subdivisions = result.subdivisions.filter(s=>lots.has(s.lot_id))
   const subdivisions = new Set(result.subdivisions.map(s=>s.id))
   result.stages = result.stages.filter(s=>subdivisions.has(s.subdivision_id))
+  result.applicationOrders = result.applicationOrders.filter(o => projects.has(o.project_id))
+  const orders = new Set(result.applicationOrders.map(o => o.id))
+  result.applicationTargets = result.applicationTargets.filter(t => orders.has(t.order_id))
+  result.sowingGroups = result.sowingGroups.filter(g => projects.has(g.project_id))
   result.profiles = result.profiles.filter(p=>p.id===profile.id)
   result.assignments = result.assignments.filter(a=>a.user_id===profile.id)
   return result
@@ -26,7 +31,8 @@ export function scopeWorkspace(data: WorkspaceData, profile: UserProfile): Works
 
 export function applyCommand(input: WorkspaceData, command: WorkspaceCommand, profile: UserProfile): WorkspaceData {
   if (profile.role !== 'admin') fail('Tu usuario tiene acceso de consulta. Solo la administración puede guardar cambios.')
-  const d = structuredClone(input)
+  const d = structuredClone({ ...input, applicationOrders: input.applicationOrders ?? [], applicationTargets: input.applicationTargets ?? [], sowingGroups: input.sowingGroups ?? [] })
+  if (applyApplicationCommand(d, command, profile)) return d
   const catalog = (kind:CatalogKind,id:string|undefined) => d.catalogs[kind].find(row=>row.id===id)
   const requireActive = (kind:CatalogKind,id:string|undefined) => { const row=catalog(kind,id); if(!row?.active) fail('Selecciona un elemento activo del catálogo.'); return row! }
   const projectOf = (id:string) => d.projects.find(p=>p.id===id) ?? fail('No se encontró el proyecto.')
@@ -42,6 +48,8 @@ export function applyCommand(input: WorkspaceData, command: WorkspaceCommand, pr
       if(command.kind==='fields') {requireActive('agricultural_units',row.agricultural_unit_id);const old=catalog('fields',row.id);if(old&&old.agricultural_unit_id!==row.agricultural_unit_id&&d.lots.some(l=>l.field_id===old.id))fail('Un campo con historial no puede cambiar de agrícola.')}
       if(command.kind==='varieties') {requireActive('crops',row.crop_id);const old=catalog('varieties',row.id);if(old&&old.crop_id!==row.crop_id&&d.stages.some(s=>s.variety_id===old.id))fail('Una variedad utilizada no puede cambiar de cultivo.')}
       if(command.kind==='products') {
+        const old=catalog('products',row.id)
+        if(old && old.unit!==row.unit && (d.applicationOrders.some(o=>o.products.some(p=>p.product_id===row.id)) || d.applicationTargets.some(t=>t.actual_products.some(p=>p.product_id===row.id)))) fail('La unidad de un producto utilizado no puede cambiar; conserva su historial.')
         if(!['g','ml'].includes(row.unit!)) fail('Selecciona la unidad fija del producto.')
         if(!Number.isFinite(row.default_dose)||row.default_dose!<0) fail('La dosis predeterminada no puede ser negativa.')
         const ids=(row.ingredients??[]).map(x=>x.ingredient_id)
@@ -63,7 +71,9 @@ export function applyCommand(input: WorkspaceData, command: WorkspaceCommand, pr
         :kind==='infrastructure_types'?d.lots.some(l=>l.infrastructure_type_id===id)
         :kind==='brands'?d.catalogs.products.some(p=>p.brand_id===id)
         :kind==='product_families'?d.catalogs.products.some(p=>p.family_id===id)
-        :kind==='active_ingredients'?d.catalogs.products.some(p=>p.ingredients?.some(i=>i.ingredient_id===id)):false
+        :kind==='active_ingredients'?d.catalogs.products.some(p=>p.ingredients?.some(i=>i.ingredient_id===id))
+        :kind==='products'?d.applicationOrders.some(o=>o.products.some(p=>p.product_id===id))||d.applicationTargets.some(t=>t.actual_products.some(p=>p.product_id===id))
+        :kind==='application_methods'?d.applicationOrders.some(o=>o.method_id===id):false
       if(referenced) fail('Este registro ya está relacionado. Márcalo como inactivo para conservar su historial.')
       d.catalogs[kind]=d.catalogs[kind].filter(r=>r.id!==id); break
     }
@@ -80,6 +90,8 @@ export function applyCommand(input: WorkspaceData, command: WorkspaceCommand, pr
     case 'activate_project': { const p=editable(command.id); p.status='active'; break }
     case 'close_project': {
       const p=editable(command.id); const lotIds=d.lots.filter(l=>l.project_id===p.id).map(l=>l.id); const subIds=d.subdivisions.filter(s=>lotIds.includes(s.lot_id)).map(s=>s.id)
+      const orders = new Set(d.applicationOrders.filter(o => o.project_id === p.id).map(o => o.id))
+      if (d.applicationTargets.some(t => orders.has(t.order_id) && t.status === 'indicated')) fail('Cancela o realiza las aplicaciones indicadas antes de cerrar la temporada.')
       if(d.stages.some(s=>subIds.includes(s.subdivision_id)&&s.status!=='closed')) fail('Cierra las etapas sembradas y retira las planeaciones pendientes antes de cerrar la temporada.')
       p.status='closed'; break
     }
@@ -134,7 +146,14 @@ export function applyCommand(input: WorkspaceData, command: WorkspaceCommand, pr
       if(previous?.closed_at && command.actual_sowing_date<previous.closed_at) fail('La fecha real no puede ser anterior al cierre de la etapa previa.')
       s.status='planted';s.actual_sowing_date=command.actual_sowing_date; break
     }
-    case 'close_stage': { const s=stageOf(command.id);editable(lotOf(subOf(s.subdivision_id).lot_id).project_id); if(s.status!=='planted') fail('Solo se cierra una etapa sembrada; retira una planeación si no se realizará.'); if(!validDate(command.closed_at)||command.closed_at<s.actual_sowing_date!) fail('La fecha de cierre debe ser igual o posterior a la siembra real.');s.status='closed';s.closed_at=command.closed_at;break }
+    case 'close_stage': {
+      const s=stageOf(command.id);editable(lotOf(subOf(s.subdivision_id).lot_id).project_id)
+      if(s.status!=='planted') fail('Solo se cierra una etapa sembrada; retira una planeación si no se realizará.')
+      if(d.applicationTargets.some(t=>t.stage_id===s.id&&t.status==='indicated')) fail('Cancela o realiza las aplicaciones indicadas antes de cerrar la etapa.')
+      const lastDate=d.applicationTargets.filter(t=>t.stage_id===s.id&&t.status==='performed').map(t=>t.actual_date!).sort().at(-1)
+      if(!validDate(command.closed_at)||command.closed_at<s.actual_sowing_date!||lastDate&&command.closed_at<lastDate) fail('La fecha de cierre debe ser igual o posterior a la siembra y a su última aplicación realizada.')
+      s.status='closed';s.closed_at=command.closed_at;break
+    }
     case 'discard_stage': { const s=stageOf(command.id);editable(lotOf(subOf(s.subdivision_id).lot_id).project_id);if(s.status!=='planned') fail('Solo se retira una etapa planeada.'); if(d.stages.some(x=>x.subdivision_id===s.subdivision_id&&x.stage_number>s.stage_number)) fail('Retira primero la última etapa planeada.');d.stages=d.stages.filter(x=>x.id!==s.id);break }
     case 'set_user_access': { const p=d.profiles.find(x=>x.id===command.user_id)??fail('No se encontró el usuario.'); if(p.id===profile.id&&command.role!=='admin') fail('No puedes retirar tu propio acceso de administrador.'); if(command.agricultural_unit_ids.some(id=>!catalog('agricultural_units',id))) fail('Selecciona agrícolas válidas.');p.role=command.role;d.assignments=d.assignments.filter(a=>a.user_id!==p.id).concat(command.agricultural_unit_ids.map(id=>({user_id:p.id,agricultural_unit_id:id})));break }
   }

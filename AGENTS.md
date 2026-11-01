@@ -11,15 +11,18 @@ catálogos, usuarios/asignaciones y proyectos de siembra. Hay demostración loca
 identificada y adaptador real de Supabase Auth/REST/RPC. Supabase de operación y
 frontend Docker están iniciados localmente en `http://127.0.0.1:5180`. Primera
 cuenta, login de administrador y captura persistida tras recargar comprobados;
-migración aplicada sin pendientes. El HTTPS de prueba usa Cloudflare Quick Tunnel;
+dos migraciones aplicadas sin pendientes, con respaldo privado previo a la segunda.
+El HTTPS de prueba usa Cloudflare Quick Tunnel;
 su URL puede cambiar al reiniciar. Sites conserva `/supabase` y el monitor de
 Windows renueva el destino automáticamente al iniciar sesión; ver
 [conexión automática](docs/tunnel-auto-update.md). El endpoint de operación
 continua sigue pendiente.
 
-[PRODUCT](docs/PRODUCT.md) conserva los contratos de negocio. Las aplicaciones
-y su reporte no forman parte de esta entrega. No asumir resuelta su aclaración
-pendiente sobre indicación/ejecución.
+[PRODUCT](docs/PRODUCT.md) conserva los contratos de negocio. La ampliación de
+aplicaciones/grupos está implementada y probada en demo/backend aislado;
+frontend Docker actualizado y comprobado; publicación en Sites en curso. El reporte completo sigue fuera
+de alcance. El caso habitual confirma lo indicado; una opción explícita permite
+cambiar productos/dosis/agua reales, conservando ambas versiones por destino.
 
 ## Lectura por tarea
 
@@ -54,6 +57,9 @@ npm run docs:check
   usados. Solo una temporada abierta por agrícola y una etapa sembrada por
   subdivisión; se permite planear etapas siguientes.
 - Lector solo consulta agrícolas asignadas; RLS y RPC lo comprueban en servidor.
+- Aplicaciones: destinos completos del mismo proyecto activo/campo/cultivo;
+  estados por destino, indicación histórica y cierre bloqueado por pendientes.
+  Los grupos conservan etapas retiradas/cerradas sin reutilizarlas automáticamente.
 - Secretos y datos reales quedan fuera de Git, builds, capturas publicadas y ejemplos.
   No leer, modificar ni sobrescribir el `.env` preexistente del usuario.
 - Las pruebas de backend usan su carpeta aislada y nunca alteran otros stacks.

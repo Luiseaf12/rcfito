@@ -7,13 +7,14 @@ Fecha de revisión: 2026-10-31.
 | RCF-001 | Definir el primer alcance de catálogos y proyectos. | cerrada | Propietario del producto | Requisitos integrados y desarrollo autorizado; conservar contratos al evolucionar. | [PRODUCT](PRODUCT.md#primera-entrega-implementada) |
 | RCF-002 | Entregar y publicar catálogos/proyectos v0.1.0. | cerrada | Agente principal | Primera publicación privada confirmada. Nueva revisión operativa en RCF-009; accesibilidad adicional en RCF-006. | [Plan de entrega](implementation-plan.md#evidencia-de-cierre) |
 | RCF-003 | Preparar y conectar Supabase de operación local. | cerrada | Agente principal y Propietario | Siete servicios y frontend sanos, migración sin pendientes, primera cuenta/login y captura conservada al recargar confirmados. Conservar datos y respaldos; acceso exterior en RCF-008. | [Backend](backend-deployment.md) y [pruebas](TESTING.md#inicio-real-local-verificado) |
-| RCF-004 | Órdenes de aplicación, grupos guardados y reporte. | propuesta | Por asignar | Aclarar si realización asume lo indicado o registra diferencias; definir el flujo de esa entrega. | [Pendientes de producto](PRODUCT.md#por-definir-antes-de-la-propuesta) |
+| RCF-004 | Captura de aplicaciones, grupos y conteos por etapa. | en curso | Agente principal y subagentes | Código, 54 pruebas puras, 116 SQL, 40 HTTP y recorridos demo con reuso/cancelación/móvil comprobados; esquema operativo aplicado con respaldo. Lector UI y Docker actualizados comprobados, sin datos de prueba en operación; confirmar commit/push y resultado nativo de Sites. Reporte completo en RCF-011. | [Ficha de aplicaciones](flows/applications.md) y [despliegue](OPERATIONS.md#despliegue-de-aplicaciones-y-grupos) |
 | RCF-005 | Revisar hallazgos de dependencias de desarrollo. | pendiente | Por asignar | Revisar las 6 alertas de tooling y actualizar con pruebas compatibles, sin cambios forzados. | [TESTING](TESTING.md#evidencia-de-primera-entrega-2026-10-31) |
 | RCF-006 | Completar revisión de accesibilidad. | pendiente | Por asignar | Verificar recorrido completo de teclado, zoom 200 %, altura reducida y contraste medido. | [TESTING](TESTING.md#navegador-de-demostración) |
 | RCF-007 | Resolver falso positivo de secreto en ejemplo Supabase. | cerrada | Agente principal | Ejemplos sustituidos por variables, configuración validada y alerta 1 resuelta como falso positivo. | [Seguridad](SECURITY.md#ejemplos-del-proveedor-y-alerta-de-github) |
 | RCF-008 | Habilitar acceso remoto HTTPS a Supabase local. | cerrada | Propietario y Agente principal | Quick Tunnel y login confirmados. Conservar PC/Docker activos; actualización automática en RCF-012 y endpoint de operación continua en RCF-010. Móvil no probado. | [Quick Tunnel](OPERATIONS.md#quick-tunnel-gratuito-para-pruebas) y [evidencia](TESTING.md#quick-tunnel-https) |
 | RCF-009 | Publicar la revisión con operación local verificada. | cerrada | Agente principal | Código subido y resultado nativo de publicación privada confirmado. Conservar audiencia y evidencia; conectividad remota separada en RCF-008. | [Publicación operativa](OPERATIONS.md#publicación-de-la-revisión-operativa) |
 | RCF-010 | Definir un endpoint estable para operación remota. | propuesta | Propietario | Elegir una solución estable cuando se requiera operación continua; el Quick Tunnel actual es temporal y gratuito para pruebas. | [Quick Tunnel](OPERATIONS.md#quick-tunnel-gratuito-para-pruebas) |
+| RCF-011 | Reporte completo de aplicaciones con filtros y agrupaciones. | propuesta | Por asignar | Concretar columnas y agrupaciones por las dimensiones confirmadas; la lista/detalle actual en desarrollo no sustituye este reporte. Separado del alcance original de RCF-004. | [Reporte](PRODUCT.md#reporte) |
 | RCF-012 | Actualizar Sites automáticamente al cambiar el Quick Tunnel. | cerrada | Agente principal | Worker con ruta fija, registro R2 con caducidad y tarea Windows activos; 34 pruebas y nueve comprobaciones HTTPS antes/después de reiniciar el conector aprobadas. Conservar sesión Windows/Docker y credenciales privadas. | [Conexión automática](tunnel-auto-update.md) y [evidencia](TESTING.md#actualización-automática-del-túnel) |
 
 Estados y cierre: [DOCUMENTATION](../.project-standards/DOCUMENTATION.md#planes-decisiones-y-deuda).
@@ -73,6 +74,23 @@ guardó en el navegador del Site y se publicó como valor inicial, con resultado
 nativo `succeeded`. El Propietario confirmó su login desde el Site mediante
 «Ya inicié sesión» y `status` confirmó el mismo túnel activo. RCF-008 queda cerrado
 para este acceso temporal de prueba; dirección estable separada en RCF-010.
+
+2026-10-31: autorizado desarrollar captura de aplicaciones y grupos con
+subagentes. El Propietario precisó que las diferencias de productos/dosis/agua
+serán raras: por defecto se confirma lo indicado, y una opción explícita habilita
+la copia real editable. Se redactó la ficha antes de implementar UI. RCF-004
+pasa a en curso con lista/detalle/conteos; el reporte completo queda separado
+como propuesta RCF-011.
+
+Ampliación implementada: 54 pruebas puras totales (20 de aplicaciones), 116 SQL
+y 40 HTTP aislados aprobados. Navegador demo verificó indicación, realización
+habitual, excepción con ambas mezclas y creación de grupo. Se corrigieron los
+hallazgos de historial, bloqueos, formato de dosis y selección táctil. Respaldo
+privado generado y migración aditiva aplicada en operación (dos/cero pendientes),
+sin fixtures. El frontend Docker se comprobó con sesión administradora y lista
+real vacía, sin inserciones. El lector demo a 375 px no ofrece Nueva indicación.
+Build, 54 pruebas, tipos y docs aprobaron en el checkout aislado. Publicación de
+Sites pendiente de resultado nativo; no se atribuyen al servidor real las capturas demo.
 
 2026-10-31: el Propietario solicitó actualizar automáticamente Sites cuando cambie
 el túnel. Se publicó la ruta fija `/supabase` y se instaló el monitor de Windows

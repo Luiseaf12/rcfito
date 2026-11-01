@@ -5,13 +5,19 @@
 Requisitos confirmados por el Propietario en esta conversación el 2026-10-31.
 La primera entrega de catálogos y proyectos de siembra está implementada en React,
 con adaptador Supabase Auth/REST/RPC, migración, RLS y función privada de usuarios.
-La demostración de navegador y el backend aislado se verificaron por separado;
-la instalación de operación y su endpoint HTTPS siguen pendientes.
+La operación local tiene cuenta administradora, login y captura persistente
+verificados. El acceso HTTPS de prueba y sus límites vigentes se registran en
+[OPERATIONS](OPERATIONS.md).
 
 El Propietario autorizó desarrollo, subagentes, commit/push y publicación en
-Sites. Las órdenes de aplicación, agrupaciones guardadas y reporte corresponden
-a una entrega posterior. Se conserva su aclaración pendiente sobre lo realizado
-respecto de lo indicado; no bloquea la entrega actual.
+Sites. El Propietario autorizó ahora desarrollar captura de aplicaciones,
+agrupaciones guardadas, detalle y conteos por etapa, con subagentes. Esta
+ampliación está implementada y se probó en demo y backend aislado; su despliegue
+en Sites continúa en curso. El frontend Docker ya consulta la lista real vacía
+con sesión administradora; no se insertaron aplicaciones para esa comprobación.
+El reporte completo queda para otra entrega. Al realizar una aplicación se
+podrán cambiar productos, dosis y gasto de agua, conservando por separado lo
+indicado y lo realmente aplicado; esas diferencias serán excepcionales.
 
 ## Primera entrega implementada
 
@@ -139,28 +145,37 @@ las referencias históricas de siembras y aplicaciones.
 
 ### Agrupaciones de siembras
 
-Requisito para la entrega posterior de aplicaciones; no está implementado en
-la primera entrega de catálogos y proyectos.
+Implementadas en la ampliación autorizada, con frontend Docker comprobado y
+publicación final de Sites en curso.
+No forman parte de la primera entrega histórica de catálogos y proyectos.
 
 El usuario puede guardar grupos con nombre para reutilizarlos al indicar
 aplicaciones similares. Agrupan etapas de subdivisiones del mismo campo y
 cultivo, por ejemplo sembradas en fechas cercanas. La selección es manual;
 no se ha definido un umbral automático de cercanía de fechas.
 
-La representación de integrantes al cerrar una etapa o cambiar la configuración
-se concretará en la propuesta, conservando las referencias históricas. Las
-órdenes pendientes de una etapa deben cancelarse antes de cerrar esa etapa.
+Los integrantes apuntan a etapas concretas del mismo proyecto, campo y cultivo.
+Al cerrar una etapa se conserva su pertenencia histórica y se excluye de los
+destinos disponibles para órdenes nuevas; no se sustituye por una nueva siembra
+de la misma subdivisión. El usuario revisa los integrantes vigentes al reutilizar
+el grupo. Las órdenes pendientes de una etapa deben cancelarse antes de cerrarla.
 
 ### Aplicaciones: alcance confirmado
 
-Requisitos confirmados para desarrollo posterior; esta entrega no registra
-órdenes de aplicación ni genera sus conteos.
+Alcance implementado y en cierre de despliegue. La [ficha previa](flows/applications.md)
+define recorrido y criterios; registra por separado dominio, SQL/HTTP aislados y
+navegador demo. El frontend Docker actualizado se comprobó con lectura real vacía
+y sesión administradora; captura contra operación no ejercida en QA.
 
-- Se captura una orden para uno o varios destinos de un mismo campo y cultivo,
-  seleccionados directamente o mediante un grupo guardado. Si un lote tiene
+- Se captura una orden para uno o varios destinos de una temporada activa, de un
+  mismo campo y cultivo. Los destinos se seleccionan directamente o mediante un
+  grupo guardado y solo pueden ser etapas sembradas vigentes. Si un lote tiene
   subdivisiones con diferentes cultivos, se incluyen únicamente las subdivisiones
   del cultivo seleccionado, vinculadas a sus etapas de siembra.
-- Todos los destinos de una orden comparten productos, dosis y gasto de agua.
+- Todos los destinos de una orden comparten productos, dosis y gasto de agua
+  indicados. La indicación guardada queda como lectura histórica. La realización
+  conserva sus valores propios por destino, según la decisión de indicación y
+  realización descrita más abajo.
   La orden tiene un único medio de aplicación elegido del catálogo. El equipo
   utilizado se menciona como texto, sin selección de un catálogo de equipos.
 - Estados por destino: indicada, cancelada y realizada. Una orden con varios
@@ -173,7 +188,9 @@ Requisitos confirmados para desarrollo posterior; esta entrega no registra
   un mismo destino al registrar su realización.
 - Puede cancelarse un destino específico dejando vigentes los demás. El motivo
   de cancelación es obligatorio.
-- Antes de cerrar una etapa, cancelar sus aplicaciones indicadas pendientes.
+- Antes de cerrar una etapa o proyecto, resolver las aplicaciones indicadas
+  pendientes mediante realización o cancelación; las que no se realizaron se
+  cancelan con motivo. El cierre no cancela silenciosamente ni borra historial.
 - El nombre del aplicador se captura en un campo opcional; no requiere un catálogo
   independiente ni que la persona tenga usuario del sistema.
 - Una aplicación puede contener varios productos. La dosis de cada producto se
@@ -182,13 +199,22 @@ Requisitos confirmados para desarrollo posterior; esta entrega no registra
 - Siempre se indica el gasto de agua en litros por hectárea. No se requiere
   calcular automáticamente cantidades totales de agua ni de productos.
 - La superficie procede de la siembra registrada en el proyecto.
-- El tratamiento de diferencias entre indicación y ejecución conserva la
-  aclaración pendiente del apartado siguiente; todavía no se fija una regla.
+- Al realizar se pueden cambiar los productos, sus dosis y el gasto de agua.
+  El guardado conserva tanto la indicación original como lo realmente aplicado;
+  los cambios de realización no sobrescriben la indicación ni modifican las
+  dosis predeterminadas del catálogo.
+- El caso habitual confirma expresamente que se aplicó lo indicado y guarda una
+  copia como valores reales propios del destino, sin recapturar la mezcla.
+  La casilla **Hubo cambios en productos, dosis o agua** inicia desmarcada; solo
+  al marcarla se habilita la copia editable de esos valores excepcionales.
+- El detalle compara indicado y realizado por destino. La lista filtrada y los
+  conteos de indicadas/realizadas/canceladas por etapa forman parte de esta
+  ampliación; no equivalen al reporte completo.
 
 ### Reporte
 
-Requisito de entrega posterior; el resumen actual muestra siembras y proyectos,
-no sustituye este reporte de aplicaciones.
+Requisito de entrega posterior. La lista filtrada, el detalle y los conteos por
+etapa de esta ampliación no sustituyen el reporte completo.
 
 Un solo reporte consultable con filtros por agrícola, campo, lote, etapa,
 cultivo, producto y rango de fechas. Debe permitir agrupar por esas mismas
@@ -215,19 +241,44 @@ agrupaciones se concretarán en la propuesta. No hay indicadores financieros.
   El acceso debe estar disponible desde oficina y celulares externos a la red
   local; el equipo permanecerá encendido durante el uso.
 - Auth, RLS y asignaciones están implementados y se probaron en un stack aislado.
-  La instalación de operación, su primera cuenta y acceso HTTPS exterior siguen
-  pendientes. Consultar [SECURITY](SECURITY.md) y [OPERATIONS](OPERATIONS.md).
+  La instalación local, su primera cuenta y la captura real se verificaron.
+  El estado de HTTPS de prueba y del endpoint estable se mantiene en
+  [SECURITY](SECURITY.md) y [OPERATIONS](OPERATIONS.md).
 
-## Por definir antes de la propuesta
+## Decisión sobre indicación y realización
 
-La respuesta a la pregunta sobre registrar diferencias entre indicación y
-ejecución fue «no se asumira que se aplico tal cual». Falta distinguir si significa
-«No; se asumirá que se aplicó tal cual», sin un registro de cambios de ejecución,
-o «No se asumirá que se aplicó tal cual», que requeriría confirmar qué se aplicó
-realmente. Mantener esta decisión pendiente hasta recibir la aclaración.
+Confirmación explícita del Propietario, 2026-10-31: «al realizarla se podrán
+cambiar los productos, las dosis y el gasto de agua, conservando tanto lo
+indicado como lo realmente aplicado». Esta decisión resuelve la ambigüedad de
+la respuesta anterior «no se asumira que se aplico tal cual».
 
-La entrega posterior concretará columnas del reporte, representación de una
-orden con destinos en diferentes estados y vigencia de grupos al cerrar etapas.
+El Propietario precisó que cambiar productos, dosis o gasto de agua será muy
+excepcional. Por ello, el recorrido habitual pide confirmar lo indicado y guarda
+su copia como realización. La opción de cambios empieza apagada y permite
+editar la copia real cuando se necesita; nunca modifica la indicación original.
+
+La orden conserva su mezcla indicada. Cada destino realizado conserva la lista
+de productos, dosis y gasto de agua efectivamente aplicados, además de su fecha
+real y demás datos de realización. El detalle permitirá comparar ambas
+versiones. Los destinos todavía indicados mantienen su estado y su indicación
+cuando se registra la realización de otros destinos de la orden.
+
+La captura de diferencias pertenece a la misma aplicación del destino; no genera
+una aplicación adicional en el conteo de la etapa. Las consultas de lo aplicado
+utilizarán los datos de realización conservando identificable la indicación.
+El rango de fechas sigue usando la fecha programada por defecto, con las
+alternativas de fecha de indicación y de realización ya definidas.
+
+Esta regla está implementada y se verificó en dominio, backend aislado y demo.
+El estado de despliegue y los límites de esa evidencia constan en la
+[ficha](flows/applications.md#éxito-y-evidencia).
+
+## Por concretar en la propuesta
+
+La entrega posterior concretará columnas, agrupaciones y presentación del
+reporte completo. La ampliación actual ya define destinos con estados propios,
+indicación histórica, excepción de realización y vigencia de grupos en la
+[ficha de aplicaciones](flows/applications.md).
 Las pantallas de catálogos y proyectos y su esquema ya se implementaron dentro
 del alcance autorizado; sus límites de operación/publicación están registrados
 en [OPERATIONS](OPERATIONS.md) y [PLANS](PLANS.md).

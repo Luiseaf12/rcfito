@@ -85,3 +85,87 @@ Esta entrega no crea órdenes de aplicación ni sus conteos. La regla de cancela
 módulo; no se informa un conteo supuesto. El navegador de Sites necesita un
 endpoint HTTPS de Supabase accesible desde el dispositivo del visitante: publicar
 el frontend no vuelve accesible una base privada de este equipo.
+
+## Aplicaciones y grupos de siembra
+
+La migración aditiva `20261101013723_applications_and_groups.sql` incorpora el
+módulo de aplicaciones; una instalación anterior requiere aplicarla antes de
+utilizar estas rutas. Este contrato amplía el límite de la primera entrega
+descrito arriba. No incorpora el reporte completo ni indicadores financieros.
+
+Las seis tablas nuevas permiten `SELECT` a sesiones activas mediante RLS. Solo
+las RPC escriben; incluso el administrador no recibe permisos directos de
+inserción, modificación o borrado. Los lectores consultan exclusivamente las
+agrícolas asignadas, incluidos productos/destinos reales y grupos asociados.
+No hay acceso anónimo. Las RPC públicas son `SECURITY INVOKER`; delegan a
+mutadores del esquema privado que comprueban sesión y administrador activo.
+
+| Tabla | Contenido |
+| --- | --- |
+| `application_orders` | `id` UUID estable del cliente, `folio` global `APL-000001`, `project_id`, `field_id`, `crop_id`, `method_id`, `indicated_date`, `scheduled_date`, `water_l_ha`, `observations`, `project_name`, `field_name`, `crop_name`, `method_name`, `agricultural_unit_name`, `season`, `request_signature`, `created_by`, `created_at`. |
+| `application_order_products` | PK `order_id,product_id`; `dose`, `product_name`, `unit` (`g`/`ml`), `ingredients_snapshot` array de `{active_ingredient_id,name,concentration}`. |
+| `application_targets` | `id`, `order_id`, `stage_id`, `status` (`indicated`/`performed`/`cancelled`); snapshots `lot_name`, `subdivision_name`, `stage_number`, `crop_name`, `variety_name`, `area_ha`; realización `actual_date`, `actual_water_l_ha`, `equipment`, `applicator`, `actual_observations`, `has_changes`, `execution_signature`; `cancellation_reason`, `cancelled_at`, `created_at`. |
+| `application_actual_products` | PK `target_id,product_id`; `dose`, `product_name`, `unit`, `ingredients_snapshot`. Siempre hay copia propia de la mezcla realmente aplicada. |
+| `sowing_groups` | `id`, `project_id`, `field_id`, `crop_id`, `name`, `active`; snapshots `project_name`, `field_name`, `crop_name`; `request_signature`, `created_at`. |
+| `sowing_group_members` | PK `group_id,stage_id`; `active`, `retired_at`, `created_at`. Las asociaciones retiradas permanecen para historial. |
+
+`application_stage_counts` es una vista con `security_invoker=true`: `stage_id`,
+`indicated_count`, `performed_count`, `cancelled_count`. Cuenta un destino una vez,
+independientemente de sus productos. Ausencia de fila equivale a cero destinos;
+la vista conserva RLS del usuario.
+
+| RPC | Argumentos y resultado |
+| --- | --- |
+| `create_application_order` | `p_data jsonb`, `p_stage_ids uuid[]`, `p_products jsonb` → UUID de orden. |
+| `perform_application_targets` | `p_order_id uuid`, `p_target_ids uuid[]`, `p_data jsonb` → void. |
+| `cancel_application_targets` | `p_order_id uuid`, `p_target_ids uuid[]`, `p_reason text` → void. |
+| `save_sowing_group` | `p_data jsonb`, `p_stage_ids uuid[]` → UUID de grupo. |
+
+Para indicar, `p_data` contiene `{id,project_id,field_id,crop_id,method_id,
+indicated_date,scheduled_date,water_l_ha,observations?}`; `id` es obligatorio y lo
+genera el cliente una vez por borrador. `p_products` contiene al menos un
+`{product_id,dose}`. Los destinos son etapas sembradas vigentes completas del
+mismo proyecto activo, campo y cultivo. Dosis y agua son números positivos;
+el servidor no acepta productos repetidos ni destinos repetidos. La indicación
+no precede ninguna siembra y la programación no precede la indicación.
+
+Para realizar, `p_data` contiene `{actual_date,equipment?,applicator?,observations?,
+changed}`. Con `changed:false`, el servidor ignora cualquier override y copia
+exactamente agua y mezcla indicadas. Con `changed:true` exige `water_l_ha` y
+`products:[{product_id,dose}]`; conserva el original y guarda la mezcla real de
+cada destino. Los productos originalmente indicados pueden conservarse estando
+inactivos, con su unidad/nombre originales; los nuevos deben estar activos.
+`has_changes` refleja diferencias reales de agua/productos/dosis respecto de la
+indicación, aunque el usuario haya marcado cambios y luego deje los mismos
+valores. La fecha real no precede indicación/siembra ni supera el día actual en
+`America/Mazatlan`; puede preceder la fecha programada.
+
+Una cancelación exige motivo no vacío y conserva la indicación. Los destinos
+terminales no cambian a otro resultado. El lote de destinos de una llamada se
+valida completo antes de escribir: un conflicto revierte toda la llamada. Una
+orden con el mismo UUID y entrada normalizada idéntica retorna la misma orden;
+otra entrada con ese UUID se rechaza. Repetir una realización idéntica o una
+cancelación con el mismo motivo no duplica filas/conteos, incluso si la etapa
+se cerró o el catálogo se desactivó después de la primera confirmación.
+
+Para guardar grupos, `p_data` contiene `{id?,project_id,field_id,crop_id,name,
+active?}`; se recomienda UUID estable también para el alta. `p_stage_ids` es
+únicamente la selección vigente; requiere al menos una etapa sembrada si el
+grupo está activo. Omitir un integrante lo marca inactivo con fecha de retiro,
+sin borrar su asociación. Es posible desactivar un grupo sin destinos. Las
+etapas cerradas conservan su referencia y nunca se remapean a la siguiente
+siembra. El contexto de un grupo existente no se modifica. Un reintento idéntico
+no vuelve a validar la elegibilidad ya cambiada por un cierre posterior.
+El nombre es único por proyecto y campo al comparar sin acentos ni mayúsculas;
+un índice único también protege las escrituras concurrentes.
+
+El servidor impide cerrar etapas o temporadas con destinos indicados. La fecha
+de cierre de etapa no puede preceder a su última aplicación realizada. Un
+producto usado conserva su unidad y las referencias históricas usan FK
+restrictivas. Los snapshots de indicación y realización no se reescriben cuando
+se renombran los catálogos. No se calculan totales de agua/productos ni importes.
+
+Verificación reproducible: `node scripts/backend-applications-test.mjs`, con
+PostgreSQL efímero `rcfito-applications-test`, sin puertos publicados ni datos
+reales. Comprueba migraciones, invariantes, permisos/RLS e idempotencia; Auth es
+un stub SQL y no acredita por sí solo el recorrido HTTP/Auth del sistema real.

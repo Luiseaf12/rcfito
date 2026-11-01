@@ -1,5 +1,5 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
-import { catalogKinds, emptyWorkspace, type CatalogRecord, type SowingStage, type WorkspaceCommand, type WorkspaceData } from '@/domain/model'
+import { catalogKinds, emptyWorkspace, type CatalogRecord, type ProductLine, type SowingStage, type WorkspaceCommand, type WorkspaceData } from '@/domain/model'
 import { connectionSessionKey, migrateManagedSession, normalizeConnection, resolveConnection, storedConnection, type Connection } from './connection-config'
 
 export type { Connection } from './connection-config'
@@ -45,10 +45,18 @@ type Raw = Record<string, unknown>
 const string = (value:unknown) => typeof value==='string'?value:''
 const n = (value:unknown) => Number(value??0)
 export async function loadWorkspace(client:SupabaseClient):Promise<WorkspaceData> {
-  const tables=[...catalogKinds,'product_ingredients','profiles','user_agricultural_units','sowing_projects','project_lots','lot_subdivisions','sowing_stages']
+  const tables=[...catalogKinds,'product_ingredients','profiles','user_agricultural_units','sowing_projects','project_lots','lot_subdivisions','sowing_stages','application_orders','application_order_products','application_targets','application_actual_products','sowing_groups','sowing_group_members']
+  const relationKeys: Record<string, string[]> = { product_ingredients:['product_id','active_ingredient_id'],user_agricultural_units:['user_id','agricultural_unit_id'],application_order_products:['order_id','product_id'],application_actual_products:['target_id','product_id'],sowing_group_members:['group_id','stage_id'] }
   const entries=await Promise.all(tables.map(async table=>{
     const rows:Raw[]=[]; let offset=0
-    while(true) { const {data,error}=await client.from(table).select('*').order(table==='product_ingredients'?'product_id':table==='user_agricultural_units'?'user_id':'id').range(offset,offset+499); if(error) throw new Error(`${table}: ${error.message}`);rows.push(...(data as Raw[]));if(data.length<500)break;offset+=500; if(offset>=20000)throw new Error('La consulta supera el límite de esta versión. Filtra el ámbito antes de continuar.') }
+    while(true) {
+      let query=client.from(table).select('*')
+      for(const key of relationKeys[table]??['id']) query=query.order(key)
+      const {data,error}=await query.range(offset,offset+499)
+      if(error) throw new Error(`${table}: ${error.message}`)
+      rows.push(...(data as Raw[]));if(data.length<500)break;offset+=500
+      if(offset>=20000)throw new Error('La consulta supera el límite de esta versión. Filtra el ámbito antes de continuar.')
+    }
     return [table,rows] as const
   }))
   const raw=Object.fromEntries(entries)
@@ -60,6 +68,10 @@ export async function loadWorkspace(client:SupabaseClient):Promise<WorkspaceData
   d.stages=raw.sowing_stages.map(row=>({id:string(row.id),subdivision_id:string(row.subdivision_id),stage_number:n(row.stage_number),crop_id:string(row.crop_id),variety_id:string(row.variety_id),area_ha:n(row.area_ha),planned_sowing_date:string(row.planned_sowing_date),actual_sowing_date:row.actual_sowing_date as string|null,closed_at:row.end_date as string|null,status:row.status as SowingStage['status'],crop_name_snapshot:string(row.crop_name),variety_name_snapshot:string(row.variety_name)}))
   d.profiles=raw.profiles.filter(row=>row.active).map(row=>({id:string(row.id),full_name:string(row.display_name),role:row.role==='admin'?'admin':'reader'}))
   d.assignments=raw.user_agricultural_units.map(row=>({user_id:string(row.user_id),agricultural_unit_id:string(row.agricultural_unit_id)}))
+  const productLine=(row:Raw):ProductLine=>({product_id:string(row.product_id),dose:n(row.dose),product_name:string(row.product_name),unit:row.unit as ProductLine['unit']})
+  d.applicationOrders=raw.application_orders.map(row=>({id:string(row.id),folio:string(row.folio),project_id:string(row.project_id),field_id:string(row.field_id),crop_id:string(row.crop_id),method_id:string(row.method_id),indicated_date:string(row.indicated_date),scheduled_date:string(row.scheduled_date),water_l_ha:n(row.water_l_ha),observations:string(row.observations),project_name:string(row.project_name),field_name:string(row.field_name),crop_name:string(row.crop_name),method_name:string(row.method_name),products:raw.application_order_products.filter(p=>p.order_id===row.id).map(productLine)}))
+  d.applicationTargets=raw.application_targets.map(row=>({id:string(row.id),order_id:string(row.order_id),stage_id:string(row.stage_id),status:row.status as 'indicated'|'performed'|'cancelled',lot_name:string(row.lot_name),subdivision_name:string(row.subdivision_name),stage_number:n(row.stage_number),crop_name:string(row.crop_name),variety_name:string(row.variety_name),area_ha:n(row.area_ha),actual_date:row.actual_date as string|null,actual_water_l_ha:row.actual_water_l_ha==null?null:n(row.actual_water_l_ha),actual_products:raw.application_actual_products.filter(p=>p.target_id===row.id).map(productLine),equipment:string(row.equipment),applicator:string(row.applicator),actual_observations:string(row.actual_observations),cancellation_reason:string(row.cancellation_reason),has_changes:row.has_changes===true}))
+  d.sowingGroups=raw.sowing_groups.map(row=>({id:string(row.id),project_id:string(row.project_id),field_id:string(row.field_id),crop_id:string(row.crop_id),name:string(row.name),active:row.active===true,stage_ids:raw.sowing_group_members.filter(m=>m.group_id===row.id&&m.active!==false).map(m=>string(m.stage_id)),historical_stage_ids:raw.sowing_group_members.filter(m=>m.group_id===row.id&&m.active===false).map(m=>string(m.stage_id))}))
   return d
 }
 
@@ -69,6 +81,16 @@ export async function writeCommand(client:SupabaseClient,c:WorkspaceCommand):Pro
   const remove=async(table:string,id:string)=>{const {data,error}=await client.from(table).delete().eq('id',id).select('id').single();if(error)throw error;if(!data)throw new Error('No se pudo eliminar el registro.')}
   const clean=(record:object,keys:string[])=>Object.fromEntries(Object.entries(record).filter(([key,value])=>keys.includes(key)&&value!==undefined))
   switch(c.type) {
+    case 'create_application_order': {
+      const {stage_ids,products,...values}=c.record
+      await rpc('create_application_order',{p_data:values,p_stage_ids:stage_ids,p_products:products});break
+    }
+    case 'perform_application_targets':await rpc('perform_application_targets',{p_order_id:c.order_id,p_target_ids:c.target_ids,p_data:c.data});break
+    case 'cancel_application_targets':await rpc('cancel_application_targets',{p_order_id:c.order_id,p_target_ids:c.target_ids,p_reason:c.reason});break
+    case 'save_sowing_group': {
+      const {stage_ids,...values}=c.record
+      await rpc('save_sowing_group',{p_data:values,p_stage_ids:stage_ids});break
+    }
     case 'save_catalog': {
       const r=c.record
       if(c.kind==='products') {await rpc('save_product',{p_data:{...clean(r,['id','code','name','active','unit','default_dose','brand_id']),code:r.code||r.name,product_family_id:r.family_id||null,brand_id:r.brand_id||null},p_ingredients:(r.ingredients??[]).map(i=>({active_ingredient_id:i.ingredient_id,concentration:i.concentration||null}))});break}

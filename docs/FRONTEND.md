@@ -19,6 +19,7 @@ Esta entrega ofrece tema claro; no hay selector de tema oscuro acreditado.
 | Shell y navegación | [App](../src/App.tsx), Sidebar y Sheet compartidos; [ficha](flows/navigation.md) y [NAVIGATION](../.project-standards/NAVIGATION.md). |
 | Catálogos | [Catalogs](../src/features/catalogs.tsx), Toolbar/DataTable y [shared](../src/features/shared.tsx); [ficha](flows/catalogs.md). |
 | Proyectos | [Projects](../src/features/projects.tsx): distribución, subdivisiones, etapas y transiciones; [ficha](flows/sowing-projects.md). |
+| Aplicaciones y grupos | [Applications](../src/features/applications.tsx) y [SowingGroups](../src/features/sowing-groups.tsx): indicación histórica, realización por destino, cancelación, comparación y selección manual; [ficha](flows/applications.md). |
 | Usuarios y conexión | [Users](../src/features/users.tsx) y [Connection](../src/features/connection.tsx), sobre los mismos formularios/diálogos. |
 
 Ver es detalle semántico; Editar usa captura con errores por campo. Guardar
@@ -31,6 +32,13 @@ La demostración identifica sus datos ficticios y almacenamiento local. Conectar
 Supabase requiere URL accesible, clave pública y sesión real. La simulación de
 roles no equivale a seguridad de servidor.
 
+Realizar abre con la excepción desmarcada y la mezcla indicada de lectura;
+confirmar guarda su copia. Marcar cambios habilita los productos/dosis/agua reales.
+La comparación conserva ambas mezclas. Las dosis muestran hasta seis decimales,
+la selección en tabla tiene área táctil de 44 px y grupos de proyecto cerrado no
+ofrecen Editar. Las rutas son `/aplicaciones`, `/aplicaciones/:orderId` y
+`/grupos-siembra`.
+
 ## Evidencia y límites
 
 [TESTING](TESTING.md) registra el recorrido demo del 2026-10-31 a 1440 px:
@@ -38,9 +46,14 @@ captura/búsqueda/detalle, descarte, temporada duplicada, lote/subdivisión,
 planeación/siembra y lector limitado. A 375 px se comprobó ausencia de
 desbordamiento horizontal general y se ajustó el buscador. Teclado completo,
 contraste medido y texto al 200 % siguen pendientes hasta su evidencia final.
-No se acredita navegador conectado a Supabase de operación; las verificaciones
-HTTP del backend fueron independientes.
+La primera entrega sí se verificó contra Supabase de operación. Para la ampliación
+se probaron en demo alta, realización habitual/excepcional, comparación y grupo
+manual; los 40 checks HTTP se ejecutaron en un backend aislado. El frontend de
+Docker actualizado del módulo ya muestra lista real vacía y sesión administradora
+en 5180, sin inserciones. En demo a 375 px se comprobó el lector sin Nueva
+indicación. Sites sigue en publicación; no se equiparan esas pruebas a captura
+real de aplicaciones.
 
 El [estándar FRONTEND](../.project-standards/FRONTEND.md) sigue vigente.
-MoneyInput no aplica: este producto no captura importes. Reportes históricos y
-órdenes de aplicación todavía no se implementan.
+MoneyInput no aplica: este producto no captura importes. El reporte completo de
+aplicaciones no forma parte de esta ampliación.

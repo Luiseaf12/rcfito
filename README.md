@@ -2,7 +2,9 @@
 
 Control de siembras por agrícola, campo y temporada. La primera entrega incluye
 catálogos, usuarios/asignaciones y proyectos con lotes, subdivisiones y etapas.
-Las órdenes de aplicación y su reporte quedan para una entrega posterior.
+La ampliación de aplicaciones y grupos está en verificación final: indicaciones,
+realización habitual o con cambios, cancelación e historial por etapa. El reporte
+completo queda para otra entrega; publicación de esta ampliación en curso.
 Reglas y alcance: [PRODUCT](docs/PRODUCT.md).
 
 [Abrir RCFito en ChatGPT Sites](https://rcfito.paxxa.chatgpt.site).
@@ -46,11 +48,17 @@ npm run docs:check
 [Preparación de Supabase](docs/backend-deployment.md) describe la migración,
 primer administrador, función privada de altas y pruebas aisladas. Los siete
 servicios Supabase y el frontend Docker están iniciados en este equipo, con datos
-persistentes y conexión local mediante `/supabase`. La migración está aplicada;
+persistentes y conexión local mediante `/supabase`. Hay dos migraciones aplicadas
+sin pendientes, con respaldo privado previo a la ampliación. En la primera entrega
 se verificaron login de administrador, guardado y conservación tras recargar el
 navegador. El acceso remoto de prueba usa Cloudflare Quick Tunnel; una dirección
 estable para operación sigue pendiente. Publicar Sites y arrancar el túnel son
 operaciones separadas.
+
+La ampliación se probó en demo y backend aislado. El frontend Docker actualizado
+se comprobó con sesión administradora y lista real de aplicaciones vacía, sin
+insertar datos. La revisión de Sites sigue en publicación. Evidencia y límites
+en [TESTING](docs/TESTING.md).
 
 El frontend tiene [Dockerfile](Dockerfile) y [Compose](compose.frontend.yaml)
 propios. Los comandos, publicación en Sites y portabilidad están en

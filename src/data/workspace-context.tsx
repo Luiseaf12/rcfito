@@ -7,7 +7,7 @@ import { connect, loadWorkspace, readConnection, saveConnection, writeCommand, t
 
 const demoKey='rcfito.demo.v1'
 type CreateUserInput={email:string;password:string;display_name:string;role:'viewer'|'admin';agricultural_unit_ids:string[]}
-const initialDemo=()=>{try {const parsed=JSON.parse(localStorage.getItem(demoKey)??'null'); if(parsed?.catalogs&&parsed?.projects&&parsed?.profiles)return parsed as WorkspaceData}catch{/* Start fresh after invalid demo data. */}return createDemoData()}
+const initialDemo=()=>{try {const parsed=JSON.parse(localStorage.getItem(demoKey)??'null'); if(parsed?.catalogs&&parsed?.projects&&parsed?.profiles)return {...emptyWorkspace(),...parsed,applicationOrders:parsed.applicationOrders??[],applicationTargets:parsed.applicationTargets??[],sowingGroups:parsed.sowingGroups??[]} as WorkspaceData}catch{/* Start fresh after invalid demo data. */}return createDemoData()}
 type WorkspaceContextValue={data:WorkspaceData;profile:UserProfile;isAdmin:boolean;mode:'demo'|'supabase';loading:boolean;error:string|null;warning:string|null;authenticated:boolean;connection:Connection|null;mutate:(c:WorkspaceCommand)=>Promise<void>;refresh:()=>Promise<void>;configure:(c:Connection|null)=>void;signIn:(email:string,password:string)=>Promise<void>;signOut:()=>Promise<void>;setDemoRole:(role:'admin'|'reader')=>void;resetDemo:()=>void;createUser:(input:CreateUserInput)=>Promise<void>}
 const Context=createContext<WorkspaceContextValue|null>(null)
 export function WorkspaceProvider({children}:{children:ReactNode}) {
