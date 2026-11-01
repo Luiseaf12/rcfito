@@ -265,3 +265,20 @@ existente y las variables del registro de conexión.
 Verificación posterior: inicio y bundle 200, ruta de captura presente, servicio
 IA anónimo 401, proxy IA local 401 y salud Auth 200. Sin escrituras de operación
 ni llamadas al proveedor. La activación de IA continúa diferida por el Propietario.
+
+## Publicación de cultivo y variedad en grupos
+
+2026-10-31: commit `c10976eec7c5e64c660cf750864c64e6c3bd45f3` subido a
+GitHub y al repositorio de Sites. Cultivo ofrece el catálogo activo al crear;
+variedad se muestra por siembra y permite filtrar candidatos sin retirar miembros
+ocultos. La edición explica los bloqueos de contexto. 115 pruebas, tipos/build,
+check documental y QA demo de captura/recarga/filtros/móvil aprobados; ver
+[ficha](flows/applications.md#selección-de-cultivo-y-variedad-en-grupos).
+
+Sites confirmó `succeeded` para la versión 12
+`appgprj_6ae67ae019e88191a7012093bb19c505~appgver_d23d31978358819191fbe0fe98811277`,
+despliegue `appgdep_6ae6ada616548191866aa363f511adf7`, en
+[RCFito](https://rcfito.paxxa.chatgpt.site), conservando audiencia y entorno.
+Docker frontend se reconstruyó desde el mismo commit con entorno Compose
+explícito y montaje público existente; HTML y bundle de Grupos respondieron HTTP
+200. No se modificó el esquema ni se escribieron fixtures en operación.
