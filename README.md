@@ -72,3 +72,23 @@ propios. Los comandos, publicación en Sites y portabilidad están en
 - [Interfaz](docs/FRONTEND.md) y [flujos implementados](docs/implementation-plan.md).
 - [Seguridad](docs/SECURITY.md) y [pruebas/evidencia](docs/TESTING.md).
 - [Pendientes](docs/PLANS.md) y [estándar compartido](docs/STANDARDS.md).
+
+## Consultas de aplicaciones
+
+La pantalla **Consultas** (`/consultas`) acepta preguntas escritas y notas de
+voz, con transcripción editable. Reutiliza la configuración de IA existente;
+administradores y lectores consultan únicamente su ámbito autorizado. El CLI
+ejecuta las mismas rutinas sin consumir IA:
+
+```sh
+npm run consultas -- login
+npm run consultas -- pendientes --json
+npm run consultas -- uso-producto --producto "Producto de ejemplo" --estado realizadas --json
+npm run consultas -- detalle --folio "FOLIO-DE-EJEMPLO"
+npm run consultas -- logout
+```
+
+`login` solicita la contraseña oculta y guarda la sesión en la carpeta privada
+ignorada `.artifacts/query-cli/`. `--help` describe filtros, límites y conexión.
+Requiere la migración de consultas instalada en Supabase. Contratos y evidencia:
+[ficha de consultas](docs/flows/application-chat.md).

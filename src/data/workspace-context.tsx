@@ -5,6 +5,7 @@ import { applyCommand, scopeWorkspace } from '@/domain/rules'
 import { completeCatalogs, emptyWorkspace, type UserProfile, type WorkspaceCommand, type WorkspaceData } from '@/domain/model'
 import { connect, loadWorkspace, readConnection, saveConnection, writeCommand, type Connection } from './supabase'
 import { interpretApplicationMessage } from './application-ai'
+import { askApplicationChat, executeApplicationQuery as executeQuery, transcribeApplicationAudio as transcribeAudio, type ApplicationQueryFilters, type ApplicationChatResponse } from './application-chat'
 import type { ExtractedApplication } from '@/domain/application-import'
 import { readAiSettings, testAiConnection, persistAiSettings, type AiSettingsStatus, type AiSettingsInput, type AiSettingsTestResult, type AiSettingsSaveInput } from './ai-settings'
 
@@ -12,7 +13,12 @@ const demoKey='rcfito.demo.v1'
 type CreateUserInput={email:string;password:string;display_name:string;role:'viewer'|'admin';agricultural_unit_ids:string[]}
 const initialDemo=()=>{try {const parsed=JSON.parse(localStorage.getItem(demoKey)??'null'); if(parsed?.catalogs&&parsed?.projects&&parsed?.profiles)return {...emptyWorkspace(),...parsed,catalogs:completeCatalogs(parsed.catalogs),applicationOrders:parsed.applicationOrders??[],applicationTargets:parsed.applicationTargets??[],applicationChanges:parsed.applicationChanges??[],sowingGroups:parsed.sowingGroups??[]} as WorkspaceData}catch{/* Start fresh after invalid demo data. */}return createDemoData()}
 type WorkspaceContextValue={data:WorkspaceData;profile:UserProfile;isAdmin:boolean;mode:'demo'|'supabase';loading:boolean;error:string|null;warning:string|null;authenticated:boolean;connection:Connection|null;mutate:(c:WorkspaceCommand)=>Promise<void>;refresh:()=>Promise<void>;configure:(c:Connection|null)=>void;signIn:(email:string,password:string)=>Promise<void>;signOut:()=>Promise<void>;setDemoRole:(role:'admin'|'reader')=>void;resetDemo:()=>void;createUser:(input:CreateUserInput)=>Promise<void>;interpretApplication:(message:string,signal?:AbortSignal)=>Promise<ExtractedApplication>;loadAiSettings:(signal?:AbortSignal)=>Promise<AiSettingsStatus>;testAiSettings:(input:AiSettingsInput,signal?:AbortSignal)=>Promise<AiSettingsTestResult>;saveAiSettings:(input:AiSettingsSaveInput,signal?:AbortSignal)=>Promise<AiSettingsStatus>}
-const Context=createContext<WorkspaceContextValue|null>(null)
+type ChatWorkspaceContextValue = WorkspaceContextValue & {
+  queryApplications: (message: string, context?: ApplicationQueryFilters, previousQuery?: ApplicationQueryFilters | null, signal?: AbortSignal) => Promise<ApplicationChatResponse>
+  executeApplicationQuery: (query: ApplicationQueryFilters, signal?: AbortSignal) => Promise<ApplicationChatResponse>
+  transcribeApplicationAudio: (file: File, signal?: AbortSignal) => Promise<string>
+}
+const Context=createContext<ChatWorkspaceContextValue|null>(null)
 export function WorkspaceProvider({children}:{children:ReactNode}) {
   const [connection,setConnection]=useState(readConnection)
   const client=useMemo(()=>connection?connect(connection):null,[connection])
@@ -68,7 +74,16 @@ export function WorkspaceProvider({children}:{children:ReactNode}) {
   const loadAiSettings=useCallback(async(signal?:AbortSignal)=>readAiSettings(await aiSettingsToken(),signal),[aiSettingsToken])
   const testAiSettings=useCallback(async(input:AiSettingsInput,signal?:AbortSignal)=>testAiConnection(await aiSettingsToken(),input,signal),[aiSettingsToken])
   const saveAiSettings=useCallback(async(input:AiSettingsSaveInput,signal?:AbortSignal)=>persistAiSettings(await aiSettingsToken(),input,signal),[aiSettingsToken])
-  const value:WorkspaceContextValue={data:client?data:scopeWorkspace(data,profile),profile,isAdmin:profile.role==='admin',mode:client?'supabase':'demo',loading,error,warning,authenticated:client?Boolean(session):true,connection,mutate,refresh,configure,signIn,signOut,setDemoRole,resetDemo,createUser,interpretApplication,loadAiSettings,testAiSettings,saveAiSettings}
+  const queryToken=useCallback(async()=>{
+    if(!client||!connection?.managed)throw new Error('Las consultas con IA requieren la conexión gestionada de esta instalación.')
+    const {data:{session:current},error}=await client.auth.getSession()
+    if(error||!current)throw new Error('Tu sesión no está disponible. Inicia sesión nuevamente.')
+    return current.access_token
+  },[client,connection?.managed])
+  const queryApplications=useCallback(async(message:string,context:ApplicationQueryFilters={},previousQuery?:ApplicationQueryFilters|null,signal?:AbortSignal)=>askApplicationChat(message,await queryToken(),context,previousQuery,signal),[queryToken])
+  const transcribeApplicationAudio=useCallback(async(file:File,signal?:AbortSignal)=>transcribeAudio(file,await queryToken(),signal),[queryToken])
+  const executeApplicationQuery=useCallback(async(query:ApplicationQueryFilters,signal?:AbortSignal)=>executeQuery(query,await queryToken(),signal),[queryToken])
+  const value:ChatWorkspaceContextValue={data:client?data:scopeWorkspace(data,profile),profile,isAdmin:profile.role==='admin',mode:client?'supabase':'demo',loading,error,warning,authenticated:client?Boolean(session):true,connection,mutate,refresh,configure,signIn,signOut,setDemoRole,resetDemo,createUser,interpretApplication,loadAiSettings,testAiSettings,saveAiSettings,queryApplications,transcribeApplicationAudio,executeApplicationQuery}
   return <Context.Provider value={value}>{children}</Context.Provider>
 }
 export function useWorkspace(){const c=useContext(Context);if(!c)throw new Error('Falta WorkspaceProvider.');return c}

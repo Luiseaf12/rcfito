@@ -176,3 +176,23 @@ lote de temporada y reutiliza los snapshots/cálculos de product-usage. La
 paginación; [controles compartidos](src/features/product-usage-shared.tsx) reúnen
 formatos, paginación e historial, conservando el filtro del lote al abrirlo.
 Sin nuevo adaptador, consulta ni migración. [Contrato](docs/flows/product-dashboard.md#ampliación-resumen-por-lote).
+
+## Motor de consultas, chat y audio
+
+`server/application-queries.mjs` valida consultas, ejecuta RPC con la sesión del
+usuario, comprueba revisión/permisos antes de reutilizar caché y compone respuestas
+deterministas. `server/application-chat.mjs` interpreta texto con el modelo ya
+configurado y transcribe archivos con la misma clave y `gpt-transcribe`. Una
+pregunta consume una interpretación estructurada; los resultados SQL no se
+reenvían al modelo. Los endpoints se integran en el Worker y proxies actuales.
+
+`application_query` y `application_query_stamp` son RPC invoker de lectura bajo
+RLS. La invalidación durable es global y conservadora, ligada además a usuario,
+rol y asignaciones. Cada resultado procede del mismo corte de datos. R2 contiene
+hasta 32 posiciones de caché por usuario, con validez máxima de 60 segundos y
+revalidación obligatoria; los objetos pueden persistir hasta sobrescribirse.
+
+`scripts/query-cli.mjs` usa el endpoint de consulta estructurada, sin proveedor de
+IA. Su sesión privada soporta login, renovación y logout. Presentación en
+`src/features/application-chat.tsx`, adaptador en `src/data/application-chat.ts`
+y coordinación en WorkspaceProvider. [Ficha de consultas](docs/flows/application-chat.md).

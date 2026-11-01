@@ -206,3 +206,30 @@ de catálogo evitan eludir conflictos cambiando nombres/códigos directamente o
 guardando concurrentemente. Inactivos siguen reservando sus nombres alternos.
 La captura solo completa coincidencias exactas y únicas; nunca decide por
 similitud. [Contrato](backend-api.md#sinónimos-de-productos).
+
+## Consultas de aplicaciones
+
+Los endpoints `/api/application-query`, `/api/application-chat` y
+`/api/application-transcription` validan Auth y perfil activo admin/viewer antes
+de ejecutar consultas o consumir proveedor. Las RPC invoker vuelven a comprobar
+cuenta activa y RLS en cada lectura, incluidos IDs/nombres enviados directamente.
+No se permite SQL libre ni operaciones de escritura desde el plan del modelo.
+
+El chat envía al proveedor pregunta, filtros acotados, consulta previa y contexto
+de fechas; no envía workspace ni resultados de negocio completos. Audio envía
+solo el archivo explícitamente elegido, renombrado, usando la clave existente.
+La transcripción se revisa antes de consultar. No se guardan grabaciones ni
+conversaciones. La configuración y clave siguen reservadas a administración.
+
+La caché R2 es privada y acotada a 32 posiciones por usuario; guarda resúmenes y
+fuentes autorizadas, nunca JWT ni claves. Su validez lógica máxima es 60 segundos;
+los objetos persisten hasta sobrescribirse. Toda entrega exige un sello de datos
+y permisos vigente bajo la sesión del usuario. Un fallo de Auth/backend impide
+servir resultados previos. Cambios de perfil/asignaciones invalidan la revisión.
+El límite de memoria es de 32 entradas pequeñas. Cuotas por usuario/instancia y
+timeouts limitan uso; no constituyen una cuota distribuida de facturación.
+
+CLI guarda sesión en `.artifacts/query-cli/`, ignorada, con permisos POSIX
+0700/0600 o ACL del usuario Windows. Rechaza enlaces en la ruta, oculta contraseña,
+no recibe tokens por argumentos y renueva únicamente contra el origen de login.
+El `.env` del usuario no se lee ni modifica. [Ficha](flows/application-chat.md).

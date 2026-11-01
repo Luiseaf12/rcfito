@@ -489,3 +489,28 @@ despliegue `appgdep_6ae7511fe7c881918829f8253bd77fac`, en
 conservados. Tres comprobaciones HTTP posteriores aprobaron inicio, bundle
 exacto y resumen por lote/Todas. Sin escrituras ficticias en operación.
 [Contrato](flows/product-dashboard.md#ampliación-resumen-por-lote).
+
+## Consultas por chat, audio y CLI
+
+2026-11-01: rutinas de lectura instaladas tras respaldo privado de PostgreSQL de
+450,444 bytes. `backend-local.mjs migrate` confirmó una migración aplicada;
+`--check` registró siete aplicadas y cero pendientes, sin fixtures en operación.
+La migración añade solo consultas, helpers de lectura e invalidación; no cambia
+el contenido de aplicaciones existentes. La reversión de frontend puede usar la
+versión anterior; el esquema aditivo puede permanecer instalado.
+
+El Worker reutiliza la configuración cifrada de IA. Las consultas estructuradas
+del CLI funcionan sin inferencia; el chat interpreta con el modelo guardado y
+transcribe con `gpt-transcribe` usando la misma clave. El proveedor debe permitir
+acceso a ese modelo de audio. Los límites de tamaño y formatos son compartidos
+por cliente/servidor; el límite de dos minutos se comprueba en el navegador.
+
+La caché privada utiliza el prefijo R2 `rcfito/query-cache/v1/`, separado de
+configuración/túnel. Son como máximo 32 posiciones por usuario/instalación,
+revalidación obligatoria contra Supabase y 60 segundos de validez lógica. Los
+objetos caducados se sobrescriben; no se considera un archivo de conversación.
+CLI login/refresh/logout conserva su sesión solo en `.artifacts/query-cli/` con
+permisos privados. No copiar esa carpeta al publicar ni incluirla en Git.
+
+Publicación de la revisión validada: pendiente de resultado nativo de Sites y
+actualización del frontend Docker. [Ficha](flows/application-chat.md).

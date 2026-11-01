@@ -425,3 +425,22 @@ comprobaciones posteriores de HTML/bundle exacto/dashboard HTTP 200 aprobadas.
 [Publicación](OPERATIONS.md#publicación-del-resumen-por-lote).
 Sin fixtures ni escrituras en operación.
 [Fuente](flows/product-dashboard.md#ampliación-resumen-por-lote).
+
+## Consultas de aplicaciones por chat, audio y CLI
+
+Verificación 2026-11-01: `npm test` aprobó 261 pruebas integradas; tipos y build
+aprobados. Pruebas nuevas cubren filtros, planes estructurados, Auth/perfil,
+formatos/firma/tamaño de audio, reutilización de configuración, límites, caché
+por usuario/revisión, invalidación, CLI login/refresh/logout, fuentes, cifras y
+recuperación. Worker ESM compilado importa y resuelve las tres rutas nuevas.
+
+`node scripts/backend-queries-test.mjs`: 75 comprobaciones SQL aprobadas en
+PostgreSQL efímero con siete migraciones. `node scripts/backend-applications-test.mjs`
+aprobó la regresión existente. `node scripts/backend-integration.mjs --fresh --cleanup --advisors`
+aprobó Auth/REST/Edge/RLS y 19 verificaciones HTTP nuevas de consultas, incluidas
+correcciones/revisión y pérdida de asignaciones o desactivación con el mismo JWT.
+Advisors sin WARN/ERROR. El stack aislado quedó detenido y sus fixtures retirados.
+
+La verificación del proveedor usa respuestas ficticias: no acredita inferencia
+o reconocimiento de voz reales. QA navegador y despliegue se registran en
+[la ficha](flows/application-chat.md) y [operación](OPERATIONS.md).

@@ -136,3 +136,16 @@ al cerrar. Card/Table/Button/Alert/Empty existentes, scroll de tablas contenido.
 Por solicitud expresa, cantidad ascendente numérica en la tabla global y por
 lote, sin agrupar por unidad; g/ml se siguen mostrando como kg/L. Dosis ordenada
 por unidad y ranking por aplicaciones. [Contrato y QA](flows/product-dashboard.md#ampliación-resumen-por-lote).
+
+## Consultas por texto y audio
+
+`/consultas` reutiliza el shell y carga diferida. Compone primitivas oficiales
+shadcn MessageScroller, Message, Bubble y Attachment, junto a Field, Textarea,
+Button, Select, Alert, Badge y Collapsible. La dependencia `@shadcn/react` se fija
+para el control de scroll; las superficies conservan tokens locales.
+
+Audio ofrece grabación, adjunto, preescucha, descarte y transcripción editable;
+libera pistas/URLs al cancelar o desmontar. Una grabación dura como máximo 120
+segundos; adjuntos hasta 10 MB, con comprobación de duración cuando el navegador
+la informa. Fuentes parciales se identifican como muestra; detalle accesible
+expone agua/equipo/aplicador/notas y cambios. [Ficha](flows/application-chat.md).

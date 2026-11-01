@@ -377,3 +377,11 @@ Productos globales y del lote ordenados inicialmente por cantidad numérica
 ascendente sin separar líquidos/sólidos, conservando la unidad visible. Esta
 petición sustituye el orden por unidades al consultar cantidades; el ranking
 sigue por conteos. [Recorrido y cálculos](flows/product-dashboard.md#ampliación-resumen-por-lote).
+
+## Consultas conversacionales de aplicaciones
+
+El Propietario autorizó consultas por chat, audio y CLI el 2026-11-01, reutilizando
+la configuración de IA. Se consultan pendientes, historial, uso de producto,
+detalle y cambios, con cantidades calculadas por código y fuentes verificables.
+Los permisos de lectura existentes gobiernan el ámbito; no hay escrituras desde
+el chat. Recorrido, alternativas y criterios en [la ficha](flows/application-chat.md).

@@ -33,6 +33,8 @@ Fecha de revisión: 2026-10-31.
 
 | RCF-023 | Resumen por lote, productos e historial y orden por cantidad. | cerrada | Agente principal y revisión independiente | Commit ce7ed07 en GitHub y Sites versión 20; 224 pruebas, tipos/build, QA demo/móvil/lector y tres comprobaciones HTTP aprobadas. Todas por defecto y orden ascendente mixto conservados. | [Ficha](flows/product-dashboard.md#ampliación-resumen-por-lote) y [publicación](OPERATIONS.md#publicación-del-resumen-por-lote) |
 
+| RCF-024 | Consultas de aplicaciones por chat, audio y CLI compartido. | en verificación | Agente principal y especialistas frontend/backend | Código, 261 pruebas, 75 SQL y 19 HTTP nuevas, QA de navegador y migración operativa 7/0 completados. Publicar la revisión validada en Sites y frontend Docker conservando audiencia. | [Ficha de consultas](flows/application-chat.md) |
+
 Estados y cierre: [DOCUMENTATION](../.project-standards/DOCUMENTATION.md#planes-decisiones-y-deuda).
 Una tarea registrada no autoriza implementarla. Conservar su ID y actualizar su
 fuente e índice juntos. Cerrar con evidencia, distinguiendo código, pruebas,

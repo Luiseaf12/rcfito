@@ -3,6 +3,7 @@ import { randomUUID, randomBytes } from 'node:crypto';
 import { readFileSync, readdirSync, writeFileSync, mkdirSync, copyFileSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { verifyApplicationQueries } from './backend-query-http-checks.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const workdir = resolve(root, '.artifacts/supabase-integration');
@@ -479,6 +480,7 @@ try {
   assert(createdUnits.status === 200 && createdUnits.data.length === 1 && createdUnits.data[0].id === ids.unitA, 'La cuenta creada consulta solo la agrícola asignada');
   await verifyApplications(adminToken, readerToken, noAccessToken, create.data);
   await verifyApplicationChanges(adminToken, readerToken, noAccessToken, create.data);
+  await verifyApplicationQueries({ request, check, adminToken, readerToken, noAccessToken, readerId: reader.id, unitA: ids.unitA, unitB: ids.unitB, projectA: create.data });
   await verifyProductSynonyms(adminToken, readerToken, noAccessToken);
   const classificationId = randomUUID(), classifiedIngredientId = randomUUID();
   const classification = { id: classificationId, code: `QA-CLASS-${suffix}`, name: `Clasificación ficticia ${suffix}` };

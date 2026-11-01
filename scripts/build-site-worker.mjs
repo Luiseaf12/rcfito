@@ -33,14 +33,17 @@ if (typeof key !== 'string' || key.startsWith('sb_secret_') || role === 'service
 const aiSource = readFileSync(resolve(root, 'server/application-ai.mjs'), 'utf8');
 const aiSettingsSource = readFileSync(resolve(root, 'server/ai-settings.mjs'), 'utf8');
 const workerSource = readFileSync(resolve(root, 'server/site-worker.mjs'), 'utf8');
-const aiImports = ["import { createApplicationAiHandler } from './application-ai.mjs';", "import { createAiSettingsService } from './ai-settings.mjs';"];
+const querySource = readFileSync(resolve(root, 'server/application-queries.mjs'), 'utf8');
+const chatSource = readFileSync(resolve(root, 'server/application-chat.mjs'), 'utf8').replace(/^import .* from '\.\/application-queries\.mjs';\r?\n/, '');
+if (/^\s*import\s/m.test(chatSource)) throw new Error('El servicio de consultas contiene un import no empaquetado.');
+const aiImports = ["import { createApplicationAiHandler } from './application-ai.mjs';", "import { createAiSettingsService } from './ai-settings.mjs';", "import { createApplicationChatService } from './application-chat.mjs';"];
 let embeddedWorker = workerSource;
 for (const statement of aiImports) {
   if (!embeddedWorker.includes(statement)) throw new Error('La entrada del Worker cambió; revisa el empaquetado de IA.');
   embeddedWorker = embeddedWorker.replace(statement, '');
 }
 if (/^\s*import\s/m.test(embeddedWorker)) throw new Error('El Worker contiene un import que no está empaquetado.');
-const source = `${aiSettingsSource}\n${aiSource}\n${embeddedWorker}`;
+const source = `${aiSettingsSource}\n${aiSource}\n${querySource}\n${chatSource}\n${embeddedWorker}`;
 if (dist !== resolve(root, 'dist') || lstatSync(dist).isSymbolicLink()) throw new Error('Destino de build no permitido.');
 rmSync(dist, { recursive: true });
 mkdirSync(resolve(dist, 'server'), { recursive: true });

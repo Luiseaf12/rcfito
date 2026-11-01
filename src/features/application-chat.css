@@ -1,0 +1,134 @@
+.application-chat .chat-context-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.application-chat .chat-thread-content {
+  min-width: 0;
+  height: clamp(20rem, 48dvh, 34rem);
+}
+
+.application-chat [data-slot="message-scroller-content"] {
+  padding: 0.5rem 0.25rem 1.5rem;
+}
+
+.application-chat [data-slot="message-scroller-item"] {
+  content-visibility: visible;
+}
+
+.application-chat .chat-composer {
+  border-top: 1px solid var(--border);
+  padding-top: 1.25rem;
+}
+
+.application-chat .chat-evidence {
+  width: min(100%, 46rem);
+  padding-inline: 0.75rem;
+}
+
+.application-chat .chat-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.application-chat .chat-metrics dt {
+  color: var(--muted-foreground);
+  font-size: 0.8rem;
+}
+
+.application-chat .chat-metrics dd {
+  margin: 0.2rem 0 0;
+  font-weight: 600;
+}
+
+.application-chat .chat-result-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding-block-start: 1rem;
+}
+
+.application-chat .chat-choice-list {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.5rem;
+}
+
+.application-chat .chat-choice-button {
+  height: auto;
+  justify-content: flex-start;
+  padding-block: 0.75rem;
+  white-space: normal;
+  text-align: start;
+  overflow-wrap: anywhere;
+}
+
+.application-chat .chat-result {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-block-end: 1rem;
+  border-block-end: 1px solid var(--border);
+  overflow-wrap: anywhere;
+}
+
+.application-chat .chat-result-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
+  gap: 0.5rem 1rem;
+  margin: 0;
+}
+
+.application-chat .chat-result-fields dt {
+  color: var(--muted-foreground);
+  font-size: 0.8rem;
+}
+
+.application-chat .chat-result-fields dd {
+  margin: 0.15rem 0 0;
+  white-space: pre-wrap;
+}
+
+.application-chat .chat-product-lines {
+  margin: 0.25rem 0 0;
+  padding-inline-start: 1.25rem;
+  list-style: disc;
+}
+
+.application-chat .chat-change-snapshots {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.application-chat .chat-send {
+  margin-inline-start: auto;
+}
+
+.application-chat [data-slot="button"],
+.application-chat [data-slot="select-trigger"] {
+  min-height: 44px;
+}
+
+.application-chat [data-slot="bubble"] {
+  max-width: min(92%, 46rem);
+}
+
+.application-chat [data-slot="empty"] [data-slot="button"] {
+  white-space: normal;
+  height: auto;
+  text-wrap: balance;
+}
+
+@media (max-width: 600px) {
+  .application-chat .chat-context-grid { grid-template-columns: minmax(0, 1fr); }
+  .application-chat .chat-thread-content { height: 25rem; padding-inline: 0.75rem; }
+  .application-chat .chat-composer { padding-inline: 0.75rem; }
+  .application-chat [data-slot="bubble"] { max-width: 100%; }
+  .application-chat .chat-composer-actions > [data-slot="button"] { flex: 1 1 auto; }
+  .application-chat .chat-send { margin-inline-start: 0; }
+}

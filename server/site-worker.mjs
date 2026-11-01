@@ -1,5 +1,6 @@
 import { createApplicationAiHandler } from './application-ai.mjs';
 import { createAiSettingsService } from './ai-settings.mjs';
+import { createApplicationChatService } from './application-chat.mjs';
 
 const registryKey = 'rcfito/quick-tunnel.json';
 const leaseMs = 120_000;
@@ -64,6 +65,7 @@ export function createSiteWorker(assets = {}, settings = {}, services = {}) {
   const aiBackendUrl = async env => (await registry(env))?.url ?? null;
   const aiSettings = createAiSettingsService({ fetch: remoteFetch, now, key: settings.key, backendUrl: aiBackendUrl });
   const applicationAi = createApplicationAiHandler({ fetch: remoteFetch, now, key: settings.key, backendUrl: aiBackendUrl, configuration: aiSettings.readConfiguration });
+  const applicationChat = createApplicationChatService({ fetch: remoteFetch, now, key: settings.key, backendUrl: aiBackendUrl, configuration: aiSettings.readConfiguration });
   return {
     async fetch(request, env) {
       const url = new URL(request.url);
@@ -71,6 +73,7 @@ export function createSiteWorker(assets = {}, settings = {}, services = {}) {
       try {
         if (path === '/api/ai-settings' || path === '/api/ai-settings/test') return await aiSettings.handle(request, env);
         if (path === '/api/application-draft') return await applicationAi(request, env);
+        if (['/api/application-chat', '/api/application-query', '/api/application-transcription'].includes(path)) return await applicationChat.handle(request, env);
         if (path === '/rcfito-config.json') {
           if (!['GET', 'HEAD'].includes(request.method)) return json({ error: 'Método no permitido.' }, 405);
           // La conexión sigue siendo real aunque la PC o el registro estén caídos.
