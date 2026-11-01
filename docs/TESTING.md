@@ -422,3 +422,22 @@ propio y cero errores de consola. Revisión independiente integrada.
 224 pruebas integradas aprobadas; cierre limpio y publicación en verificación.
 Sin fixtures ni escrituras en operación.
 [Fuente](flows/product-dashboard.md#ampliación-resumen-por-lote).
+
+## Regresión de captura al volver a la ventana
+
+2026-11-01: fixture aislado con `WorkspaceProvider`, `App` y formularios reales,
+sesión y datos ficticios; sin acceso a operación. Un aviso `SIGNED_IN` del mismo
+usuario reproducía el cierre del diálogo y la pérdida del texto antes del cambio.
+Después de la corrección se comprobaron:
+
+- Alta de producto: nombre y foco conservados al repetir `SIGNED_IN`, renovar
+  con `TOKEN_REFRESHED` y fallar la siguiente consulta de datos.
+- Nueva indicación: nota y agua de 250 L/ha conservadas tras ambos avisos.
+- Consulta fallida: error visible con opción de actualizar, sin perder la captura.
+- Descarte explícito: sigue requiriendo confirmación; cerrar sesión muestra login
+  y retira el contenido de la cuenta.
+
+`npm test`: 224 aprobadas; TypeScript aprobado. El fixture y la captura de QA
+contienen únicamente ejemplos y no se incluyen en el build. Esta evidencia
+comprueba la reacción del frontend a los eventos de Auth; no acredita una
+recuperación de borradores después de recargar manualmente el documento.

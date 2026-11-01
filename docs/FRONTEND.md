@@ -136,3 +136,17 @@ al cerrar. Card/Table/Button/Alert/Empty existentes, scroll de tablas contenido.
 Por solicitud expresa, cantidad ascendente numérica en la tabla global y por
 lote, sin agrupar por unidad; g/ml se siguen mostrando como kg/L. Dosis ordenada
 por unidad y ranking por aplicaciones. [Contrato y QA](flows/product-dashboard.md#ampliación-resumen-por-lote).
+
+## Captura al recuperar el foco
+
+La confirmación o renovación de la sesión del mismo usuario actualiza los datos
+en segundo plano y mantiene montados la ruta, los formularios y su foco. La
+pantalla de carga bloqueante queda reservada al inicio de conexión y al cambio
+real de identidad. Cerrar sesión sigue retirando los datos de la cuenta.
+
+Corrección del 2026-11-01: el efecto dependía del objeto de sesión, que Supabase
+puede volver a emitir al regresar a una ventana. Activar el estado de carga en
+cada aviso sustituía la ruta por el skeleton de `App` y destruía su estado local.
+Se retiró únicamente esa activación repetida; las consultas, tokens y controles
+de acceso continúan funcionando. Esto no incorpora recuperación de borradores
+tras una recarga manual o cierre completo del navegador.
