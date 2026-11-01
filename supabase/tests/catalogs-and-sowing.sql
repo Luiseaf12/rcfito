@@ -104,6 +104,28 @@ select pg_temp.expect_error($q$select public.save_product('{"code":"PX","name":"
 select pg_temp.assert_true((select count(*)=0 from public.products where code='PX'),'fallo de composición no deja producto parcial');
 select set_config('test.product',public.save_product('{"code":"P1","name":"Producto ficticio","unit":"ml","default_dose":1}','[{"active_ingredient_id":"70000000-0000-4000-8000-000000000001","concentration":"10 g/L"}]')::text,true);
 select pg_temp.assert_true((select concentration='10 g/L' from public.product_ingredients where product_id=current_setting('test.product')::uuid),'concentración conserva valor y unidad del producto');
+-- Catalog editing regression: rollback these edits before the remaining reader tests.
+insert into public.brands(code,name) values('QA-MARCA','Marca ficticia');
+insert into public.product_families(code,name) values('QA-FAMILIA','Familia ficticia');
+insert into public.application_methods(code,name) values('QA-MEDIO','Medio ficticio');
+savepoint catalog_edits;
+do $$ declare t text; begin
+  foreach t in array array['agricultural_units','fields','crops','varieties','products','active_ingredients','brands','product_families','infrastructure_types','application_methods'] loop
+    execute format('update public.%I set name=name || '' corregido'', active=false',t);
+    execute format('select pg_temp.assert_true(bool_and(not active and name like ''%% corregido''), %L) from public.%I',t || ': administrador edita nombre/estado',t);
+  end loop;
+end $$;
+select pg_temp.assert_true((select crop_name='Pepino ficticio' and variety_name='Variedad A ficticia' from public.sowing_stages where id=current_setting('test.stage1')::uuid),'editar cultivo/variedad conserva snapshots de etapa cerrada');
+select pg_temp.assert_true((select agricultural_unit_name='Agrícola A ficticia' and field_name='Campo A ficticio' and infrastructure_type_name='Campo abierto ficticio' from public.project_lots where id=current_setting('test.lot')::uuid),'editar agrícola/campo/infraestructura conserva snapshots de lote');
+select pg_temp.expect_error($q$update public.fields set agricultural_unit_id='20000000-0000-4000-8000-000000000002' where id='30000000-0000-4000-8000-000000000001'$q$,'historial','campo histórico conserva agrícola incluso inactivo');
+select pg_temp.expect_error($q$update public.varieties set crop_id='40000000-0000-4000-8000-000000000002' where id='50000000-0000-4000-8000-000000000001'$q$,'foreign key','variedad histórica conserva cultivo incluso inactiva');
+update public.fields set name='Campo con agrícola inactiva' where id='30000000-0000-4000-8000-000000000001';
+select pg_temp.assert_true((select name='Campo con agrícola inactiva' from public.fields where id='30000000-0000-4000-8000-000000000001'),'permite corregir campo conservando agrícola inactiva');
+select public.save_product(jsonb_build_object('id',current_setting('test.product'),'code','P1','name','Producto corregido','unit','ml','default_dose',15,'brand_id',(select id from public.brands where code='QA-MARCA'),'product_family_id',(select id from public.product_families where code='QA-FAMILIA'),'active',false),'[{"active_ingredient_id":"70000000-0000-4000-8000-000000000001","concentration":"25 g/L"}]');
+select pg_temp.assert_true((select code='P1' and default_dose=15 and not active from public.products where id=current_setting('test.product')::uuid),'producto conserva clave, edita dosis y mantiene referencias inactivas');
+select pg_temp.assert_true((select concentration='25 g/L' from public.product_ingredients where product_id=current_setting('test.product')::uuid),'edita concentración de ingrediente existente inactivo');
+rollback to savepoint catalog_edits;
+
 select pg_temp.expect_error($q$select public.set_user_access('10000000-0000-4000-8000-000000000001','viewer',true,'{}')$q$,'administrador activo','se conserva al menos un administrador activo');
 
 set local request.jwt.claim.sub='10000000-0000-4000-8000-000000000002';

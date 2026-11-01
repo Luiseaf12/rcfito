@@ -213,3 +213,34 @@ comprobaciones volvieron a aprobar. La bitácora del monitor confirmó el cambio
 No se reinició la PC ni se modificaron datos de negocio para esta prueba.
 Los 34 tests y tipos/build de esa publicación automática se comprobaron sobre una
 revisión aislada, anterior a la entrega de aplicaciones documentada arriba.
+
+## Edición válida de catálogos: 2026-10-31
+
+17 pruebas nuevas cubren los diez catálogos, bloqueo por uso histórico, permisos,
+referencias inactivas conservadas, campos inválidos y consulta paginada de uso de
+productos. `npm test` aprobó 71 pruebas en el árbol integrado con aplicaciones y
+51 en la revisión aislada de catálogos. `npm run typecheck`, `npm run build` y
+`npm run docs:check` aprobaron en esa revisión. Tras integrar las aplicaciones
+recién publicadas se repitieron los controles sobre el árbol final (71 pruebas).
+
+`node scripts/backend-test.mjs` aprobó 65 comprobaciones SQL en PostgreSQL
+efímero: edición de los diez catálogos, conservación de snapshots de lote/etapa,
+restricciones de relaciones usadas, ingrediente existente inactivo y RLS. No se
+requiere una migración para esta mejora; se conservan las restricciones del
+servidor. La unidad usada ya está protegida por la migración de aplicaciones
+cuando ese módulo está instalado. Auth stub no acredita una sesión real.
+
+Navegador en demo a 1280 px: edición y persistencia tras recarga en los diez
+catálogos; campo/variedad usados con relación bloqueada y motivo asociado;
+clave original de producto conservada; descarte/reapertura, Escape y retorno
+de foco; lector sin Crear/Editar. A 375 px, motivo legible y formulario con scroll
+interno, documento de 375 px sin desbordamiento horizontal. La consulta del uso
+de productos también funciona sin habilitar las pantallas de aplicaciones;
+los errores de permisos/red no se interpretan como ausencia de uso. Esa frontera
+se verifica con respuestas HTTP simuladas, no con escrituras en operación.
+
+Revisión de React y contratos realizada por el autor: estado inicial estable,
+validación compartida, controles deshabilitados durante guardado y motivo accesible.
+No se presenta como revisión independiente. Zoom 200 %, contraste medido y
+matriz completa de teclado permanecen en RCF-006. El build conserva la advertencia
+previa de tamaño del chunk principal. Publicación: [OPERATIONS](OPERATIONS.md).

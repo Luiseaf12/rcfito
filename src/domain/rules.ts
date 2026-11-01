@@ -1,5 +1,6 @@
 import type { CatalogKind, CatalogRecord, UserProfile, WorkspaceCommand, WorkspaceData } from './model'
 import { applyApplicationCommand } from './applications'
+import { validateCatalogEdit } from './catalogs'
 
 const fail = (message: string): never => { throw new Error(message) }
 const validDate = (value: string) => /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(`${value}T12:00:00Z`)) && new Date(`${value}T12:00:00Z`).toISOString().slice(0,10) === value
@@ -43,21 +44,9 @@ export function applyCommand(input: WorkspaceData, command: WorkspaceCommand, pr
   switch(command.type) {
     case 'save_catalog': {
       const row={...command.record, name:command.record.name.trim()} as CatalogRecord
-      if (!row.name) fail('El nombre es obligatorio.')
-      if(d.catalogs[command.kind].some(r=>r.id!==row.id && normalized(r.name)===normalized(row.name) && (command.kind!=='fields'||r.agricultural_unit_id===row.agricultural_unit_id) && (command.kind!=='varieties'||r.crop_id===row.crop_id))) fail('Ya existe un registro con ese nombre en este ámbito.')
-      if(command.kind==='fields') {requireActive('agricultural_units',row.agricultural_unit_id);const old=catalog('fields',row.id);if(old&&old.agricultural_unit_id!==row.agricultural_unit_id&&d.lots.some(l=>l.field_id===old.id))fail('Un campo con historial no puede cambiar de agrícola.')}
-      if(command.kind==='varieties') {requireActive('crops',row.crop_id);const old=catalog('varieties',row.id);if(old&&old.crop_id!==row.crop_id&&d.stages.some(s=>s.variety_id===old.id))fail('Una variedad utilizada no puede cambiar de cultivo.')}
-      if(command.kind==='products') {
-        const old=catalog('products',row.id)
-        if(old && old.unit!==row.unit && (d.applicationOrders.some(o=>o.products.some(p=>p.product_id===row.id)) || d.applicationTargets.some(t=>t.actual_products.some(p=>p.product_id===row.id)))) fail('La unidad de un producto utilizado no puede cambiar; conserva su historial.')
-        if(!['g','ml'].includes(row.unit!)) fail('Selecciona la unidad fija del producto.')
-        if(!Number.isFinite(row.default_dose)||row.default_dose!<0) fail('La dosis predeterminada no puede ser negativa.')
-        const ids=(row.ingredients??[]).map(x=>x.ingredient_id)
-        if(ids.length!==new Set(ids).size) fail('No repitas un ingrediente en el mismo producto.')
-        ids.forEach(id=>{const ingredient=catalog('active_ingredients',id);const existed=catalog('products',row.id)?.ingredients?.some(i=>i.ingredient_id===id);if(!ingredient||!ingredient.active&&!existed)fail('Solo se pueden añadir ingredientes activos; una relación histórica inactiva puede conservarse.')})
-        if(row.brand_id) requireActive('brands',row.brand_id)
-        if(row.family_id) requireActive('product_families',row.family_id)
-      }
+      const errors = validateCatalogEdit(d, command.kind, row)
+      const message = Object.values(errors)[0]
+      if (message) fail(message)
       const index=d.catalogs[command.kind].findIndex(r=>r.id===row.id)
       if(index<0) d.catalogs[command.kind].push({...row,id:uuid()}); else d.catalogs[command.kind][index]={...d.catalogs[command.kind][index],...row}
       break

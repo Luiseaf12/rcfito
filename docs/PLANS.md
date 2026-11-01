@@ -16,6 +16,7 @@ Fecha de revisión: 2026-10-31.
 | RCF-010 | Definir un endpoint estable para operación remota. | propuesta | Propietario | Elegir una solución estable cuando se requiera operación continua; el Quick Tunnel actual es temporal y gratuito para pruebas. | [Quick Tunnel](OPERATIONS.md#quick-tunnel-gratuito-para-pruebas) |
 | RCF-011 | Reporte completo de aplicaciones con filtros y agrupaciones. | propuesta | Por asignar | Concretar columnas y agrupaciones por las dimensiones confirmadas; la lista/detalle actual no sustituye este reporte. Separado del alcance original de RCF-004. | [Reporte](PRODUCT.md#reporte) |
 | RCF-012 | Actualizar Sites automáticamente al cambiar el Quick Tunnel. | cerrada | Agente principal | Worker con ruta fija, registro R2 con caducidad y tarea Windows activos; 34 pruebas y nueve comprobaciones HTTPS antes/después de reiniciar el conector aprobadas. Conservar sesión Windows/Docker y credenciales privadas. | [Conexión automática](tunnel-auto-update.md) y [evidencia](TESTING.md#actualización-automática-del-túnel) |
+| RCF-013 | Edición válida en los diez catálogos con motivos de bloqueo e historial. | en verificación | Agente principal | Código y pruebas locales aprobados; publicar la revisión aislada en GitHub/Sites conservando audiencia. | [Ficha de catálogos](flows/catalogs.md#edición-válida-e-historial) |
 
 Estados y cierre: [DOCUMENTATION](../.project-standards/DOCUMENTATION.md#planes-decisiones-y-deuda).
 Una tarea registrada no autoriza implementarla. Conservar su ID y actualizar su
@@ -101,3 +102,7 @@ con registro R2 limitado a URL/vigencia. La URL cambió al reiniciar solo el
 conector y se renovó sin republicar el Site; 34 pruebas y nueve verificaciones
 HTTPS antes/después aprobaron. El Site ya figuraba público al desplegar y esa
 audiencia se conservó. RCF-012 cerrado; el endpoint continuo sigue en RCF-010.
+
+2026-10-31: el Propietario autorizó edición de campos válidos en todos los catálogos,
+con motivo visible de bloqueo y conservación de historial. RCF-013 registra
+la implementación y evidencia local; la publicación se confirma por separado.

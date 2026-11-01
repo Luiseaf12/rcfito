@@ -58,6 +58,34 @@ asumir que todas expresan porcentaje. Vacío significa «no registrada», no cer
 
 ## Consulta y estado
 
+### Edición válida e historial
+
+Solicitud del Propietario del 2026-10-31: implementar edición en los diez
+catálogos, explicar los bloqueos y conservar el historial. Criterios de esta
+intervención:
+
+| Catálogos | Campos editables | Bloqueo por uso |
+| --- | --- | --- |
+| Agrícolas | Nombre, clave y estado. | Identidad interna y fecha de creación se conservan. |
+| Campos | Nombre, clave, estado y agrícola. | La agrícola no cambia si existe un lote relacionado, incluso histórico. |
+| Cultivos | Nombre y estado. | Se conservan los snapshots de las etapas. |
+| Variedades | Nombre, estado y cultivo. | El cultivo no cambia si existe una etapa relacionada, incluso planeada o cerrada. |
+| Productos | Nombre, dosis predeterminada, marca, familia, ingredientes, concentraciones, estado y unidad. | La unidad no cambia si aparece en indicación o realización; incluye aplicaciones canceladas. |
+| Ingredientes, marcas, familias, infraestructura y medios | Nombre y estado. | Los registros históricos conservan las referencias y copias utilizadas. |
+
+Los campos bloqueados permanecen visibles, deshabilitados y con el motivo
+al lado, asociado mediante `aria-describedby`. El resto del formulario permite
+guardar. Las referencias inactivas previamente guardadas se pueden conservar;
+no se ofrecen como relaciones nuevas. Los códigos no expuestos por el formulario
+se conservan al editar. Cancelar/reabrir recupera lo persistido y los permisos
+de lector permanecen de consulta.
+
+Verificar edición/relectura en los diez catálogos; bloqueo y edición de los
+demás campos en campo/variedad/producto usados; relaciones libres antes de uso;
+referencias inactivas existentes; nombres duplicados; conservación de snapshots;
+lector sin escritura; foco, teclado y móvil. La evidencia de cierre se registra
+en esta misma ficha después de ejecutar los controles.
+
 El buscador lleva etiqueta visible, lupa decorativa y `type="search"` sobre
 InputGroup/InputGroupInput/InputGroupAddon. Filtra al escribir o pegar sin Enter;
 conserva el texto capturado. La normalización de acentos/caso/espacios solo se
@@ -117,3 +145,20 @@ de dominio de [test/domain.test.ts](../../test/domain.test.ts) cubren relaciones
 baja lógica, concentración opcional y rechazo de escritura del lector; no
 certifican RLS del servidor ni comportamiento del modal. La evidencia SQL/HTTP
 independiente y sus límites están en [TESTING](../TESTING.md).
+
+### Evidencia de esta intervención
+
+Verificación del 2026-10-31: 17 pruebas nuevas; 51 pruebas puras de la revisión
+publicable y 71 del árbol integrado con aplicaciones; 65 comprobaciones SQL
+aisladas; tipos/build/check documental aprobados. Navegador demo comprobó
+editar/guardar/recargar en los diez catálogos, bloqueos de campo y variedad,
+clave de producto conservada, descarte/reapertura, Escape/retorno de foco y lector
+sin escritura. Móvil 375 px sin desbordamiento, motivo visible y scroll interno.
+Detalles y límites: [TESTING](../TESTING.md#edición-válida-de-catálogos-2026-10-31).
+
+La marca de unidad bloqueada se consulta en servidor mediante solo IDs de uso,
+con paginación y RLS, independientemente de las pantallas de aplicaciones. Un
+esquema anterior sin aplicaciones se admite; otros errores impiden confirmar
+la carga en lugar de desbloquear silenciosamente. No se modifican snapshots ni
+se crean fixtures en operación. Quedan fuera de esta evidencia la edición real
+de registros operativos, zoom/contraste y los casos anteriores aún pendientes.

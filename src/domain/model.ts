@@ -4,7 +4,7 @@ export type CatalogRecord = {
   id: string; name: string; code?: string; active: boolean;
   agricultural_unit_id?: string; crop_id?: string; brand_id?: string | null;
   family_id?: string | null; unit?: 'g' | 'ml'; default_dose?: number;
-  ingredients?: ProductIngredient[]; created_at?: string;
+  ingredients?: ProductIngredient[]; created_at?: string; unit_locked?: boolean;
 }
 export type SowingProject = { id: string; agricultural_unit_id: string; name: string; season: string; start_date?: string; status: 'draft' | 'active' | 'closed'; created_at?: string }
 export type ProjectLot = { id: string; project_id: string; field_id: string; name: string; code?: string; area_ha: number; infrastructure_type_id: string; active?: boolean; created_at?: string; field_name_snapshot?: string; infrastructure_name_snapshot?: string }

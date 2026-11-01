@@ -2,6 +2,7 @@ import { useMemo, useState, type FormEvent } from 'react'
 import { ArrowDown, ArrowUp, ChevronLeft, ChevronRight, Eye, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { useWorkspace } from '@/data/workspace-context'
 import type { CatalogKind, CatalogRecord, ProductIngredient } from '@/domain/model'
+import { catalogEditLocks, catalogRelationOptions, validateCatalogEdit } from '@/domain/catalogs'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -80,34 +81,77 @@ function CatalogDetails({ kind, record, close, edit }: { kind: CatalogKind; reco
 
 function CatalogEditor({ kind, record, close, saved }: { kind: CatalogKind; record?: CatalogRecord; close: () => void; saved: () => void }) {
   const { data, mutate, isAdmin } = useWorkspace()
-  const initial = { name: record?.name ?? '', code: record?.code ?? '', active: record?.active ?? true, agricultural_unit_id: record?.agricultural_unit_id ?? '', crop_id: record?.crop_id ?? '', brand_id: record?.brand_id ?? '__none', family_id: record?.family_id ?? '__none', unit: record?.unit ?? 'g', default_dose: String(record?.default_dose ?? 0), ingredients: (record?.ingredients ?? []).map(item => ({ ...item })) }
+  const [initial] = useState(() => ({ name: record?.name ?? '', code: record?.code ?? '', active: record?.active ?? true, agricultural_unit_id: record?.agricultural_unit_id ?? '', crop_id: record?.crop_id ?? '', brand_id: record?.brand_id ?? '__none', family_id: record?.family_id ?? '__none', unit: record?.unit ?? 'g', default_dose: String(record?.default_dose ?? 0), ingredients: (record?.ingredients ?? []).map(item => ({ ...item })) }))
   const [form, setForm] = useState(initial)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const locks = catalogEditLocks(data, kind, record)
   const { requestClose, onOpenChange, confirmation } = useFormClose(JSON.stringify(initial) !== JSON.stringify(form), busy, close)
   const update = <K extends keyof typeof form>(key: K, value: typeof form[K]) => { setForm(current => ({ ...current, [key]: value })); setErrors(current => ({ ...current, [key]: '' })) }
-  const options = (catalog: CatalogKind, selected?: string) => data.catalogs[catalog].filter(item => item.active || item.id === selected).map(item => ({ value: item.id, label: `${item.name}${!item.active ? ' (inactivo)' : ''}` }))
+  const options = (catalog: CatalogKind, existingIds: string[] = []) => catalogRelationOptions(data.catalogs[catalog], existingIds)
+  const ingredients = record?.ingredients?.map(item => item.ingredient_id) ?? []
+
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!isAdmin || busy) return
-    const nextErrors: Record<string, string> = {}
-    if (!form.name.trim()) nextErrors.name = 'Escribe el nombre del registro.'
-    if (kind === 'fields' && !form.agricultural_unit_id) nextErrors.agricultural_unit_id = 'Selecciona una agrícola.'
-    if (kind === 'varieties' && !form.crop_id) nextErrors.crop_id = 'Selecciona un cultivo.'
-    if (kind === 'products' && (!Number.isFinite(Number(form.default_dose)) || Number(form.default_dose) < 0 || form.default_dose.trim() === '')) nextErrors.default_dose = 'Captura una dosis válida mayor o igual a cero.'
-    if (kind === 'products' && form.ingredients.some(item => !item.ingredient_id)) nextErrors.ingredients = 'Selecciona un ingrediente en cada renglón o quita el renglón vacío.'
-    if (new Set(form.ingredients.map(item => item.ingredient_id)).size !== form.ingredients.length) nextErrors.ingredients = 'Cada ingrediente solo puede agregarse una vez.'
-    setErrors(nextErrors)
-    if (Object.keys(nextErrors).length) return
-    setBusy(true); setError(null)
-    const values: Partial<CatalogRecord> & Pick<CatalogRecord, 'name' | 'active'> = { ...(record ? { id: record.id } : {}), name: form.name.trim(), active: form.active }
+    const values: Partial<CatalogRecord> & Pick<CatalogRecord, 'name' | 'active'> = {
+      ...(record ? { id: record.id, code: record.code } : {}), name: form.name.trim(), active: form.active,
+    }
     if (kind === 'agricultural_units' || kind === 'fields') values.code = form.code.trim()
     if (kind === 'fields') values.agricultural_unit_id = form.agricultural_unit_id
     if (kind === 'varieties') values.crop_id = form.crop_id
-    if (kind === 'products') Object.assign(values, { unit: form.unit, default_dose: Number(form.default_dose), brand_id: form.brand_id === '__none' ? null : form.brand_id, family_id: form.family_id === '__none' ? null : form.family_id, ingredients: form.ingredients.map(item => ({ ingredient_id: item.ingredient_id, concentration: item.concentration?.trim() || null })) })
-    try { await mutate({ type: 'save_catalog', kind, record: values }); saved() } catch (failure) { setError(errorMessage(failure)) } finally { setBusy(false) }
+    if (kind === 'products') Object.assign(values, {
+      unit: form.unit, default_dose: Number(form.default_dose),
+      brand_id: form.brand_id === '__none' ? null : form.brand_id,
+      family_id: form.family_id === '__none' ? null : form.family_id,
+      ingredients: form.ingredients.map(item => ({ ingredient_id: item.ingredient_id, concentration: item.concentration?.trim() || null })),
+    })
+    const nextErrors = validateCatalogEdit(data, kind, values as CatalogRecord)
+    if (kind === 'products' && form.default_dose.trim() === '') nextErrors.default_dose = 'Captura una dosis válida mayor o igual a cero.'
+    setErrors(nextErrors)
+    if (Object.keys(nextErrors).length) return
+    setBusy(true); setError(null)
+    try { await mutate({ type: 'save_catalog', kind, record: values }); saved() }
+    catch (failure) { setError(errorMessage(failure)) }
+    finally { setBusy(false) }
   }
   const updateIngredient = (index: number, change: Partial<ProductIngredient>) => update('ingredients', form.ingredients.map((item, position) => position === index ? { ...item, ...change } : item))
-  return <><RecordDialog open title={`${record ? 'Editar' : 'Nuevo registro de'} ${catalogDefinitions[kind].singular}`} description="Los campos con * son obligatorios. La información se conservará al corregir un error." onOpenChange={onOpenChange} wide={kind === 'products'}><form onSubmit={event => { void submit(event) }} noValidate className="record-form"><FieldGroup><div className="field-grid"><FormInput label="Nombre" value={form.name} onChange={value => update('name', value)} error={errors.name} required placeholder={kind === 'products' ? 'Nombre comercial del producto' : 'Nombre del registro'} />{(kind === 'agricultural_units' || kind === 'fields') && <FormInput label="Clave" value={form.code} onChange={value => update('code', value)} help="Una referencia breve para identificarlo." />}{kind === 'fields' && <FormSelect label="Agrícola" value={form.agricultural_unit_id} onChange={value => update('agricultural_unit_id', value)} options={options('agricultural_units', form.agricultural_unit_id)} error={errors.agricultural_unit_id} required />}{kind === 'varieties' && <FormSelect label="Cultivo" value={form.crop_id} onChange={value => update('crop_id', value)} options={options('crops', form.crop_id)} error={errors.crop_id} required />}{kind === 'products' && <><FormSelect label="Unidad fija del producto" value={form.unit} onChange={value => update('unit', value as 'g' | 'ml')} options={[{ value: 'g', label: 'Gramos (g)' }, { value: 'ml', label: 'Mililitros (ml)' }]} required /><FormInput label={`Dosis predeterminada (${form.unit}/ha)`} value={form.default_dose} onChange={value => update('default_dose', value)} type="number" min={0} step="any" error={errors.default_dose} required help="Será una referencia modificable al indicar una aplicación." /><FormSelect label="Marca (opcional)" value={form.brand_id} onChange={value => update('brand_id', value)} options={[{ value: '__none', label: 'Sin marca' }, ...options('brands', form.brand_id)]} /><FormSelect label="Familia (opcional)" value={form.family_id} onChange={value => update('family_id', value)} options={[{ value: '__none', label: 'Sin familia' }, ...options('product_families', form.family_id)]} /></>}<FormSelect label="Estado" value={form.active ? 'active' : 'inactive'} onChange={value => update('active', value === 'active')} options={[{ value: 'active', label: 'Activo' }, { value: 'inactive', label: 'Inactivo' }]} help="Un registro inactivo conserva sus relaciones históricas." /></div>{kind === 'products' && <FieldSet><FieldLegend>Ingredientes activos</FieldLegend><FieldDescription>Relaciona sus ingredientes. La concentración es opcional y corresponde a este producto.</FieldDescription>{form.ingredients.map((item, index) => <div className="ingredient-form-row" key={index}><FormSelect label={`Ingrediente ${index + 1}`} value={item.ingredient_id} onChange={value => updateIngredient(index, { ingredient_id: value })} options={options('active_ingredients', item.ingredient_id).map(option => ({ ...option, disabled: form.ingredients.some((other, position) => position !== index && other.ingredient_id === option.value) }))} required /><FormInput label="Concentración (opcional)" value={item.concentration ?? ''} onChange={value => updateIngredient(index, { concentration: value })} placeholder="Valor y unidad" /><Button type="button" variant="outline" size="icon" aria-label={`Quitar ingrediente ${index + 1}`} onClick={() => update('ingredients', form.ingredients.filter((_, position) => position !== index))}><X /></Button></div>)}{errors.ingredients && <p className="field-error" role="alert">{errors.ingredients}</p>}<Button type="button" variant="outline" onClick={() => update('ingredients', [...form.ingredients, { ingredient_id: '', concentration: null }])}><Plus data-icon="inline-start" />Agregar ingrediente</Button></FieldSet>}</FieldGroup><ErrorAlert message={error} /><div className="dialog-actions dialog-actions-end"><Button type="button" variant="outline" onClick={requestClose} disabled={busy}>Cancelar</Button><SaveButton busy={busy}>{record ? 'Guardar cambios' : 'Crear registro'}</SaveButton></div></form></RecordDialog>{confirmation}</>
+
+  return <>
+    <RecordDialog open title={`${record ? 'Editar' : 'Nuevo registro de'} ${catalogDefinitions[kind].singular}`} description="Los campos con * son obligatorios. La información se conservará al corregir un error." onOpenChange={onOpenChange} wide={kind === 'products'}>
+      <form onSubmit={event => { void submit(event) }} noValidate className="record-form">
+        {record && <Alert><AlertTitle>El historial se conserva</AlertTitle><AlertDescription>Estos cambios actualizan el catálogo. Las siembras y aplicaciones registradas conservan sus datos originales.</AlertDescription></Alert>}
+        <FieldGroup>
+          <div className="field-grid">
+            <FormInput label="Nombre" value={form.name} onChange={value => update('name', value)} error={errors.name} required disabled={busy} placeholder={kind === 'products' ? 'Nombre comercial del producto' : 'Nombre del registro'} />
+            {(kind === 'agricultural_units' || kind === 'fields') && <FormInput label="Clave" value={form.code} onChange={value => update('code', value)} disabled={busy} help="Una referencia breve para identificarlo." />}
+            {kind === 'fields' && <FormSelect label="Agrícola" value={form.agricultural_unit_id} onChange={value => update('agricultural_unit_id', value)} options={options('agricultural_units', record?.agricultural_unit_id ? [record.agricultural_unit_id] : [])} error={errors.agricultural_unit_id} required disabled={busy || !!locks.agricultural_unit_id} help={locks.agricultural_unit_id ?? 'Puedes cambiarla mientras el campo no tenga lotes relacionados.'} />}
+            {kind === 'varieties' && <FormSelect label="Cultivo" value={form.crop_id} onChange={value => update('crop_id', value)} options={options('crops', record?.crop_id ? [record.crop_id] : [])} error={errors.crop_id} required disabled={busy || !!locks.crop_id} help={locks.crop_id ?? 'Puedes cambiarlo mientras la variedad no se utilice en etapas de siembra.'} />}
+            {kind === 'products' && <>
+              <FormSelect label="Unidad fija del producto" value={form.unit} onChange={value => update('unit', value as 'g' | 'ml')} options={[{ value: 'g', label: 'Gramos (g)' }, { value: 'ml', label: 'Mililitros (ml)' }]} error={errors.unit} required disabled={busy || !!locks.unit} help={locks.unit ?? 'Puedes cambiarla mientras el producto no se utilice en aplicaciones.'} />
+              <FormInput label={`Dosis predeterminada (${form.unit}/ha)`} value={form.default_dose} onChange={value => update('default_dose', value)} type="number" min={0} step="any" error={errors.default_dose} required disabled={busy} help="Se usará como referencia en nuevas aplicaciones; las dosis ya registradas se conservan." />
+              <FormSelect label="Marca (opcional)" value={form.brand_id} onChange={value => update('brand_id', value)} options={[{ value: '__none', label: 'Sin marca' }, ...options('brands', record?.brand_id ? [record.brand_id] : [])]} error={errors.brand_id} disabled={busy} />
+              <FormSelect label="Familia (opcional)" value={form.family_id} onChange={value => update('family_id', value)} options={[{ value: '__none', label: 'Sin familia' }, ...options('product_families', record?.family_id ? [record.family_id] : [])]} error={errors.family_id} disabled={busy} />
+            </>}
+            <FormSelect label="Estado" value={form.active ? 'active' : 'inactive'} onChange={value => update('active', value === 'active')} options={[{ value: 'active', label: 'Activo' }, { value: 'inactive', label: 'Inactivo' }]} disabled={busy} help="Un registro inactivo conserva su historial y deja de ofrecerse en relaciones nuevas." />
+          </div>
+          {kind === 'products' && <FieldSet>
+            <FieldLegend>Ingredientes activos</FieldLegend>
+            <FieldDescription>Relaciona sus ingredientes. La concentración es opcional y corresponde a este producto. Las aplicaciones registradas conservan su composición original.</FieldDescription>
+            {form.ingredients.map((item, index) => <div className="ingredient-form-row" key={index}>
+              <FormSelect label={`Ingrediente ${index + 1}`} value={item.ingredient_id} onChange={value => updateIngredient(index, { ingredient_id: value })} options={options('active_ingredients', ingredients).map(option => ({ ...option, disabled: form.ingredients.some((other, position) => position !== index && other.ingredient_id === option.value) }))} required disabled={busy} />
+              <FormInput label="Concentración (opcional)" value={item.concentration ?? ''} onChange={value => updateIngredient(index, { concentration: value })} placeholder="Valor y unidad" disabled={busy} />
+              <Button type="button" variant="outline" size="icon" aria-label={`Quitar ingrediente ${index + 1}`} disabled={busy} onClick={() => update('ingredients', form.ingredients.filter((_, position) => position !== index))}><X /></Button>
+            </div>)}
+            {errors.ingredients && <p className="field-error" role="alert">{errors.ingredients}</p>}
+            <Button type="button" variant="outline" disabled={busy} onClick={() => update('ingredients', [...form.ingredients, { ingredient_id: '', concentration: null }])}><Plus data-icon="inline-start" />Agregar ingrediente</Button>
+          </FieldSet>}
+        </FieldGroup>
+        <ErrorAlert message={error} />
+        <div className="dialog-actions dialog-actions-end"><Button type="button" variant="outline" onClick={requestClose} disabled={busy}>Cancelar</Button><SaveButton busy={busy}>{record ? 'Guardar cambios' : 'Crear registro'}</SaveButton></div>
+      </form>
+    </RecordDialog>
+    {confirmation}
+  </>
 }
