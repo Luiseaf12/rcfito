@@ -511,3 +511,16 @@ conexión posteriores aprobaron; HTML y hash del bundle coincidieron con la
 compilación validada tanto en Sites como en 5180. Sin escrituras de negocio.
 La versión nueva entra en vigor al recargar después de guardar o terminar una
 captura abierta; el despliegue no fuerza esa recarga del navegador.
+
+## Publicación del filtro global por lote
+
+Solicitud del 2026-11-01 con commit/push y Sites: agregar Lote al dashboard para
+actualizar métricas, tabla general, ranking, resumen e historiales. Todos los
+lotes y Todas las aplicaciones se conservan por defecto; selección persistida en
+URL e identidad de temporada. Sin migraciones ni cambios en el backend o entorno.
+
+Implementado desde 4f78ff0 en worktree aislado, conservando la corrección de sesión
+y los cambios locales de otras tareas. 228 pruebas y tipos aprobados; QA demo y
+móvil, intersecciones y revisión independiente sin hallazgos. Pendiente cerrar
+checks/build desde revisión limpia y publicar con audiencia pública conservada.
+[Contrato](flows/product-dashboard.md#filtro-global-por-lote).

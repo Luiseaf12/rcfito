@@ -449,3 +449,16 @@ Publicación de la corrección: Docker sano y Sites versión 21 `succeeded`;
 HTML/bundle exacto comprobados en ambos destinos y nueve checks de conexión
 aprobados sin crear datos. Evidencia en
 [operación](OPERATIONS.md#captura-conservada-al-revalidar-sesión).
+
+## Filtro global por lote
+
+2026-11-01: cuatro casos en lot-usage.test.ts comprueban métricas, productos,
+ranking e historial limitados al lote, intersecciones con todos los filtros,
+identidades homónimas, IDs desconocidos/ajenos, jerarquía inválida y workspace de
+lector. 228 pruebas cliente y tipos aprobados. QA demo aislado en 5196 confirmó
+selección de dos lotes con resultados distintos, historial exclusivo, recarga,
+cambio de agrícola y limpieza. Todas y Todos los lotes por defecto; cantidades
+ascendentes mixtas conservadas. 375/1440 px sin overflow de página ni errores de
+consola. Revisión independiente sin hallazgos. No hubo escrituras en operación.
+[Contrato](flows/product-dashboard.md#filtro-global-por-lote) y
+[publicación](OPERATIONS.md#publicación-del-filtro-global-por-lote).

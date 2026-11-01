@@ -68,6 +68,32 @@ ficticios; Supabase mantiene Auth/RLS/asignaciones. No hay endpoint privilegiado
 migración ni consultas nuevas que amplíen el acceso. QA nunca carga fixtures en
 operación ni modifica el `.env` preexistente.
 
+## Filtro global por lote
+
+Autorizado el 2026-11-01 con commit/push y Sites. El selector Lote inicia en Todos
+los lotes y usa el ID del lote de temporada; cada opción muestra nombre, campo,
+temporada y agrícola, incluyendo lotes retirados o sin aplicaciones. Opciones
+limitadas a las agrícolas disponibles y a la agrícola seleccionada.
+
+Recorrido: elegir agrícola y lote → consultar métricas, tabla general y ranking
+recalculados → abrir historial o productos del lote → cerrar conservando filtros.
+El lote se cruza con cultivo, etapa y estado; Todas sigue como estado inicial y
+la tabla conserva cantidad ascendente mixta. El resumen por lote recibe el mismo
+filtro. Cambiar agrícola limpia lote y sus filtros dependientes; los demás
+filtros conservan el lote y pueden producir un vacío explicativo. Todos los lotes
+retira solo ese filtro. Limpiar filtros los retira todos. La URL conserva lote
+para recarga y los IDs desconocidos/no asignados no amplían la consulta.
+
+La vinculación stage → subdivision → lot verifica proyecto, campo y agrícola en
+una función compartida por los dos cálculos; no se deduce identidad por nombre.
+Sin migraciones ni consultas nuevas. Cuatro pruebas adicionales comprueban el
+filtro en métricas/productos/ranking/historial, intersecciones y lectura autorizada,
+lotes homónimos y IDs ajenos o con jerarquía inválida. 228 pruebas y tipos
+aprobados; QA demo en 5196 confirma cambios al seleccionar, historial exclusivo,
+recarga, cambio de agrícola y limpieza, con Todas por defecto. 375/1440 px sin
+overflow de página ni errores de consola. Revisión independiente sin hallazgos.
+Publicación pendiente; [seguimiento](../OPERATIONS.md#publicación-del-filtro-global-por-lote).
+
 ## Verificación y publicación
 
 ### Ampliación: resumen por lote

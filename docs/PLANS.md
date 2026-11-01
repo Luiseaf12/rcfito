@@ -35,6 +35,8 @@ Fecha de revisión: 2026-10-31.
 
 | RCF-024 | Conservar capturas al confirmar o renovar sesión al volver a la ventana. | cerrada | Agente principal | Causa reproducida y corregida; QA de catálogo/aplicación, fallo de consulta y cierre de sesión aprobado con datos ficticios. 224 pruebas y tipos/build aprobados; Docker sano y Sites versión 21 publicados, con conexión y bundle comprobados. | [Contrato](FRONTEND.md#captura-al-recuperar-el-foco) y [regresión](TESTING.md#regresión-de-captura-al-volver-a-la-ventana) |
 
+| RCF-026 | Filtro global por lote para productos, ranking e historial. | en curso | Agente principal y revisión independiente | Implementado y 228 pruebas/tipos/QA demo aprobados; publicar revisión limpia en GitHub y Sites conservando Todas y la audiencia. | [Ficha](flows/product-dashboard.md#filtro-global-por-lote) y [operación](OPERATIONS.md#publicación-del-filtro-global-por-lote) |
+
 Estados y cierre: [DOCUMENTATION](../.project-standards/DOCUMENTATION.md#planes-decisiones-y-deuda).
 Una tarea registrada no autoriza implementarla. Conservar su ID y actualizar su
 fuente e índice juntos. Cerrar con evidencia, distinguiendo código, pruebas,

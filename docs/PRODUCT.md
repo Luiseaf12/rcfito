@@ -360,7 +360,7 @@ históricos. Reglas exactas y aceptación: [ficha](flows/product-synonyms.md).
 
 Autorizado y rectificado el 2026-11-01: Resumen muestra por defecto todas las
 aplicaciones guardadas, incluidas temporadas anteriores. Filtros de agrícola,
-cultivo, número de etapa y estado (Todas/Indicadas/Realizadas/Canceladas). Tabla
+lote de temporada, cultivo, número de etapa y estado (Todas/Indicadas/Realizadas/Canceladas). Tabla
 de productos, ranking por aplicaciones e historial al seleccionar. La cantidad
 y dosis se calculan con la realización guardada para realizadas y la indicación
 histórica del destino para los demás estados. No equivalen a consumo real al
@@ -376,4 +376,8 @@ Se agrupa por identidad de lote/temporada y se cuenta por destino de aplicación
 Productos globales y del lote ordenados inicialmente por cantidad numérica
 ascendente sin separar líquidos/sólidos, conservando la unidad visible. Esta
 petición sustituye el orden por unidades al consultar cantidades; el ranking
-sigue por conteos. [Recorrido y cálculos](flows/product-dashboard.md#ampliación-resumen-por-lote).
+sigue por conteos. El filtro global Lote inicia en Todos los lotes y recalcula
+métricas, productos, ranking, resumen e historiales dentro de ese lote. Opciones
+con campo, temporada y agrícola para distinguir nombres repetidos.
+[Contrato del filtro](flows/product-dashboard.md#filtro-global-por-lote).
+[Recorrido y cálculos](flows/product-dashboard.md#ampliación-resumen-por-lote).

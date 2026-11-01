@@ -46,8 +46,8 @@ function LotProducts({ lot, id, onClose }: { lot: LotUsageSummary; id: string; o
   </Card>
 }
 
-export function LotUsagePanel({ data, agriculturalUnitId, cropId, stageNumber, status }: { data: WorkspaceData } & ProductUsageFilters) {
-  const result = useMemo(() => buildLotUsage(data, { agriculturalUnitId, cropId, stageNumber, status }), [data, agriculturalUnitId, cropId, stageNumber, status])
+export function LotUsagePanel({ data, agriculturalUnitId, lotId, cropId, stageNumber, status }: { data: WorkspaceData } & ProductUsageFilters) {
+  const result = useMemo(() => buildLotUsage(data, { agriculturalUnitId, lotId, cropId, stageNumber, status }), [data, agriculturalUnitId, lotId, cropId, stageNumber, status])
   const [requestedPage, setPage] = useState(1)
   const [selectedLotKey, setSelectedLotKey] = useState<string | null>(null)
   const opener = useRef<HTMLButtonElement | null>(null)

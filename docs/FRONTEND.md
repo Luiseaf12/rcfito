@@ -122,7 +122,10 @@ Card, FieldGroup/FormSelect, Table, Button y RecordDialog existentes. Tabla
 principal ordenable/paginada, ranking de diez productos e historial paginado con
 estado y origen de fecha; al cerrar conserva filtros, orden y foco. Estado inicia
 en Todas las aplicaciones, sobre todas las temporadas autorizadas. Agrícola,
-cultivo, etapa y estado quedan en la URL. Dosis se ordena por unidad; cantidad sigue el orden numérico solicitado,
+lote, cultivo, etapa y estado quedan en la URL. Lote muestra campo, temporada y
+agrícola; Todos los lotes conserva el ámbito completo. Cambiar agrícola limpia
+lote y sus dependencias; los otros filtros se cruzan con el lote seleccionado.
+Las métricas, tabla general, ranking e historiales reciben el mismo lote. Dosis se ordena por unidad; cantidad sigue el orden numérico solicitado,
 con leyenda que distingue valores registrados y consumo real. El móvil contiene
 el scroll en cada tabla. [Contrato y QA](flows/product-dashboard.md).
 
