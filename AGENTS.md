@@ -9,9 +9,9 @@ afectado y su complemento local.
 Primera entrega implementada: React + TypeScript + Vite 8, shadcn/Radix,
 catálogos, usuarios/asignaciones y proyectos de siembra. Hay demostración local
 identificada y adaptador real de Supabase Auth/REST/RPC. Supabase de operación y
-frontend Docker están iniciados localmente en `http://127.0.0.1:5180`; primera
-cuenta y prueba de captura real en curso. Migración aplicada y pantalla de acceso
-real comprobada, sin login aún. HTTPS exterior está pendiente; publicar
+frontend Docker están iniciados localmente en `http://127.0.0.1:5180`. Primera
+cuenta, login de administrador y captura persistida tras recargar comprobados;
+migración aplicada sin pendientes. HTTPS exterior está pendiente; publicar
 Sites no publica la BD.
 
 [PRODUCT](docs/PRODUCT.md) conserva los contratos de negocio. Las aplicaciones
@@ -51,7 +51,7 @@ npm run docs:check
   usados. Solo una temporada abierta por agrícola y una etapa sembrada por
   subdivisión; se permite planear etapas siguientes.
 - Lector solo consulta agrícolas asignadas; RLS y RPC lo comprueban en servidor.
-- Secretos y datos reales quedan fuera de Git, builds, capturas y ejemplos.
+- Secretos y datos reales quedan fuera de Git, builds, capturas publicadas y ejemplos.
   No leer, modificar ni sobrescribir el `.env` preexistente del usuario.
 - Las pruebas de backend usan su carpeta aislada y nunca alteran otros stacks.
 - La operación usa `.artifacts/production-supabase` y entorno Compose explícito.

@@ -6,7 +6,8 @@ La migración y la función de altas están implementadas. La instalación de
 operación local ya inició sus siete servicios sanos con datos persistentes. El
 frontend Docker está en `http://127.0.0.1:5180`, con conexión del mismo origen
 mediante `/supabase`. La migración está aplicada y la pantalla de acceso real se
-abre en navegador. Primera cuenta, login y captura real siguen en verificación.
+abre en navegador. Primera cuenta, login de administrador y captura persistida
+tras recargar ya están comprobados con confirmación en PostgreSQL.
 HTTPS exterior queda pendiente para otros dispositivos. La conexión de Sites a
 loopback desde este mismo equipo no se ha probado y puede depender de permisos
 del navegador.
@@ -93,7 +94,9 @@ Sustituir `CORREO_AUTORIZADO` por la cuenta indicada por el Propietario. Abrir
 asistente usa la API administrativa local, habilita el perfil administrador y
 rechaza nuevas altas si ya existe uno activo. Es temporal (30 minutos), solo
 atiende loopback y bloquea nuevas capturas después de completar el alta; cerrar
-el proceso al terminar. Esta cuenta aún no se declara creada ni probada.
+el proceso al terminar. En esta instalación el Propietario completó el alta y
+confirmó el acceso; se verificó la sesión real y el asistente quedó detenido.
+La contraseña fue elegida por el usuario y no se capturó en chat ni Git.
 
 El alta pública queda deshabilitada. Las altas posteriores usan
 `admin-create-user` con el JWT del administrador activo; la función verifica
@@ -144,8 +147,9 @@ se conservaron. Esa evidencia corresponde al stack aislado. Posteriormente se
 iniciaron los siete servicios de operación local y el frontend Docker, se aplicó
 la migración y se abrió el acceso real. Auth salud devuelve 200, el registro
 público está desactivado, REST anónimo devuelve 401 y las rutas ajenas al proxy
-permitido devuelven 404. Cuenta administradora y login/captura siguen en
-verificación. Detalle: [TESTING](TESTING.md#inicio-real-local-verificación-en-curso).
+permitido devuelven 404. El cierre local incluye cuenta administradora, login,
+captura y conservación tras recargar, confirmados en PostgreSQL sin cargar
+fixtures. Detalle: [TESTING](TESTING.md#inicio-real-local-verificado).
 
 ## Migración a otro servidor
 

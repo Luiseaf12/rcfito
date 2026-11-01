@@ -20,9 +20,10 @@ build: `npm run build` y `npm run preview`.
 migraciones, primera cuenta y altas privadas. La instalación de operación local
 ya inició siete servicios sanos en el grupo `rcfito-supabase`, con configuración
 privada y persistencia en `.artifacts/production-supabase`. La migración está
-aplicada sin pendientes y el navegador abre la pantalla de acceso real. La
-primera cuenta, login y captura desde navegador están en curso. HTTPS exterior
-no está configurado.
+aplicada sin pendientes. El Propietario completó su primera cuenta y confirmó el
+acceso; el navegador muestra administrador en Supabase real y conserva una
+captura tras recargar, confirmada también en PostgreSQL. HTTPS exterior no está
+configurado.
 
 El frontend se administra por separado como `rcfito-frontend`/`rcfito-web`:
 
@@ -39,8 +40,10 @@ al backend por su proxy del mismo origen.
 
 El `.env` preexistente del usuario no se modifica: frontend selecciona
 explícitamente el ejemplo vacío y backend selecciona su entorno privado propio.
-Para la primera cuenta se inicia un asistente temporal en loopback:5181 y el
-Propietario elige la contraseña allí; ver [primera cuenta](backend-deployment.md#primera-cuenta-y-altas-posteriores).
+En una instalación nueva, para la primera cuenta se inicia un asistente temporal
+en loopback:5181 y el Propietario elige la contraseña allí; ver
+[primera cuenta](backend-deployment.md#primera-cuenta-y-altas-posteriores). En
+esta instalación ya se completó el alta y el asistente está detenido.
 No repetir la preparación sobre la instalación existente ni usar comandos de
 limpieza de QA contra sus volúmenes.
 
@@ -84,6 +87,17 @@ Sites devolvió `succeeded` para el despliegue
 URL privada: [RCFito](https://rcfito.paxxa.chatgpt.site). Se abrió su inicio en
 navegador y se conservó la audiencia privada. Revisiones documentales posteriores
 pueden tener otro commit/versión sin alterar esta evidencia de primera entrega.
+
+## Publicación de la revisión operativa
+
+La operación local quedó verificada el 2026-10-31. Su código está subido a GitHub
+en `320c13aef1e9de764e2a30fbee5b854360e512ac`. Sites confirmó `succeeded` para
+el despliegue privado `appgdep_6ae68cadfc808191b252cb2f5ffc3e2e`, versión
+`appgprj_6ae67ae019e88191a7012093bb19c505~appgver_7df53f12cd1c81919a8d30452da082b9`,
+en [RCFito](https://rcfito.paxxa.chatgpt.site). Los commits documentales posteriores
+conservan esta evidencia de publicación de la revisión operativa. Actualizar el
+frontend alojado no habilita por sí mismo acceso remoto a la BD; esa conexión
+sigue en RCF-008.
 
 ## Respaldo y cambio de servidor
 

@@ -2,9 +2,9 @@
 
 Fuente de negocio: [PRODUCT](../PRODUCT.md#catálogos).
 Contrato visual: [CATALOGS](../../.project-standards/CATALOGS.md).
-Estado de verificación: en revisión de código. La ficha precede a la primera
-implementación; los casos de navegador y Supabase siguen pendientes hasta contar
-con evidencia ejecutada.
+Estado de verificación: código y reglas revisados; recorridos demo, backend
+aislado y alta/relectura real de una agrícola comprobados. La ficha precede a
+la primera implementación. Los casos restantes se indican en la matriz.
 
 ## Usuario, entrada y recorrido
 
@@ -93,6 +93,7 @@ Selectores dentro del modal conservan interacción y capas accesibles.
 | Búsqueda sin Enter, pegado, acentos, ceros y texto largo intacto | Búsqueda `verificacion` encuentra el nombre con acento en demo. Pegado, ceros y texto muy largo pendientes. |
 | Sin coincidencias, filtros y página conservados al cerrar modal | Pendiente de casos de navegador específicos. |
 | Error de captura, consulta fallida, doble envío y relectura fallida | Comportamiento revisado en código; inyección de fallos de red pendiente. |
+| Alta y relectura en operación local | Login administrador real, guardado de una agrícola y conservación tras recargar comprobados; SQL corroboró el registro. Sin fixtures ni datos operativos identificables en esta ficha. |
 | RLS: lector asignado/no asignado y acceso directo | SQL/HTTP reales aprobados en stack aislado. Demo lector oculta Culiacán. No acredita navegador conectado a operación. |
 | 375/1440 px, texto 200 %, teclado, foco, Escape y portales | Recorridos de navegador a 1440 px y ancho móvil 375 px probados; buscador móvil corregido. Teclado/200 %/matriz completa de portales pendientes. |
 

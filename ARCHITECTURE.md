@@ -45,8 +45,10 @@ Se ejecutaron 48 verificaciones SQL y 12 comprobaciones con Auth/REST/Edge/RLS
 reales en entornos aislados. La instalación de operación ya tiene sus siete
 servicios activos y persistencia local. La migración registra una aplicada y
 cero pendientes; el navegador abre el acceso real y la API rechaza la consulta
-anónima. Falta completar la primera cuenta y verificar login/captura con ella.
-Su URL HTTPS exterior sigue pendiente. El frontend demo se probó por separado.
+anónima. El Propietario completó la primera cuenta y confirmó su acceso; se
+verificaron sesión de administrador, guardado y relectura tras recargar, con
+confirmación SQL en la base real. No se cargaron fixtures. La URL HTTPS exterior
+sigue pendiente. El frontend demo se probó por separado.
 
 ## Organización propuesta de Docker
 

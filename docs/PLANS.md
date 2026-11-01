@@ -5,13 +5,14 @@ Fecha de revisión: 2026-10-31.
 | ID | Trabajo | Estado | Responsable | Próxima acción | Fuente |
 | --- | --- | --- | --- | --- | --- |
 | RCF-001 | Definir el primer alcance de catálogos y proyectos. | cerrada | Propietario del producto | Requisitos integrados y desarrollo autorizado; conservar contratos al evolucionar. | [PRODUCT](PRODUCT.md#primera-entrega-implementada) |
-| RCF-002 | Entregar y publicar catálogos/proyectos v0.1.0. | cerrada | Agente principal | Código en GitHub y publicación privada confirmada; operación y verificaciones adicionales siguen en RCF-003/006. | [Plan de entrega](implementation-plan.md#evidencia-de-cierre) |
-| RCF-003 | Preparar y conectar Supabase de operación local. | en curso | Agente principal y Propietario | Servicios, migración y acceso real en 5180 verificados; completar primera cuenta en asistente privado y probar login/captura/relectura. Acceso exterior separado en RCF-008. | [Backend](backend-deployment.md) y [pruebas](TESTING.md#inicio-real-local-verificación-en-curso) |
+| RCF-002 | Entregar y publicar catálogos/proyectos v0.1.0. | cerrada | Agente principal | Primera publicación privada confirmada. Nueva revisión operativa en RCF-009; accesibilidad adicional en RCF-006. | [Plan de entrega](implementation-plan.md#evidencia-de-cierre) |
+| RCF-003 | Preparar y conectar Supabase de operación local. | cerrada | Agente principal y Propietario | Siete servicios y frontend sanos, migración sin pendientes, primera cuenta/login y captura conservada al recargar confirmados. Conservar datos y respaldos; acceso exterior en RCF-008. | [Backend](backend-deployment.md) y [pruebas](TESTING.md#inicio-real-local-verificado) |
 | RCF-004 | Órdenes de aplicación, grupos guardados y reporte. | propuesta | Por asignar | Aclarar si realización asume lo indicado o registra diferencias; definir el flujo de esa entrega. | [Pendientes de producto](PRODUCT.md#por-definir-antes-de-la-propuesta) |
 | RCF-005 | Revisar hallazgos de dependencias de desarrollo. | pendiente | Por asignar | Revisar las 6 alertas de tooling y actualizar con pruebas compatibles, sin cambios forzados. | [TESTING](TESTING.md#evidencia-de-primera-entrega-2026-10-31) |
 | RCF-006 | Completar revisión de accesibilidad. | pendiente | Por asignar | Verificar recorrido completo de teclado, zoom 200 %, altura reducida y contraste medido. | [TESTING](TESTING.md#navegador-de-demostración) |
 | RCF-007 | Resolver falso positivo de secreto en ejemplo Supabase. | cerrada | Agente principal | Ejemplos sustituidos por variables, configuración validada y alerta 1 resuelta como falso positivo. | [Seguridad](SECURITY.md#ejemplos-del-proveedor-y-alerta-de-github) |
 | RCF-008 | Habilitar acceso remoto HTTPS a Supabase local. | pendiente | Propietario y Agente principal | Definir dominio o endpoint HTTPS, proxy y orígenes; verificar Site/celular contra la misma base. El arranque local no resuelve acceso desde otros dispositivos. | [Operación](OPERATIONS.md#docker-y-supabase) |
+| RCF-009 | Publicar la revisión con operación local verificada. | cerrada | Agente principal | Código subido y resultado nativo de publicación privada confirmado. Conservar audiencia y evidencia; conectividad remota separada en RCF-008. | [Publicación operativa](OPERATIONS.md#publicación-de-la-revisión-operativa) |
 
 Estados y cierre: [DOCUMENTATION](../.project-standards/DOCUMENTATION.md#planes-decisiones-y-deuda).
 Una tarea registrada no autoriza implementarla. Conservar su ID y actualizar su
@@ -46,11 +47,17 @@ reales, sin dominio definido. Se adopta arranque local en loopback:5180, con sie
 servicios sanos, secretos/volúmenes persistentes y JSON público del frontend.
 Se añaden validación de conexión (17 pruebas totales), migración gestionada y
 asistente temporal para que el Propietario elija la contraseña del primer
-administrador. Cuenta/login/captura siguen en verificación en RCF-003; HTTPS
-exterior se conserva como pendiente independiente RCF-008.
+administrador. El cierre local se registra abajo; HTTPS exterior se conserva
+como pendiente independiente RCF-008.
 
 Se confirmó una migración aplicada y cero pendientes, pantalla de acceso real,
 salud Auth 200, registro público deshabilitado, rechazo REST anónimo 401 y rutas
 ajenas al proxy 404. Antes del alta inicial se consultaron cero usuarios,
-agrícolas y proyectos. La contraseña y el alta siguen a cargo del Propietario;
-las pruebas del helper no sustituyen esa verificación.
+agrícolas y proyectos.
+
+El Propietario completó el alta y confirmó que ya entró. Navegador en Supabase
+real con rol administrador, captura confirmada y registro conservado al recargar;
+SQL corroboró un administrador activo, una agrícola y cero proyectos. Sin
+fixtures ni datos operativos identificables en Git. Asistente inicial detenido.
+RCF-003 queda cerrado; la actualización privada de Sites de esta revisión está
+confirmada en RCF-009, independiente del HTTPS remoto pendiente.

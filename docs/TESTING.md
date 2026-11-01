@@ -32,7 +32,7 @@ exclusivo de prueba y `--cleanup` lo detiene y retira sus datos. Detalles en
 | Sites | Publicación privada exitosa confirmada por API nativa; inicio abierto en navegador. [Registro](OPERATIONS.md#primera-publicación-confirmada). |
 | Dependencias | `npm audit --omit=dev`: cero vulnerabilidades. Auditoría total: 6 de tooling (2 bajas y 4 moderadas), pendientes de revisión; no se aplicó actualización forzada. |
 
-## Inicio real local: verificación en curso
+## Inicio real local: verificado
 
 Después de la primera entrega se inició la instalación de operación local,
 separada de los entornos efímeros anteriores:
@@ -54,12 +54,19 @@ separada de los entornos efímeros anteriores:
   [conexión](../test/connection.test.ts)), según verificación del agente principal.
 - Helper inicial: 18 casos simulados y 15 de regresión aprobados. Se corrigió
   `Referrer-Policy` del formulario para conservar origen en el envío; siguen
-  rechazándose origen ausente/no permitido y `null`. No acredita un alta real.
+  rechazándose origen ausente/no permitido y `null`.
+- El Propietario completó el formulario y confirmó su acceso. Tras recargar, el
+  navegador mostró la sesión administradora de Supabase real, sin banner demo.
+- Se creó una agrícola indicada por el Propietario; la interfaz confirmó
+  guardado y el registro permaneció tras recargar y esperar la consulta.
+  PostgreSQL confirmó un administrador activo, una agrícola y cero proyectos.
+  No se cargaron fixtures; nombres, IDs y correo reales se omiten de Git.
+- El asistente temporal quedó detenido. La contraseña fue elegida directamente
+  por el usuario y no pasó por chat ni Git.
 
-Primera cuenta elegida por el Propietario, login y guardado/relectura desde
-navegador están en verificación; no se infieren de servicios sanos ni de tests
-aislados. Para cerrarlos registrar autenticación real, captura, recarga y consulta
-con permisos. El acceso desde otros dispositivos no se verifica mientras falte
+Esta evidencia cierra el arranque local, login y persistencia del recorrido
+probado; no equivale a ejecutar todos los flujos contra la BD de operación.
+El acceso desde otros dispositivos no se verifica mientras falte
 un endpoint HTTPS accesible. Sites contra loopback en el mismo equipo tampoco
 se ha probado.
 
@@ -88,8 +95,9 @@ medido sigue pendiente hasta registrar la evidencia final. Fichas detalladas:
 ## Límites de cobertura
 
 El navegador documentado probó la demostración. El backend HTTP se probó en un
-entorno independiente. En operación local se verificaron la pantalla de acceso,
-salud y rechazos de acceso sin sesión; login y captura siguen pendientes.
+entorno independiente. En operación local se verificaron login de administrador,
+guardado, recarga y comprobación SQL de una agrícola, además de salud y rechazos
+de acceso sin sesión. Los demás flujos reales no se infieren de esa captura.
 No hay endpoint HTTPS exterior configurado. Sites confirmó su despliegue
 privado; esa publicación sirve la interfaz y no publica el Supabase local.
 

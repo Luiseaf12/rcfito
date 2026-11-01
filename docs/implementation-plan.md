@@ -1,6 +1,7 @@
 # Primera entrega: catálogos y proyectos de siembra
 
-Fecha: 2026-10-31. Estado: primera entrega publicada; conexión real local en curso.
+Fecha: 2026-10-31. Estado: primera entrega publicada y operación local verificada;
+publicación privada de la revisión operativa confirmada.
 Fuente: [PRODUCT](PRODUCT.md). El Propietario autorizó «Adelante», el uso de
 subagentes, la preparación de `.gitignore`, commit/push y publicación en ChatGPT
 Sites. La entrega implementa catálogos y proyectos de siembra; la definición
@@ -61,8 +62,9 @@ La ampliación autorizada inicia ahora Supabase real en este equipo y el fronten
 Docker en `http://127.0.0.1:5180`. La conexión local usa JSON público en ejecución
 y proxy `/supabase`; no requiere dominio. La primera cuenta se habilita mediante
 un asistente loopback temporal donde el Propietario elige la contraseña. La
-migración está aplicada; falta verificar login y guardado/relectura con la cuenta
-real para cerrar esa integración. Otros dispositivos siguen pendientes del
+migración está aplicada; primera cuenta, login administrador y guardado/relectura
+tras recargar están comprobados con confirmación SQL. El asistente quedó detenido.
+Otros dispositivos siguen pendientes del
 endpoint HTTPS exterior; Sites contra loopback en el mismo equipo no se probó.
 
 No se utilizará D1 ni otra base como sustitución del backend elegido. Las claves
@@ -93,9 +95,10 @@ builds y respaldos, manteniendo únicamente ejemplos ficticios de configuración
 | RLS, transacciones y migraciones en Supabase aislado | 48 comprobaciones SQL y 12 Auth/REST/Edge/RLS aprobadas; stack de QA detenido y datos retirados. No acredita operación. |
 | Navegador demo | A 1440 px: alta/búsqueda/detalle/descarte de catálogo, temporada duplicada, lote de 5 ha/default, planeación y siembra real; lector limitado. A 375 px: sin overflow general y buscador ajustado. |
 | Teclado, texto 200 % y contraste | Escape cierra menú móvil; resto de teclado completo, zoom 200 % y contraste medido pendientes. |
-| Revisión independiente de seguridad y flujo | Código revisado y defectos comunicados/corregidos; permisos/transacciones además probados en backend aislado. En operación se abre el acceso real y se verifican rechazos sin sesión; login/captura pendientes. |
+| Revisión independiente de seguridad y flujo | Código revisado y defectos comunicados/corregidos; permisos/transacciones además probados en backend aislado. En operación se verifican rechazos sin sesión, login administrador y una captura persistente con confirmación SQL. |
 | Commit/push y versión desplegada en Sites | Commit `86711d964da6d943e5553a755e2253aa72b787c4` subido a GitHub; despliegue privado exitoso y abierto en navegador. [Registro](OPERATIONS.md#primera-publicación-confirmada). |
-| Ampliación: arranque real local | Siete servicios sanos y frontend en 5180 con persistencia/configuración privada; migración una aplicada/cero pendientes, acceso real en navegador, Auth 200 y rechazos 401/404 confirmados. `npm test`: 17/17; helper inicial: 18 casos simulados y 15 de regresión. Primera cuenta/login/captura en verificación; HTTPS exterior pendiente. |
+| Ampliación: arranque real local | Siete servicios y frontend en 5180 sanos; una migración aplicada/cero pendientes, Auth 200 y rechazos 401/404. `npm test`: 17/17; helper inicial: 18 casos simulados y 15 de regresión. Propietario completó cuenta y confirmó acceso; guardado/recarga/SQL corroboran persistencia sin fixtures. Asistente detenido; HTTPS exterior pendiente. |
+| Publicación de revisión operativa | Código operativo subido a GitHub y publicación privada confirmada con resultado nativo `succeeded`. [Registro](OPERATIONS.md#publicación-de-la-revisión-operativa). |
 
 Los resultados se completan solo después de ejecutar el control. El índice de
 pendientes del proyecto permanece en [PLANS](PLANS.md).

@@ -7,7 +7,8 @@ Reglas y alcance: [PRODUCT](docs/PRODUCT.md).
 
 [Abrir la versión privada en ChatGPT Sites](https://rcfito.paxxa.chatgpt.site).
 Inicia con una demostración identificada. La instalación real de este equipo se
-abre en [RCFito local](http://127.0.0.1:5180); su primera cuenta está en preparación.
+abre en [RCFito local](http://127.0.0.1:5180), con administrador, acceso y guardado
+real comprobados.
 El acceso desde otros dispositivos requiere un endpoint HTTPS accesible. La
 conexión de Sites al loopback de este mismo equipo no se ha verificado.
 
@@ -41,9 +42,9 @@ npm run docs:check
 [Preparación de Supabase](docs/backend-deployment.md) describe la migración,
 primer administrador, función privada de altas y pruebas aisladas. Los siete
 servicios Supabase y el frontend Docker están iniciados en este equipo, con datos
-persistentes y conexión local mediante `/supabase`. Falta completar la primera
-cuenta y verificar captura desde el navegador; la migración ya está aplicada y
-la pantalla de acceso real se abre con esa conexión. El endpoint HTTPS remoto sigue
+persistentes y conexión local mediante `/supabase`. La migración está aplicada;
+se verificaron login de administrador, guardado y conservación tras recargar el
+navegador. El endpoint HTTPS remoto sigue
 pendiente; publicar en Sites no hace accesible el servidor local automáticamente.
 
 El frontend tiene [Dockerfile](Dockerfile) y [Compose](compose.frontend.yaml)

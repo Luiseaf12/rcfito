@@ -79,8 +79,8 @@ El stack de QA quedó detenido y sus datos ficticios retirados; otros stacks no
 se modificaron. Comandos y alcance: [TESTING](TESTING.md).
 
 La instalación de operación local está iniciada con secretos privados y sus
-siete servicios sanos. Primera cuenta, login y captura desde el navegador están
-en curso; no se declara ese recorrido completo. Se confirmó una migración
+siete servicios sanos. Se verificaron primera cuenta, login y captura desde el
+navegador con la base real. Se confirmó una migración
 aplicada sin pendientes, Auth salud 200, registro público deshabilitado, REST
 anónimo 401 y rutas ajenas al proxy permitido 404. La comparación privada del
 JSON/bundle no encontró claves de servicio, contraseñas de BD/Studio ni secretos
@@ -89,6 +89,11 @@ agrícolas y proyectos: no se cargaron fixtures en operación.
 
 El asistente inicial corrigió su política de referente a `same-origin` para que
 el envío del formulario conserve origen verificable; no admite un origen `null`.
-La regresión del helper se comprobó con peticiones simuladas; falta confirmar
-el alta del Propietario. HTTPS exterior y SMTP de recuperación siguen pendientes.
-El navegador demo y los tests HTTP aislados se verificaron por separado.
+La regresión del helper se comprobó con peticiones simuladas y el Propietario
+completó el alta y confirmó su acceso. El asistente ya está detenido; la
+contraseña fue elegida por el usuario sin pasar por chat ni Git. El navegador
+mostró administrador real, confirmó guardado y conservó el registro al recargar;
+SQL confirmó un administrador activo, una agrícola y cero proyectos. Nombres,
+identificadores y correo de operación no se incluyen en este registro público.
+HTTPS exterior y SMTP de recuperación siguen pendientes. Las pruebas demo y
+HTTP aisladas se conservan como evidencia separada.
