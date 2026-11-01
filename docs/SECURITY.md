@@ -30,6 +30,8 @@ variables `VITE_*`, Git, bundles, logs o capturas.
 se conserva [.env.example](../.env.example) con valores vacíos. El `.env`
 preexistente del usuario se conserva sin lectura/modificación. Los scripts de
 backend usan sus carpetas propias y Compose selecciona entorno explícito.
+Vite usa `envDir: false` para no cargar archivos `.env` durante desarrollo o build;
+la conexión de esta instalación se entrega mediante el JSON público.
 
 La instalación real local guarda secretos y datos en
 `.artifacts/production-supabase`. El frontend monta solamente
@@ -95,5 +97,17 @@ contraseña fue elegida por el usuario sin pasar por chat ni Git. El navegador
 mostró administrador real, confirmó guardado y conservó el registro al recargar;
 SQL confirmó un administrador activo, una agrícola y cero proyectos. Nombres,
 identificadores y correo de operación no se incluyen en este registro público.
-HTTPS exterior y SMTP de recuperación siguen pendientes. Las pruebas demo y
-HTTP aisladas se conservan como evidencia separada.
+El HTTPS exterior de prueba usa el grupo separado `rcfito-tunnel`, sin puertos
+publicados en el host ni montaje de secretos. El proxy solo reenvía Auth/REST/
+funciones, bloquea Studio y administración directa de Auth y rechaza escapes
+residuales para evitar diferencias de decodificación con el gateway. CORS admite
+el origen del Site; las peticiones directas sin Origin siguen requiriendo Auth/RLS.
+La clave publicable del JSON de conexión puede entregarse al navegador; no
+concede permisos de cuenta por sí misma. URL temporal y claves públicas no son
+credenciales privilegiadas.
+
+La revisión independiente detectó y se corrigieron un escape por doble
+decodificación y la pérdida de la URL al crecer los logs; se verificaron las
+correcciones con peticiones anónimas y pruebas HTTPS. Evidencia en
+[TESTING](TESTING.md#quick-tunnel-https). El endpoint estable y SMTP de recuperación
+siguen pendientes. Las pruebas demo y HTTP aisladas se conservan por separado.

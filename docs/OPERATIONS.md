@@ -22,8 +22,8 @@ ya inició siete servicios sanos en el grupo `rcfito-supabase`, con configuraci�
 privada y persistencia en `.artifacts/production-supabase`. La migración está
 aplicada sin pendientes. El Propietario completó su primera cuenta y confirmó el
 acceso; el navegador muestra administrador en Supabase real y conserva una
-captura tras recargar, confirmada también en PostgreSQL. HTTPS exterior no está
-configurado.
+captura tras recargar, confirmada también en PostgreSQL. El acceso HTTPS temporal
+para Sites se configura mediante el Quick Tunnel descrito abajo.
 
 El frontend se administra por separado como `rcfito-frontend`/`rcfito-web`:
 
@@ -53,7 +53,66 @@ frontend, no la base local. Otros dispositivos necesitan un endpoint HTTPS
 accesible: el `127.0.0.1` del celular no señala este servidor. Un Site abierto en
 este mismo equipo podría requerir permisos de acceso a red local del navegador;
 ese recorrido no se ha verificado y el acceso recomendado ahora es la URL local.
-El dominio y acceso remoto quedan pendientes por separado.
+El acceso remoto de prueba usa el Quick Tunnel; un endpoint estable de operación
+requiere una decisión posterior.
+
+## Quick Tunnel gratuito para pruebas
+
+El Propietario eligió Cloudflare Quick Tunnel sin comprar dominio. La composición
+[compose.tunnel.yaml](../compose.tunnel.yaml) añade el grupo `rcfito-tunnel`, con
+`rcfito-api-proxy` y `rcfito-quick-tunnel`. Usa la red `rcfito-backend`, sin publicar
+puertos del host. Las imágenes quedan fijadas por digest. Supabase, su entorno
+privado y sus volúmenes se conservan.
+
+Con Docker Desktop y el backend local activos, desde la raíz:
+
+```sh
+node scripts/backend-tunnel.mjs start
+node scripts/backend-tunnel-check.mjs
+```
+
+`start` conserva un conector que ya esté activo e informa su URL HTTPS
+`trycloudflare.com`. También genera `.artifacts/quick-tunnel/connection.json`,
+con URL y clave pública únicamente. No lee el `.env` raíz ni modifica el entorno
+privado. La caché de dirección se vincula al contenedor y su inicio, para no
+reutilizar una URL anterior después de un reinicio.
+
+En el Site, **Conexión y preferencias** permite guardar esos dos valores en el
+navegador. Para preparar esa conexión como valor inicial para otros dispositivos:
+
+```sh
+node scripts/backend-tunnel.mjs site-config
+```
+
+Este comando actualiza exclusivamente `public/rcfito-config.json` con URL y clave
+pública. Después publicar esa revisión siguiendo **GitHub y Sites**, más abajo.
+Una preferencia guardada previamente en el navegador prevalece sobre este valor
+inicial; si conserva otra dirección, actualizarla en **Conexión y preferencias**.
+El frontend Docker sigue usando su montaje local `/supabase`.
+
+El proxy solo reenvía `/auth/v1`, `/rest/v1` y `/functions/v1`; bloquea Studio,
+registro y administración directa de Auth y rutas ambiguas con escapes
+residuales. CORS admite el origen exacto del Site. Auth/RLS y la función privada
+siguen comprobando sesión y permisos; CORS no sustituye esa autorización.
+
+Consultar o detener solo este grupo:
+
+```sh
+node scripts/backend-tunnel.mjs status
+node scripts/backend-tunnel.mjs stop
+```
+
+Detener el túnel no detiene ni borra Supabase. Al volver a crear o reiniciar el
+conector, la URL puede cambiar: consultar `status`, repetir las comprobaciones y
+actualizar la conexión guardada o preparar/publicar de nuevo el JSON del Site.
+Los contenedores reinician con Docker salvo detención manual, pero la dirección
+anterior no se recupera por ese reinicio. La PC, Docker y la conexión a internet
+deben mantenerse activos.
+
+Cloudflare destina [Quick Tunnels](https://developers.cloudflare.com/tunnel/get-started/quick-tunnels/)
+a pruebas/desarrollo: sin garantía de disponibilidad, con hasta 200 peticiones
+simultáneas y sin SSE. SMTP y enlaces de recuperación por correo siguen pendientes;
+esta conexión verifica acceso mediante contraseña, no esos flujos.
 
 ## GitHub y Sites
 

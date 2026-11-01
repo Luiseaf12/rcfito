@@ -1,1 +1,5 @@
-{"mode":"demo"}
+{
+  "mode": "supabase",
+  "url": "https://mainstream-automobile-unions-quebec.trycloudflare.com",
+  "key": "sb_publishable_JQ_6s4B8a4oGiCY1pXYNRD_jfMKsesL"
+}

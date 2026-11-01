@@ -11,8 +11,9 @@ Fecha de revisión: 2026-10-31.
 | RCF-005 | Revisar hallazgos de dependencias de desarrollo. | pendiente | Por asignar | Revisar las 6 alertas de tooling y actualizar con pruebas compatibles, sin cambios forzados. | [TESTING](TESTING.md#evidencia-de-primera-entrega-2026-10-31) |
 | RCF-006 | Completar revisión de accesibilidad. | pendiente | Por asignar | Verificar recorrido completo de teclado, zoom 200 %, altura reducida y contraste medido. | [TESTING](TESTING.md#navegador-de-demostración) |
 | RCF-007 | Resolver falso positivo de secreto en ejemplo Supabase. | cerrada | Agente principal | Ejemplos sustituidos por variables, configuración validada y alerta 1 resuelta como falso positivo. | [Seguridad](SECURITY.md#ejemplos-del-proveedor-y-alerta-de-github) |
-| RCF-008 | Habilitar acceso remoto HTTPS a Supabase local. | pendiente | Propietario y Agente principal | Definir dominio o endpoint HTTPS, proxy y orígenes; verificar Site/celular contra la misma base. El arranque local no resuelve acceso desde otros dispositivos. | [Operación](OPERATIONS.md#docker-y-supabase) |
+| RCF-008 | Habilitar acceso remoto HTTPS a Supabase local. | en verificación | Propietario y Agente principal | Quick Tunnel y proxy activos; 20 comprobaciones HTTPS aprobadas. Finalizar publicación de configuración y comprobar login real desde Sites; móvil aún no probado. | [Quick Tunnel](OPERATIONS.md#quick-tunnel-gratuito-para-pruebas) y [evidencia](TESTING.md#quick-tunnel-https) |
 | RCF-009 | Publicar la revisión con operación local verificada. | cerrada | Agente principal | Código subido y resultado nativo de publicación privada confirmado. Conservar audiencia y evidencia; conectividad remota separada en RCF-008. | [Publicación operativa](OPERATIONS.md#publicación-de-la-revisión-operativa) |
+| RCF-010 | Definir un endpoint estable para operación remota. | propuesta | Propietario | Elegir una solución estable cuando se requiera operación continua; el Quick Tunnel actual es temporal y gratuito para pruebas. | [Quick Tunnel](OPERATIONS.md#quick-tunnel-gratuito-para-pruebas) |
 
 Estados y cierre: [DOCUMENTATION](../.project-standards/DOCUMENTATION.md#planes-decisiones-y-deuda).
 Una tarea registrada no autoriza implementarla. Conservar su ID y actualizar su
@@ -61,3 +62,11 @@ SQL corroboró un administrador activo, una agrícola y cero proyectos. Sin
 fixtures ni datos operativos identificables en Git. Asistente inicial detenido.
 RCF-003 queda cerrado; la actualización privada de Sites de esta revisión está
 confirmada en RCF-009, independiente del HTTPS remoto pendiente.
+
+2026-10-31: el Propietario eligió Quick Tunnel gratuito, sin comprar dominio.
+Se añadió un proxy API y conector en un grupo Compose separado, sin modificar
+datos, secretos ni configuración privada de Supabase. Veinte comprobaciones
+HTTPS aprobaron y una revisión independiente confirmó el cierre de dos defectos
+en rutas codificadas y recuperación de la dirección desde logs. La conexión se
+guardó en el navegador del Site; publicación de su valor inicial y login real
+remoto siguen en verificación. Dirección estable de operación separada en RCF-010.

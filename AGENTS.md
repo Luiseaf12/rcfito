@@ -11,8 +11,9 @@ catálogos, usuarios/asignaciones y proyectos de siembra. Hay demostración loca
 identificada y adaptador real de Supabase Auth/REST/RPC. Supabase de operación y
 frontend Docker están iniciados localmente en `http://127.0.0.1:5180`. Primera
 cuenta, login de administrador y captura persistida tras recargar comprobados;
-migración aplicada sin pendientes. HTTPS exterior está pendiente; publicar
-Sites no publica la BD.
+migración aplicada sin pendientes. El HTTPS de prueba usa Cloudflare Quick Tunnel;
+su URL puede cambiar al reiniciar. El endpoint estable sigue pendiente; publicar
+Sites y arrancar el túnel son operaciones separadas.
 
 [PRODUCT](docs/PRODUCT.md) conserva los contratos de negocio. Las aplicaciones
 y su reporte no forman parte de esta entrega. No asumir resuelta su aclaración

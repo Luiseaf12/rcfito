@@ -47,8 +47,9 @@ servicios activos y persistencia local. La migración registra una aplicada y
 cero pendientes; el navegador abre el acceso real y la API rechaza la consulta
 anónima. El Propietario completó la primera cuenta y confirmó su acceso; se
 verificaron sesión de administrador, guardado y relectura tras recargar, con
-confirmación SQL en la base real. No se cargaron fixtures. La URL HTTPS exterior
-sigue pendiente. El frontend demo se probó por separado.
+confirmación SQL en la base real. No se cargaron fixtures. El acceso HTTPS de
+prueba se proporciona mediante Quick Tunnel; el endpoint estable sigue pendiente.
+El frontend demo se probó por separado.
 
 ## Organización propuesta de Docker
 
@@ -57,6 +58,11 @@ Una sola instalación Docker administra dos grupos:
 - `rcfito-frontend`: un contenedor `rcfito-web`, React compilado servido con Nginx.
 - `rcfito-supabase`: siete servicios base `rcfito-db`, `rcfito-auth`, `rcfito-rest`,
   `rcfito-gateway`, `rcfito-studio`, `rcfito-meta` y `rcfito-functions`.
+
+El acceso remoto de prueba añade el grupo opcional `rcfito-tunnel`, con
+`rcfito-api-proxy` y `rcfito-quick-tunnel`: dos contenedores adicionales, sin puertos
+de host y con imágenes fijadas. El proxy publica solo la API y rechaza rutas de
+Studio, administración directa de Auth y rutas con codificación ambigua.
 
 Son dos grupos Compose y ocho contenedores base, no dos contenedores totales.
 Realtime, Storage y pooler quedan como perfiles opcionales. La adaptación usa la
@@ -69,11 +75,12 @@ envía `/supabase/auth/v1`, `/supabase/rest/v1` y `/supabase/functions/v1` a la 
 API por la red Docker. No reenvía Studio ni rutas administrativas. El JSON se
 carga en ejecución y la normalización conserva el prefijo `/supabase`.
 
-El Site aloja el frontend privado con demo y opción de conexión. Para acceso
-desde otros dispositivos, el navegador necesita una URL HTTPS de Supabase
-accesible. La conexión de Sites a loopback en este mismo equipo depende de los
-permisos del navegador y no se verificó. Sites no vuelve público `localhost` ni
-sustituye la base por D1.
+El Site aloja el frontend privado. `public/rcfito-config.json` define su conexión
+inicial mediante URL HTTPS temporal y clave pública; la preferencia de cada
+navegador puede reemplazarla o elegir demo. El Quick Tunnel enlaza la API a esta
+PC. Un reinicio puede cambiar su dirección y requiere actualizar la configuración
+del Site o del navegador. Sites no sustituye la base por D1. Procedimiento y
+límites: [OPERATIONS](docs/OPERATIONS.md#quick-tunnel-gratuito-para-pruebas).
 
 Configuración, respaldos y datos persistentes se transfieren aparte al migrar de servidor;
 ver [OPERATIONS](docs/OPERATIONS.md).

@@ -8,9 +8,10 @@ frontend Docker está en `http://127.0.0.1:5180`, con conexión del mismo origen
 mediante `/supabase`. La migración está aplicada y la pantalla de acceso real se
 abre en navegador. Primera cuenta, login de administrador y captura persistida
 tras recargar ya están comprobados con confirmación en PostgreSQL.
-HTTPS exterior queda pendiente para otros dispositivos. La conexión de Sites a
-loopback desde este mismo equipo no se ha probado y puede depender de permisos
-del navegador.
+El acceso exterior de prueba utiliza Cloudflare Quick Tunnel y un proxy limitado
+a la API, según [OPERATIONS](OPERATIONS.md#quick-tunnel-gratuito-para-pruebas).
+El endpoint estable de operación y SMTP siguen pendientes. La conexión de Sites
+a loopback no se usa para este acceso remoto.
 
 ## Configuración de operación
 
@@ -58,7 +59,8 @@ La puerta API se enlaza a `127.0.0.1:55451`; PostgreSQL no publica puerto.
 El frontend local reenvía únicamente Auth, REST y funciones bajo `/supabase` por
 la red `rcfito-backend`; no expone Studio. El arranque y JSON público del frontend
 están en [OPERATIONS](OPERATIONS.md#docker-y-supabase). Para acceso exterior,
-configurar proxy HTTPS y restringir Studio. Configurar SMTP antes de habilitar
+usar el proxy del Quick Tunnel o configurar otro proxy HTTPS y restringir Studio.
+Configurar SMTP antes de habilitar
 recuperación de cuentas. La aplicación usa únicamente la clave publicable.
 
 Después de que Auth inicialice su esquema:

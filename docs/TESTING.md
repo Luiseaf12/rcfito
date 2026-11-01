@@ -12,6 +12,7 @@ Node.js 24 y npm. Ejecutar `npm ci` antes de checks de aplicación.
 | `npm run docs:check` | Versión, hashes, mapa, enlaces de entradas y excepciones del estándar. |
 | `node scripts/backend-test.mjs` | SQL, RLS y transacciones en PostgreSQL efímero, sin puertos. |
 | `node scripts/backend-integration.mjs --fresh --cleanup` | Auth, REST, RPC, Edge y RLS reales en stack Supabase aislado. |
+| `node scripts/backend-tunnel-check.mjs` | HTTPS, CORS, rutas bloqueadas, Auth y rechazos sin sesión sobre el Quick Tunnel activo. No crea datos de operación. |
 
 Los scripts backend requieren Docker. Solo usan su proyecto/carpeta de QA y
 fixtures ficticios; nunca leen el `.env` de la raíz. `--fresh` recrea el entorno
@@ -66,9 +67,34 @@ separada de los entornos efímeros anteriores:
 
 Esta evidencia cierra el arranque local, login y persistencia del recorrido
 probado; no equivale a ejecutar todos los flujos contra la BD de operación.
-El acceso desde otros dispositivos no se verifica mientras falte
-un endpoint HTTPS accesible. Sites contra loopback en el mismo equipo tampoco
-se ha probado.
+Esta evidencia local no acredita por sí misma acceso desde otros dispositivos.
+La verificación HTTPS posterior se registra abajo; Sites contra loopback no se
+ha probado.
+
+## Quick Tunnel HTTPS
+
+2026-10-31: `rcfito-api-proxy` sano y `rcfito-quick-tunnel` activo en un grupo
+Compose independiente. `node scripts/backend-local.mjs --check` confirmó una
+migración aplicada y cero pendientes; no se reinició ni migró la base.
+
+`node scripts/backend-tunnel-check.mjs` aprobó 20 comprobaciones sobre HTTPS
+exterior: salud Auth, registro público deshabilitado, CORS/preflight para REST y
+funciones desde Sites, rechazo de origen ajeno, rechazo de consultas anónimas con
+y sin clave pública, rechazo del alta privada sin sesión y login ficticio
+rechazado por Auth. Se comprobaron 404 para Studio, raíz, PostgreSQL, registro y
+administración directa de Auth, incluidas variantes con doble codificación y
+barra invertida. No se crearon cuentas ni registros de operación.
+
+La revisión independiente encontró y se corrigieron diferencias de doble
+decodificación entre proxy y gateway y la dependencia de las últimas líneas de
+logs para recuperar la URL. La revisión posterior confirmó los 404 y la
+conservación de consultas con acentos codificados. La URL se guarda ligada al ID
+y arranque del contenedor, para invalidarla tras reinicios.
+
+Se configuró el Site por UI y mostró la pantalla real de acceso de Supabase.
+Login del Propietario a través del túnel y publicación de la conexión inicial:
+pendientes de confirmación. No se acredita prueba en un celular ni disponibilidad
+continua. El túnel es temporal y de prueba; SMTP/recuperación sigue pendiente.
 
 ## Navegador de demostración
 
@@ -98,8 +124,10 @@ El navegador documentado probó la demostración. El backend HTTP se probó en u
 entorno independiente. En operación local se verificaron login de administrador,
 guardado, recarga y comprobación SQL de una agrícola, además de salud y rechazos
 de acceso sin sesión. Los demás flujos reales no se infieren de esa captura.
-No hay endpoint HTTPS exterior configurado. Sites confirmó su despliegue
-privado; esa publicación sirve la interfaz y no publica el Supabase local.
+El HTTPS exterior temporal tiene la evidencia separada de Quick Tunnel arriba;
+no acredita una dirección estable ni disponibilidad de operación. Sites confirmó
+su despliegue privado; servir la interfaz y arrancar el túnel son operaciones
+separadas.
 
 El checker documental comprueba destinos locales, no anchors ni URLs externas.
 No certifica UX, RLS ni cálculos. Las referencias TS/TSX del bundle del estándar
