@@ -118,12 +118,51 @@ test('resuelve agrícola, temporada activa, campo, medio y destinos únicos por 
   assert.deepEqual(data, before)
 })
 
-test('sin cultivo e historial de las mismas etapas mantiene el selector pendiente', () => {
+test('sin aplicaciones anteriores completa el cultivo registrado en las siembras del proyecto', () => {
   const context = resolveImportContext(fixture(), extracted())
+  assert.equal(context.cropId, 'crop-a')
+  assert.equal(context.suggestedCropId, 'crop-a')
+  assert.match(context.cropSuggestionReason, /siembras vigentes del proyecto/)
+  assert.deepEqual(context.warnings, [])
+  assert.deepEqual(context.selectedStageIds, ['stage-5', 'stage-6'])
+  assert.equal(context.candidateDestinations.length, 2)
+})
+
+test('la primera aplicación hereda cultivo al seleccionar la temporada sin modificar las siembras', () => {
+  const data = fixture()
+  const before = structuredClone(data)
+  const context = resolveImportContext(data, extracted({ agricultural_unit: null, application_number: 1 }), { projectId: 'project' })
+  assert.equal(context.projectId, 'project')
+  assert.equal(context.fieldId, 'field-a')
+  assert.equal(context.cropId, 'crop-a')
+  assert.deepEqual(context.selectedStageIds, ['stage-5', 'stage-6'])
+  assert.deepEqual(data, before)
+})
+
+test('historial parcial compatible permite completar el cultivo de las siembras vigentes', () => {
+  const data = fixture()
+  history(data, 'stage-5', 8)
+  const context = resolveImportContext(data, extracted())
+  assert.equal(context.cropId, 'crop-a')
+  assert.match(context.cropSuggestionReason, /siembras vigentes del proyecto/)
+  assert.deepEqual(context.warnings, [])
+})
+
+test('sin historial no elige entre cultivos distintos ni toma el cultivo del nombre del proyecto', () => {
+  const data = fixture()
+  data.projects[0].name = 'Cultivo de ejemplo A'
+  data.stages[1].crop_id = 'crop-b'
+  const context = resolveImportContext(data, extracted())
   assert.equal(context.cropId, '')
   assert.equal(context.suggestedCropId, '')
-  assert.match(context.cropSuggestionReason, /Falta una aplicación anterior/)
-  assert.equal(context.candidateDestinations.length, 2)
+  assert.deepEqual(context.selectedStageIds, [])
+  assert.match(context.cropSuggestionReason, /único campo y cultivo/)
+})
+
+test('la sugerencia sin historial respeta un selector explícitamente vacío', () => {
+  const context = resolveImportContext(fixture(), extracted(), { cropId: '' })
+  assert.equal(context.cropId, '')
+  assert.equal(context.suggestedCropId, 'crop-a')
 })
 
 test('sugiere cultivo desde la aplicación anterior de cada etapa vigente', () => {
@@ -146,15 +185,15 @@ test('para importar una aplicación anterior ignora números posteriores de la m
   assert.equal(resolveImportContext(data, extracted({ application_number: 9 })).cropId, 'crop-a')
 })
 
-test('no reutiliza el cultivo de otra etapa de la misma subdivisión', () => {
+test('sin historial de la etapa vigente usa su cultivo y no el de una etapa anterior', () => {
   const data = fixture()
   data.stages.push({ ...data.stages[0], id: 'stage-old', stage_number: 1, status: 'closed', closed_at: '2026-09-01' })
-  history(data, 'stage-old', 8)
+  history(data, 'stage-old', 8, 'crop-b')
   history(data, 'stage-6', 8)
   const context = resolveImportContext(data, extracted())
-  assert.equal(context.cropId, '')
-  assert.equal(context.suggestedCropId, '')
-  assert.match(context.cropSuggestionReason, /Falta una aplicación anterior/)
+  assert.equal(context.cropId, 'crop-a')
+  assert.equal(context.suggestedCropId, 'crop-a')
+  assert.match(context.cropSuggestionReason, /siembras vigentes del proyecto/)
 })
 
 test('historial incompatible con el cultivo vigente se señala sin cambiar la etapa', () => {

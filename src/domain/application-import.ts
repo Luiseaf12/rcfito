@@ -185,12 +185,18 @@ export function resolveImportContext(data: WorkspaceData, extracted: ExtractedAp
       return { destination, previous: previous ? orders.get(previous.order_id) : undefined }
     })
     const priorCrops = unique(histories.map(history => history.previous?.crop_id).filter((id): id is string => Boolean(id)))
-    if (histories.every(history => history.previous && history.previous.field_id === history.destination.lot.field_id && history.previous.crop_id === history.destination.stage.crop_id) && priorCrops.length === 1 && crops.some(crop => crop.id === priorCrops[0])) {
+    const currentCrops = unique(matched.map(destination => destination.stage.crop_id))
+    const compatibleHistory = histories.every(history => !history.previous || history.previous.field_id === history.destination.lot.field_id && history.previous.crop_id === history.destination.stage.crop_id)
+    if (histories.every(history => history.previous) && compatibleHistory && priorCrops.length === 1) {
       suggestedCropId = priorCrops[0]
       cropSuggestionReason = 'Cultivo de la aplicación anterior de las mismas etapas, coincidente con sus siembras vigentes.'
       if (overrides.cropId === undefined) cropId = suggestedCropId
+    } else if (compatibleHistory && currentCrops.length === 1 && unique(matched.map(destination => destination.lot.field_id)).length === 1) {
+      suggestedCropId = currentCrops[0]
+      cropSuggestionReason = 'Cultivo tomado de las siembras vigentes del proyecto. No se requiere una aplicación anterior.'
+      if (overrides.cropId === undefined) cropId = suggestedCropId
     } else {
-      cropSuggestionReason = histories.some(history => !history.previous) ? 'Falta una aplicación anterior en alguna de las etapas. Selecciona el cultivo.' : 'El historial y las siembras no permiten sugerir un cultivo común. Revisa las etapas y selecciona el cultivo.'
+      cropSuggestionReason = compatibleHistory ? 'Los destinos no tienen un único campo y cultivo. Revisa las siembras y selecciona el cultivo.' : 'El historial y las siembras no permiten sugerir un cultivo común. Revisa las etapas y selecciona el cultivo.'
       warnings.push(cropSuggestionReason)
     }
   } else if (!extracted.crop && !matched.length) {

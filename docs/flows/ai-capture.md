@@ -44,8 +44,11 @@ ni conceder permisos o crear productos de catálogo.
   cancelar. Se permiten saltos revisados para importar historia incompleta sin
   inventar aplicaciones anteriores; los conteos representan registros reales.
 - Si falta cultivo, sugerir el de la aplicación anterior de las mismas etapas,
-  comprobado contra su siembra vigente. Diferencias o ausencia de historia dejan
-  el selector pendiente; no tomar el último cultivo general de la agrícola.
+  comprobado contra su siembra vigente. Cuando falta historia en alguna etapa,
+  completar el cultivo único registrado en las siembras vigentes de los destinos
+  del mismo campo/proyecto. Cultivos distintos o historia contradictoria dejan
+  el selector pendiente; no inferir del nombre libre del proyecto ni tomar el
+  último cultivo general de la agrícola.
 - `cc` equivale a `ml`; kg se convierten a g y litros de producto a ml. Agua en
   L/ha. No convertir masa a volumen: una diferencia de unidad con catálogo
   requiere aclaración explícita antes de aprobar.
@@ -54,6 +57,26 @@ ni conceder permisos o crear productos de catálogo.
   texto y saltos; no inventar contenido ni repartirlo automáticamente por producto.
 - Conservar texto original de origen y autor/fecha de creación en servidor.
   El detalle mantiene esa indicación histórica; no sobrescribirla al realizar.
+
+## Cultivo registrado en primeras aplicaciones
+
+2026-10-31: el Propietario reportó la configuración del proveedor y señaló que
+la revisión pedía cultivo pese a estar registrado en la siembra. La resolución
+anterior exigía historia completa para cualquier sugerencia. Ahora una primera
+aplicación o historia parcial compatible hereda el cultivo único de las etapas
+vigentes identificadas. El formulario conserva la selección editable y explica
+su procedencia. La aplicación anterior compatible sigue siendo la primera fuente.
+
+No se omiten destinos para fabricar una coincidencia: cultivos/campos distintos,
+historia contradictoria y referencias ambiguas conservan sus revisiones. Un
+selector explícito se respeta y no se reutiliza la etapa anterior de una misma
+subdivisión. No cambia la validación del guardado ni los datos de las siembras.
+
+Evidencia: 19 pruebas de importación y 140 en la suite completa, tipos/build y
+QA demo con Pepino y aplicación 1 completados. El navegador muestra cultivo y
+destino seleccionados sin historia previa. Sin llamadas reales de IA ni
+escrituras en operación durante esta verificación. Publicación en curso; ver
+[OPERATIONS](../OPERATIONS.md#corrección-de-cultivo-en-la-captura).
 
 ## Recuperación, permisos y accesibilidad
 

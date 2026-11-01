@@ -308,3 +308,12 @@ conserva la existente. La clave completa no vuelve a mostrarse. La configuració
 es común a la instalación y se usa en Captura con IA sin nueva publicación.
 El lector no ve la sección ni tiene acceso a sus endpoints. Contrato operativo
 y casos de error en [la ficha de configuración](flows/ai-settings.md).
+
+## Cultivo ya registrado en la captura asistida
+
+Cuando el mensaje omite cultivo y falta una aplicación anterior, usar el cultivo
+único de las siembras vigentes de los destinos identificados del mismo campo y
+proyecto. No volver a solicitar un dato ya determinado por esas siembras. Una
+aplicación anterior compatible conserva prioridad; cultivos distintos o historia
+contradictoria requieren revisión. No interpretar el nombre libre del proyecto
+como un cultivo. [Contrato y evidencia](flows/ai-capture.md#cultivo-registrado-en-primeras-aplicaciones).

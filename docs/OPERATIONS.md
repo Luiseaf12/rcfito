@@ -324,3 +324,11 @@ Trece comprobaciones posteriores aprobadas: HTML y bundle nuevo 200 en Site y
 local, GET/PUT de configuración y POST de prueba/captura anónimos 401 en ambos,
 y salud Auth 200. La vista publicada sin sesión no muestra controles de IA.
 No se guardó configuración ni se hizo inferencia con claves reales durante QA.
+
+## Corrección de cultivo en la captura
+
+2026-10-31: la captura toma el cultivo único de las siembras vigentes cuando falta
+historia previa, conservando revisión de contradicciones y selección explícita.
+140 pruebas, tipos/build y QA demo aprobados. No requiere migraciones, nueva
+clave ni cambios de configuración del proveedor. Publicación Sites y frontend
+Docker en curso. [Evidencia](TESTING.md#cultivo-registrado-en-primeras-aplicaciones).

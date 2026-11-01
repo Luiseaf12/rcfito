@@ -292,3 +292,12 @@ aislado con el componente/adaptador/servicio reales y dependencias ficticias
 verificó probar, invalidar al editar, guardar, recargar y conservar clave al cambiar
 modelo. Sin claves reales, inferencia externa ni datos de operación. Revisión
 independiente sin pendientes. [Ficha y alcance](flows/ai-settings.md).
+
+## Cultivo registrado en primeras aplicaciones
+
+2026-10-31: 140 pruebas, typecheck y build aprobados. Las 19 pruebas de importación
+cubren primera aplicación al seleccionar temporada, historia parcial compatible,
+etapas anteriores excluidas, selector explícito, cultivos distintos e historia
+contradictoria. QA de navegador demo: aplicación 1 con Pepino y destino completos
+automáticamente sin una aplicación anterior. Sin peticiones reales al proveedor
+ni escrituras de datos operativos. [Ficha](flows/ai-capture.md#cultivo-registrado-en-primeras-aplicaciones).
