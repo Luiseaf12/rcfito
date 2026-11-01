@@ -85,7 +85,8 @@ y frontend Docker actualizado desde el mismo commit; ver
 
 Ampliación autorizada por el Propietario: completar el contexto registrado y
 explicar por qué Aprobar y guardar sigue inactivo; commit/push y publicación
-en Sites autorizados. Estado: implementación y QA aprobados; publicación en curso.
+en Sites autorizados. Estado: implementado y publicado en Sites versión 15;
+frontend Docker actualizado desde el mismo commit validado.
 
 Resolver agrícola/proyecto, campo, cultivo y destinos por coincidencias únicas
 en los datos autorizados. Un proyecto o campo con una sola opción vigente se

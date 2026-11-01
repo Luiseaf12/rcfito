@@ -352,5 +352,18 @@ Nueve comprobaciones posteriores aprobadas: inicio y bundle con el texto corregi
 completado desde siembras; una validación compartida explica cada bloqueo y
 permite aprobar al resolverlos. 161 pruebas, tipos/build, QA demo de guardado y
 móvil aprobados, con revisión independiente sin pendientes. No requiere cambios
-de esquema, nuevas claves ni ajustes del proveedor. Publicación Sites y frontend
-Docker en curso. [Evidencia](TESTING.md#autocompletado-y-pendientes-de-aprobación).
+de esquema, nuevas claves ni ajustes del proveedor.
+
+Commit `6b0bd2cc5e77329b4b53d74c57c9a69c3594cc93` subido a GitHub y al
+repositorio de Sites, validado y empaquetado desde checkout limpio. Sites confirmó
+succeeded para la versión 15
+`appgprj_6ae67ae019e88191a7012093bb19c505~appgver_8722cee8b6788191a9c197dffa43752e`,
+despliegue `appgdep_6ae6c2c477448191b1aebb758d742813`, conservando audiencia
+pública y entorno. Docker frontend actualizado desde el mismo commit mediante
+Compose explícito y montaje público conservado; backend/volúmenes intactos.
+
+Once comprobaciones posteriores aprobadas: inicio, contexto y resumen de
+pendientes 200 en Site/local, captura/configuración sin sesión 401 en ambos y
+salud Auth 200. Sin escrituras de aplicaciones ni consumo del proveedor durante
+esa verificación. Conservar el mensaje antes de recargar para abrir el borrador
+con la nueva versión. [Evidencia](TESTING.md#autocompletado-y-pendientes-de-aprobación).
