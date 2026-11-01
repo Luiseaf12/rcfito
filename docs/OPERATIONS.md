@@ -489,3 +489,25 @@ despliegue `appgdep_6ae7511fe7c881918829f8253bd77fac`, en
 conservados. Tres comprobaciones HTTP posteriores aprobaron inicio, bundle
 exacto y resumen por lote/Todas. Sin escrituras ficticias en operación.
 [Contrato](flows/product-dashboard.md#ampliación-resumen-por-lote).
+
+## Captura conservada al revalidar sesión
+
+2026-11-01: corregido el desmontaje de formularios al recibir de nuevo la sesión
+del mismo usuario. Se mantiene la consulta en segundo plano y se conserva el
+loader para inicio de conexión/cambio de identidad. No requiere migraciones,
+reinicio del backend ni cambios de configuración, secretos o volúmenes.
+
+Corrección `78182ba`, integrada con el cierre concurrente del resumen por lote en
+`e3182347b89c98e9c2daa390351fe1b3dcd3375f`. 224 pruebas, tipos/build y checker
+aprobados; QA aislado reprodujo la pérdida anterior y verificó nombre/nota/agua,
+renovación, error de consulta, descarte y cierre de sesión. Autorrevisión.
+Docker reconstruido y sano con el montaje público original. Sites confirmó
+`succeeded`, versión 21
+`appgprj_6ae67ae019e88191a7012093bb19c505~appgver_46f5ada9cf888191b905696a174dc531`,
+despliegue `appgdep_6ae752c343c48191b1a941d50778b34d` a las
+`2026-11-01T14:55:13Z`, en [RCFito](https://rcfito.paxxa.chatgpt.site).
+Audiencia pública y entorno revisión 1 conservados. Nueve comprobaciones de
+conexión posteriores aprobaron; HTML y hash del bundle coincidieron con la
+compilación validada tanto en Sites como en 5180. Sin escrituras de negocio.
+La versión nueva entra en vigor al recargar después de guardar o terminar una
+captura abierta; el despliegue no fuerza esa recarga del navegador.

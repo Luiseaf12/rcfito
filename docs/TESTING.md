@@ -444,3 +444,8 @@ Después de la corrección se comprobaron:
 contienen únicamente ejemplos y no se incluyen en el build. Esta evidencia
 comprueba la reacción del frontend a los eventos de Auth; no acredita una
 recuperación de borradores después de recargar manualmente el documento.
+
+Publicación de la corrección: Docker sano y Sites versión 21 `succeeded`;
+HTML/bundle exacto comprobados en ambos destinos y nueve checks de conexión
+aprobados sin crear datos. Evidencia en
+[operación](OPERATIONS.md#captura-conservada-al-revalidar-sesión).
