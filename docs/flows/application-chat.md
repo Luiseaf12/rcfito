@@ -42,6 +42,38 @@ con servicios ficticios confirmó la frase literal, procedencias y totales en
 escritorio y móvil de 375 px. Las tablas conservan un ancho legible con
 desplazamiento interno horizontal; el documento no se desborda.
 
+## Preguntas equivalentes y ausencia de realizadas
+
+2026-11-01: las capturas del Propietario mostraron que «Qué productos hemos
+usado en malla 5» pedía elegir un campo en vez de responder. El atajo anterior
+solo reconocía la frase de cantidades probada inicialmente. Se amplía a
+preguntas equivalentes de productos usados/aplicados/utilizados y a indicados
+explícitos. Los mensajes con periodo u otros filtros conservan el plan de IA;
+la referencia de malla se resuelve como lote, respetando campos explícitos,
+identificadores seleccionados, fechas, estados y ambigüedades.
+
+La tabla prioriza producto y cantidad; aparece antes de los filtros y ambas
+columnas caben juntas en móvil. Una aclaración no presenta campos/lotes sin
+resolver como si se hubiese consultado toda la temporada.
+
+Si el ámbito no tiene aplicaciones realizadas, se explica la ausencia sin
+inventar consumo ni sustituirlo por indicaciones. **Ver productos indicados**
+ejecuta una consulta explícita con los mismos filtros y cero inferencia; la
+tabla identifica **Cantidad indicada**. El CLI admite también «Qué productos
+están indicados en malla 5» y distingue ese estado.
+
+Verificación: 286 pruebas integradas, tipos y build aprobados. El pipeline de la
+pregunta de la captura pasó con Auth/REST/RLS reales en el backend aislado,
+incluyendo un lote llamado Malla 5 cuyo campo tiene otro nombre. Integración:
+132 comprobaciones acumuladas, 33 de consultas; advisors sin WARN/ERROR y stack
+retirado. Revisión independiente sin hallazgos pendientes tras proteger variantes
+de campo explícito. Navegador ficticio verificó ausencia de realizadas, acción
+de indicados y nombres/cantidades visibles juntos a 375 px, sin desbordamiento.
+La revisión operativa fue solo lectura bajo RLS; sus datos no se copian aquí.
+No hay migraciones ni escrituras de aplicaciones en esta corrección.
+
+Estado: verificado; publicación en curso.
+
 ## Contrato general del chat y audio
 
 Fecha: 2026-11-01. El Propietario autorizó implementar la propuesta de chat y

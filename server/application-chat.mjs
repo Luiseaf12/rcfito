@@ -1,9 +1,10 @@
-import { ApplicationQueryError, applicationQueryPlanSchema, validateApplicationQuery, queryReadJson, createApplicationQueryRunner, formatApplicationQueryAnswer, parseQuickProductQuestion } from './application-queries.mjs';
+import { ApplicationQueryError, applicationQueryPlanSchema, validateApplicationQuery, queryReadJson, createApplicationQueryRunner, formatApplicationQueryAnswer, parseQuickProductQuestion, normalizeMallaQuery } from './application-queries.mjs';
 
 const chatInstructions = `Interpreta preguntas de consulta sobre aplicaciones agrícolas registradas. Devuelve solamente el plan del esquema.
 Operaciones: pendientes (indicadas, fecha programada), historial (por destino, fecha real en realizadas y de indicación en otros estados), uso_producto (cantidades de producto, realizadas por defecto), detalle y cambios (requieren folio u orden).
 Nunca inventes resultados, nombres, UUID, cantidades, dosis ni fuentes. No generes SQL, código o acciones de escritura. Si piden registrar, modificar, recomendaciones agronómicas o información ajena a estos registros, action=clarify explicando brevemente las consultas disponibles.
 Los nombres del mensaje se copian en los filtros por nombre; no adivines identidades. UUID solo desde el contexto explícito o consulta previa. Los homónimos se resuelven en el servidor. No hagas preguntas por filtros opcionales si la rutina puede consultar todo lo autorizado.
+"Malla 5", sin decir explícitamente "campo", es una referencia de lote: usa lot="Malla 5", no field. La rutina también puede resolverla como el lote único de un campo, sin adivinar su identidad. "Qué productos hemos usado" pide uso_producto, con productos y cantidades de realizadas.
 "Usamos/aplicamos/consumimos" significa realizadas; "indicadas/programadas/pendientes" significa indicadas; conserva canceladas cuando se piden explícitamente. "Aplicación 9" es un número por etapa, NO un UUID o folio: pide etapa/folio si se requiere detalle inequívoco.
 El contexto visible acota la consulta y no se puede ampliar. La consulta previa solo ayuda con seguimientos como "y la semana anterior"; una nueva pregunta independiente sustituye los filtros anteriores salvo el contexto visible.
 Las fechas son civiles AAAA-MM-DD. Usa date_context para hoy/esta semana/mes; no inventes fechas. La siguiente página conserva filtros e incrementa offset por limit.
@@ -83,7 +84,7 @@ export function createApplicationChatService({ fetch: chatFetch = fetch, now = D
       return { clarification: value.clarification.trim(), usage };
     }
     // Context selected in the UI is authoritative, even if the model tries to broaden it.
-    const query = validateApplicationQuery({ ...validateApplicationQuery(value.query), ...context });
+    const query = validateApplicationQuery({ ...normalizeMallaQuery(validateApplicationQuery(value.query), message, context), ...context });
     return { query, usage };
   }
   async function transcribe(request, env, signal) {
@@ -160,7 +161,9 @@ export function createApplicationChatService({ fetch: chatFetch = fetch, now = D
           usage = planned.usage;
           if (planned.clarification) return chatJson({ answer: planned.clarification, usage, cached: false });
           query = planned.query;
-          completeProducts = /(?:cada\s+producto|todos\s+los\s+productos)/i.test(body.message);
+          completeProducts = query.operation === 'uso_producto' && query.offset === 0
+            && /(?:cada\s+producto|todos\s+los\s+productos|(?:qu[eé]|cu[aá]les)(?:\s+son)?(?:\s+los)?\s+productos)/i.test(body.message)
+            && !/\b(?:(?:primeros?|[uú]ltimos?|top|l[ií]mite|solo)\s+\d+|\d+\s+productos)\b/i.test(body.message);
         }
         resolveContext = query.operation === 'uso_producto' && !/todas\s+las\s+(?:agr[ií]colas|temporadas)/i.test(body.message);
       }

@@ -215,6 +215,12 @@ export async function askApplicationChat(message: string, accessToken: string, c
   return normalizeChatResponse(await responseBody(response))
 }
 
+/** Offer a separate indicated query only when the performed scope is confirmed empty. */
+export function buildIndicatedProductQuery(result: ApplicationQueryResult): ApplicationQueryFilters | null {
+  if (result.clarification || result.query.operation !== 'uso_producto' || result.query.status !== 'performed' || (result.query.offset ?? 0) !== 0 || result.rows.length || result.summary.destination_count !== 0 || result.summary.total_rows !== 0 || result.incomplete_count || result.truncated) return null
+  return { ...result.query, status: 'indicated', limit: 30, offset: 0 }
+}
+
 function normalizeChatResponse(body: Record<string, unknown>): ApplicationChatResponse {
   if (typeof body.answer !== 'string' || !body.answer.trim() || body.answer.length > 20_000) throw new Error('El chat no devolvió una respuesta completa. Tu pregunta se conserva.')
   const result: ApplicationChatResponse = { answer: body.answer }

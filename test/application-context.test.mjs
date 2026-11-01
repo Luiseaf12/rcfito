@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createApplicationChatService } from '../server/application-chat.mjs';
-import { createApplicationQueryRunner, parseQuickProductQuestion, formatApplicationQueryTables } from '../server/application-queries.mjs';
+import { createApplicationQueryRunner, parseQuickProductQuestion, normalizeMallaQuery, formatApplicationQueryTables, formatApplicationQueryAnswer } from '../server/application-queries.mjs';
 import { runQueryCli, parseQueryCli } from '../scripts/query-cli.mjs';
 
 const origin = 'https://rcfito.paxxa.chatgpt.site';
@@ -18,6 +18,7 @@ function contextSetup(options = {}) {
     calls.push(url);
     if (url.endsWith('/auth/v1/user')) return Response.json({ id: init.headers.authorization.includes('other') ? otherUser : unit });
     if (url.includes('/profiles?')) return Response.json([{ role: 'viewer', active: true }]);
+    if (url.endsWith('/responses') && options.plan) return Response.json({ status: 'completed', output: [{ type: 'message', content: [{ type: 'output_text', text: JSON.stringify(options.plan) }] }], usage: { input_tokens: 500, output_tokens: 100 } });
     if (url.endsWith('/application_query_stamp')) return Response.json({ revision: 'r1', as_of: '2026-11-01T12:00:00Z' });
     if (url.endsWith('/application_query_resolve')) {
       const body = JSON.parse(init.body);
@@ -45,7 +46,7 @@ function contextSetup(options = {}) {
     }
     throw new Error('La prueba no permite inferencia ni otros servicios.');
   };
-  const service = createApplicationChatService({ key: 'sb_publishable_fictitious', fetch: backendFetch, backendUrl: async () => 'https://fictitious.invalid', configuration: async () => { throw new Error('No debe consultar IA para esta pregunta.'); } });
+  const service = createApplicationChatService({ key: 'sb_publishable_fictitious', fetch: backendFetch, backendUrl: async () => 'https://fictitious.invalid', configuration: async () => { if (options.plan) return { apiKey: 'fictitious-key', model: 'configured-model' }; throw new Error('No debe consultar IA para esta pregunta.'); } });
   const bridge = async (url, init) => service.handle(new Request(url, init), env);
   const cli = (args, token = 'fixture-session') => runQueryCli(args, { env: { RCFITO_ACCESS_TOKEN: token }, fetch: bridge, output: text => outputs.push(text) });
   const outputs = [];
@@ -57,6 +58,49 @@ test('la pregunta literal y acentos resuelven intención, sin confundir malla5/1
   assert.equal(parseQuickProductQuestion('Cuanto de cada producto se aplicó en malla 15.').lot, 'malla 15');
   assert.equal(parseQuickProductQuestion(question + ' y malla 15'), null);
   assert.equal(parseQuickProductQuestion('cuánto de cada producto se ha indicado en malla 5'), null);
+  for (const message of ['Que productos hemos usado en malla 5 ?', '¿Qué productos se han aplicado en la malla 5?', 'Cuáles productos usamos en malla5', 'Productos utilizados en malla 5']) {
+    assert.deepEqual(parseQuickProductQuestion(message), parseQuickProductQuestion(question));
+  }
+  for (const message of ['Qué productos hemos usado en malla 5 durante octubre', 'Qué productos hemos usado en malla 5 y malla 15', 'Solo los primeros 3 productos usados en malla 5', 'Qué productos no hemos usado en malla 5']) assert.equal(parseQuickProductQuestion(message), null);
+  assert.equal(parseQuickProductQuestion('Qué productos están indicados en Malla 5').status, 'indicated');
+});
+
+test('sin realizadas explica la ausencia y permite pedir indicadas sin afirmar consumo', () => {
+  const data = { query: { operation: 'uso_producto', status: 'performed', offset: 0 }, summary: { destination_count: 0, total_rows: 0 }, rows: [], filters: [{ key: 'lot_id', label: 'Lote', value: 'Malla 5', source: 'explicit' }], incomplete_count: 0 };
+  const answer = formatApplicationQueryAnswer(data);
+  assert.match(answer, /No hay aplicaciones marcadas como realizadas en Malla 5/);
+  assert.match(answer, /productos indicados por separado/);
+  assert.doesNotMatch(answer, /Cantidad calculada: 0/);
+  assert.match(formatApplicationQueryTables(data), /No hay aplicaciones marcadas como realizadas/);
+  assert.doesNotMatch(formatApplicationQueryAnswer({ ...data, incomplete_count: 1 }), /No hay aplicaciones marcadas/);
+});
+
+test('la pregunta de la captura entrega nombres y totales, sin pedir campo ni consumir IA', async () => {
+  const state = contextSetup({ total: 35 });
+  const response = await state.bridge(origin + '/api/application-chat', { method: 'POST', headers: { authorization: 'Bearer fixture-session', 'content-type': 'application/json' }, body: JSON.stringify({ message: 'Que productos hemos usado en malla 5 ?', context: { agricultural_unit_id: unit, project_id: project }, previousQuery: { operation: 'uso_producto', field: 'Malla 5' } }) });
+  const body = await response.json();
+  assert.equal(response.status, 200); assert.equal(body.result.clarification, undefined);
+  assert.equal(body.result.rows.length, 35); assert.equal(body.query.lot_id, lot); assert.equal(body.query.field, undefined);
+  assert.match(body.answer, /Producto líquido ficticio: 2.50 L/);
+  assert.equal(body.result.rows[34].product_name, 'Producto sólido ficticio 34');
+  assert.deepEqual(body.usage, { inputTokens: 0, outputTokens: 0, toolCalls: 1 });
+});
+
+test('preguntas con periodo conservan fechas y corrigen la clasificación campo/lote del plan', async () => {
+  const state = contextSetup({ total: 35, plan: { action: 'query', clarification: null, query: { operation: 'uso_producto', field: 'Malla5', from: '2026-10-01', to: '2026-10-31' } } });
+  const response = await state.bridge(origin + '/api/application-chat', { method: 'POST', headers: { authorization: 'Bearer fixture-session', 'content-type': 'application/json' }, body: JSON.stringify({ message: 'Qué productos hemos usado en malla 5 durante octubre', context: { agricultural_unit_id: unit } }) });
+  const body = await response.json();
+  assert.equal(response.status, 200); assert.equal(body.result.rows.length, 35);
+  assert.equal(body.query.from, '2026-10-01'); assert.equal(body.query.to, '2026-10-31');
+  assert.equal(body.query.lot_id, lot); assert.equal(body.query.field, undefined);
+  assert.equal(state.calls.filter(url => url.endsWith('/responses')).length, 1);
+});
+
+test('corregir la clasificación no amplía campos explícitos, identidades ni referencias diferentes', () => {
+  const query = { operation: 'uso_producto', field: 'Malla 5', from: '2026-10-01' };
+  assert.deepEqual(normalizeMallaQuery(query, 'Productos en malla5'), { operation: 'uso_producto', lot: 'malla 5', from: '2026-10-01' });
+  for (const [input, message, context] of [[query, 'Productos en el campo Malla 5', {}], [query, 'Productos en malla 5 y malla 15', {}], [query, 'Productos en malla 5', { field_id: lot }], [{ ...query, field_id: lot }, 'Productos en malla 5', {}], [{ ...query, lot: 'Lote 7' }, 'Productos en malla 5', {}]]) assert.deepEqual(normalizeMallaQuery(input, message, context), input);
+  for (const message of ['Productos en el campo llamado Malla 5', 'Productos en el campo de la malla 5', 'Productos en el campo «Malla 5»']) assert.deepEqual(normalizeMallaQuery(query, message), query);
 });
 
 test('CLI con solo la pregunta usa última agrícola Ensenada, temporada activa, lote único y devuelve totales sin IA', async () => {

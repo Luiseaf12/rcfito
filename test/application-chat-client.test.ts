@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { APPLICATION_AUDIO_MAX_BYTES, applicationQueryFilterSourceLabel, applicationQueryFilters, askApplicationChat, buildQueryFromChoice, executeApplicationQuery, formatApplicationProductTotal, transcribeApplicationAudio, validateApplicationAudio, type ApplicationQueryChoice, type ApplicationQueryFilters } from '../src/data/application-chat'
+import { APPLICATION_AUDIO_MAX_BYTES, applicationQueryFilterSourceLabel, applicationQueryFilters, askApplicationChat, buildIndicatedProductQuery, buildQueryFromChoice, executeApplicationQuery, formatApplicationProductTotal, transcribeApplicationAudio, validateApplicationAudio, type ApplicationQueryChoice, type ApplicationQueryFilters, type ApplicationQueryResult } from '../src/data/application-chat'
 
 const orderId = '10000000-0000-4000-8000-000000000001'
 const projectId = '10000000-0000-4000-8000-000000000002'
@@ -197,6 +197,12 @@ test('un error del servidor conserva su explicación y un fallo de lectura conse
   await assert.rejects(askApplicationChat('Pregunta', 'sesion-ficticia'), /sesión venció/)
   t.mock.method(globalThis, 'fetch', async () => new Response('Servicio desconectado', { status: 503 }))
   await assert.rejects(askApplicationChat('Pregunta', 'sesion-ficticia'), /conservan/)
+})
+
+test('ofrecer productos indicados conserva el ámbito y exige una consulta de realizadas vacía comprobada', () => {
+  const empty: ApplicationQueryResult = { ...result, query: { operation: 'uso_producto', status: 'performed', lot_id: orderId, project_id: projectId, from: '2026-10-01', offset: 0 }, rows: [], summary: { destination_count: 0, total_rows: 0 }, incomplete_count: 0, truncated: false }
+  assert.deepEqual(buildIndicatedProductQuery(empty), { ...empty.query, status: 'indicated', limit: 30, offset: 0 })
+  for (const changed of [{ ...empty, clarification: 'Precisa lote' }, { ...empty, rows: [{ product_name: 'Ya existe' }] }, { ...empty, incomplete_count: 1 }, { ...empty, truncated: true }, { ...empty, summary: {} }, { ...empty, query: { ...empty.query, offset: 30 } }, { ...empty, query: { ...empty.query, status: 'all' as const } }]) assert.equal(buildIndicatedProductQuery(changed), null)
 })
 
 test('la transcripción sube solo audio y sesión y deja el boundary multipart al navegador', async t => {

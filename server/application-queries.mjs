@@ -5,12 +5,27 @@ export class ApplicationQueryError extends Error {
 
 export const applicationQueryOperations = ['pendientes', 'historial', 'uso_producto', 'detalle', 'cambios'];
 
-/** The common consumption question is a bounded intent, not generated code. */
+const questionText = message => message.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim().replace(/^[¿\s]+|[?!.\s]+$/g, '').replace(/\s+/g, ' ');
+
+/** Bounded, equivalent ways to ask for product usage. Modifiers stay with the planner. */
 export function parseQuickProductQuestion(message) {
   if (typeof message !== 'string') return null;
-  const normalized = message.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim().replace(/^[¿\s]+|[?!.\s]+$/g, '').replace(/\s+/g, ' ');
-  const match = normalized.match(/^(?:cuanto de cada producto se (?:ha aplicado|aplico)|cuanto se (?:ha aplicado|aplico) de cada producto) en (malla\s*\d+[a-z]?)$/);
+  const normalized = questionText(message);
+  const indicated = normalized.match(/^(?:(?:que|cuales)(?: son)?(?: los)? productos (?:estan )?|productos )(?:indicados|programados) en (?:la )?(malla\s*\d+[a-z]?)$/);
+  if (indicated) return { operation: 'uso_producto', status: 'indicated', lot: indicated[1].replace(/^malla\s*/, 'malla '), limit: 30, offset: 0 };
+  const match = normalized.match(/^(?:cuanto de cada producto se (?:ha aplicado|aplico)|cuanto se (?:ha aplicado|aplico) de cada producto|(?:que|cuales)(?: son)?(?: los)? productos (?:hemos (?:usado|aplicado|utilizado|consumido)|se han (?:usado|aplicado|utilizado|consumido)|usamos|aplicamos|utilizamos|consumimos|se usaron|se aplicaron)|productos (?:usados|aplicados|utilizados|consumidos)) en (?:la )?(malla\s*\d+[a-z]?)$/);
   return match ? { operation: 'uso_producto', status: 'performed', lot: match[1].replace(/^malla\s*/, 'malla '), limit: 30, offset: 0 } : null;
+}
+
+/** A model's field/lot classification cannot discard the user's exact malla reference. */
+export function normalizeMallaQuery(query, message, context = {}) {
+  const mentions = [...questionText(message).matchAll(/\bmalla\s*\d+[a-z]?\b/g)];
+  if (mentions.length !== 1 || query.field_id || context.field || context.field_id || /\bcampos?\b/.test(questionText(message))) return query;
+  const malla = mentions[0][0].replace(/^malla\s*/, 'malla ');
+  const sameMalla = value => typeof value === 'string' && questionText(value).replace(/^malla\s*/, 'malla ') === malla;
+  if (!sameMalla(query.field) || query.lot && !sameMalla(query.lot)) return query;
+  const { field: ignoredField, ...rest } = query;
+  return { ...rest, lot: malla };
 }
 const queryIds = ['agricultural_unit_id', 'project_id', 'field_id', 'lot_id', 'stage_id', 'product_id', 'order_id'];
 const queryNames = ['agricultural_unit', 'project', 'field', 'lot', 'product', 'folio'];
@@ -231,10 +246,10 @@ export function formatApplicationQueryTables(result) {
     output.push('');
   }
   if (result.query.operation === 'uso_producto') {
-    const label = result.query.status === 'performed' ? 'Total aplicado' : 'Cantidad calculada';
+    const label = result.query.status === 'performed' ? 'Total aplicado' : result.query.status === 'indicated' ? 'Cantidad indicada' : result.query.status === 'cancelled' ? 'Cantidad cancelada' : 'Cantidad calculada';
     output.push(`| Producto | ${label} | Unidad |`, '| --- | ---: | --- |');
     for (const row of result.rows) output.push(`| ${escape(row.product_name)} | ${queryNumber(row.quantity / 1000)} | ${row.unit === 'g' ? 'kg' : 'L'} |`);
-    if (!result.rows.length) output.push('| Sin aplicaciones con estos filtros | 0.00 | — |');
+    if (!result.rows.length) output.push('| Sin productos con estos filtros | — | — |', '', formatApplicationQueryAnswer(result));
     if (result.truncated) output.push('\nLa lista alcanzó el límite de seguridad. Acota los filtros para ver los productos restantes.');
     if (result.incomplete_count) output.push(`\nSe omitieron ${result.incomplete_count} destinos incompletos.`);
   } else output.push(formatApplicationQueryAnswer(result));
@@ -249,6 +264,10 @@ export function formatApplicationQueryAnswer(result, options = {}) {
     return [result.clarification, ...choices.map(choice => '• ' + choice)].join('\n').slice(0, 5000);
   }
   const summary = result.summary;
+  if (result.query.operation === 'uso_producto' && result.query.status === 'performed' && result.query.offset === 0 && !result.rows.length && !summary.destination_count && !summary.total_rows && !result.incomplete_count) {
+    const lot = result.filters?.find(filter => filter.key === 'lot_id')?.value;
+    return `No hay aplicaciones marcadas como realizadas${lot ? ' en ' + lot : ' con estos filtros'}. Por eso no hay productos aplicados confirmados para mostrar.\nPuedes consultar los productos indicados por separado; sus cantidades todavía no están confirmadas como aplicadas.`;
+  }
   const state = { performed: 'realizadas', indicated: 'indicadas', cancelled: 'canceladas', all: 'de todos los estados' }[result.query.status] ?? 'registradas';
   const lines = result.query.operation === 'cambios' ? [] : [`Encontré ${queryCount(summary.destination_count)} ${summary.destination_count === 1 ? 'destino' : 'destinos'} en ${queryCount(summary.order_count)} ${summary.order_count === 1 ? 'orden' : 'órdenes'} (${state}).`];
   if (result.query.from || result.query.to) lines.push(`Periodo: ${result.query.from ?? 'sin inicio'} a ${result.query.to ?? 'sin fin'}.`);

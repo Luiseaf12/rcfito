@@ -120,9 +120,9 @@ async function verifyQueryContextPipeline({ request, check, adminToken, readerTo
   const fields = [];
   for (const number of [5, 15]) {
     const field = randomUUID(), stage = randomUUID();
-    const createdField = await request('/rest/v1/fields', adminToken, { id: field, agricultural_unit_id: unitA, code: `QM${number}-${suffix}`, name: `Malla ${number}`, active: true });
+    const createdField = await request('/rest/v1/fields', adminToken, { id: field, agricultural_unit_id: unitA, code: `QM${number}-${suffix}`, name: number === 5 ? 'Campo principal ficticio' : `Malla ${number}`, active: true });
     const lot = await request('/rest/v1/rpc/create_project_lot', adminToken, { p_data: { project_id: projectA, field_id: field,
-      code: `QL${number}-${suffix}`, name: `Lote único de malla ${number}`, area_ha: 4, infrastructure_type_id: infrastructure.data[0].id } });
+      code: `QL${number}-${suffix}`, name: number === 5 ? 'Malla 5' : `Lote único de malla ${number}`, area_ha: 4, infrastructure_type_id: infrastructure.data[0].id } });
     if (createdField.status !== 201 || lot.status !== 200) throw new Error('No se pudo preparar campo y lote ficticios del pipeline.');
     const subdivisions = await request(`/rest/v1/lot_subdivisions?lot_id=eq.${lot.data}&select=id`, adminToken);
     const saved = await request('/rest/v1/rpc/save_sowing_stage', adminToken, { p_data: { id: stage, subdivision_id: subdivisions.data[0].id,
@@ -196,4 +196,13 @@ async function verifyQueryContextPipeline({ request, check, adminToken, readerTo
     && lastReport.result.filters.some(filter => filter.source === 'last_used'), 'Pipeline contexto: salida CLI presenta tabla de cada producto y filtros aplicados con procedencia');
   check(lastReport.usage.inputTokens === 0 && lastReport.usage.outputTokens === 0 && objects.size > 0,
     'Pipeline contexto: pregunta literal consulta datos reales de QA sin inferencia ni archivos de credenciales');
+  const captured = await call({ message: 'Que productos hemos usado en malla 5 ?', context: { agricultural_unit_id: unitA, project_id: projectA } }, '/api/application-chat');
+  const capturedReport = await captured.json();
+  check(captured.status === 200 && !capturedReport.result.clarification && capturedReport.query.lot_id === fields[0].lot,
+    'Pregunta de captura: Malla 5 se resuelve como nombre de lote de un campo distinto, con contexto seleccionado');
+  check(capturedReport.result.rows.length === 2 && capturedReport.answer.includes(nameG) && capturedReport.answer.includes(nameMl)
+    && capturedReport.result.summary.solid_g === 80 && capturedReport.result.summary.liquid_ml === 40,
+    'Pregunta de captura: devuelve nombres de los productos y totales realizados corregidos');
+  check(capturedReport.usage.inputTokens === 0 && capturedReport.usage.outputTokens === 0 && capturedReport.queryOptions.completeProducts,
+    'Pregunta de captura: sin IA y lista completa de productos');
 }
