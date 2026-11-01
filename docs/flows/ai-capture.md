@@ -75,7 +75,8 @@ subdivisión. No cambia la validación del guardado ni los datos de las siembras
 Evidencia: 19 pruebas de importación y 140 en la suite completa, tipos/build y
 QA demo con Pepino y aplicación 1 completados. El navegador muestra cultivo y
 destino seleccionados sin historia previa. Sin llamadas reales de IA ni
-escrituras en operación durante esta verificación. Publicación en curso; ver
+escrituras en operación durante esta verificación. Publicada en Sites versión 14
+y frontend Docker actualizado desde el mismo commit; ver
 [OPERATIONS](../OPERATIONS.md#corrección-de-cultivo-en-la-captura).
 
 ## Recuperación, permisos y accesibilidad

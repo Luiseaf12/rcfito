@@ -330,5 +330,18 @@ No se guardó configuración ni se hizo inferencia con claves reales durante QA.
 2026-10-31: la captura toma el cultivo único de las siembras vigentes cuando falta
 historia previa, conservando revisión de contradicciones y selección explícita.
 140 pruebas, tipos/build y QA demo aprobados. No requiere migraciones, nueva
-clave ni cambios de configuración del proveedor. Publicación Sites y frontend
-Docker en curso. [Evidencia](TESTING.md#cultivo-registrado-en-primeras-aplicaciones).
+clave ni cambios de configuración del proveedor.
+
+El Propietario autorizó expresamente commit, push y publicación de esta corrección.
+Commit `0d33a3f1a5f059d811e9c47bd4b86ddcb532179e` subido a GitHub y al
+repositorio de Sites, validado/empaquetado desde checkout limpio. Sites confirmó
+succeeded para la versión 14
+`appgprj_6ae67ae019e88191a7012093bb19c505~appgver_6e3d53df340c8191a3211bf512b41ff1`,
+despliegue `appgdep_6ae6bc1a8c24819181a8e95d1201e0e1`, conservando audiencia
+pública y entorno. Frontend Docker actualizado desde la misma revisión con
+Compose explícito y montaje público conservado.
+
+Nueve comprobaciones posteriores aprobadas: inicio y bundle con el texto corregido
+200 en Site y local, captura/configuración sin sesión 401 en ambos y salud Auth
+200. Sin escrituras de aplicaciones ni consumo del proveedor en la verificación.
+[Evidencia](TESTING.md#cultivo-registrado-en-primeras-aplicaciones).
