@@ -254,4 +254,14 @@ el .env preexistente, variables VITE_* ni archivos versionados para secretos.
 El Propietario dejó esa activación pendiente: no se creó una clave ni se comprobó
 inferencia real. La captura manual y la revisión del borrador siguen disponibles.
 
-Publicación del código en Sites: pendiente de resultado nativo en esta entrega.
+Sites confirmó `succeeded`, versión 11, desde el commit
+`c3ec45fb3ead01fe4726b589ff80e4b72b99b0bc` validado en checkout limpio y subido a
+GitHub y al repositorio del Site. Versión guardada:
+`appgprj_6ae67ae019e88191a7012093bb19c505~appgver_4758009458308191b672fd7e0524d043`;
+despliegue `appgdep_6ae6a90a41a48191ae08a50c48fcf580`, en
+[RCFito](https://rcfito.paxxa.chatgpt.site). Se conservó la audiencia pública
+existente y las variables del registro de conexión.
+
+Verificación posterior: inicio y bundle 200, ruta de captura presente, servicio
+IA anónimo 401, proxy IA local 401 y salud Auth 200. Sin escrituras de operación
+ni llamadas al proveedor. La activación de IA continúa diferida por el Propietario.

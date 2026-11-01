@@ -274,3 +274,7 @@ Operación: respaldo privado de 357,180 bytes, migración aditiva aplicada, ledg
 aplicadas/cero pendientes, sin fixtures. Frontend Docker actualizado y HTML/bundle
 200. La IA real permanece pendiente por decisión del Propietario; las pruebas
 simulan el proveedor y no acreditan inferencia real ni captura UI en producción.
+
+Sites versión 11 confirmó succeeded desde el commit validado; inicio/bundle 200,
+IA anónima 401, proxy local 401 y salud Auth 200 posteriores aprobados sin
+escrituras de operación ni inferencia. [Publicación](OPERATIONS.md#captura-con-ia-y-nota-actualización).

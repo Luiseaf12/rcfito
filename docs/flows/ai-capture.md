@@ -2,8 +2,9 @@
 
 Fecha: 2026-10-31. Alcance autorizado por el Propietario: implementar,
 verificar, commit/push y publicar conservando la audiencia de Sites.
-Estado: implementación y pruebas aprobadas; publicación en curso. El Propietario
-decidió dejar la activación del proveedor pendiente, sin crear credenciales.
+Estado: implementación y pruebas aprobadas; código publicado en Sites versión 11.
+El Propietario decidió dejar la activación del proveedor pendiente, sin crear
+credenciales ni ejecutar inferencia real.
 
 ## Usuario, entrada y objetivo
 
@@ -64,7 +65,8 @@ explícita; nunca omitir silenciosamente una malla o producto del mensaje.
 Reutilizar Sidebar, enlaces y permisos del shell, RecordDialog, Field, Select,
 Textarea, Checkbox y Alert de shadcn. Móvil y escritorio comparten ruta; a 375 px
 mantener el scroll dentro de tablas, foco visible y objetivos de 44 px. Escape
-protege la captura y devuelve foco. QA de navegación, teclado y lectura pendiente.
+protege la captura y devuelve foco. Navegación y Escape comprobados; teclado
+completo y lectura a 200 % permanecen pendientes en RCF-006.
 
 La inferencia real requiere proveedor configurado únicamente en servidor; una
 clave ausente produce un estado indisponible explícito. La demo puede revisar
