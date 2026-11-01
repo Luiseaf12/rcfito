@@ -184,3 +184,15 @@ una prueba HMAC de diez minutos ligada a usuario, clave, modelo y revisión;
 R2 condicional rechaza sobrescrituras concurrentes. Los errores no reproducen
 claves ni respuestas privadas del proveedor. Custodia y recuperación en
 [OPERATIONS](OPERATIONS.md#configuración-de-ia-en-el-servidor).
+
+## Edición de aplicaciones e historial
+
+Las revisiones/correcciones solo se escriben mediante RPC con administrador
+activo. `application_changes` y `application_change_products` no conceden DML
+directo; SELECT bajo RLS conserva alcance de la agrícola asignada e impide acceso
+anónimo/inactivo. La firma de reintento no es una columna pública de lectura.
+Las RPC bloquean orden/destinos, validan versión y conjunto exacto pendiente,
+exigen motivo y escriben evento/snapshots/referencias de forma atómica. Originales
+y eventos anteriores no se reescriben; FK y unidad protegen productos que solo
+figuren en historial. Correcciones reales mantienen estado y límite de cierre.
+[Contrato](backend-api.md#revisiones-y-correcciones-de-aplicaciones).

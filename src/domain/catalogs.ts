@@ -4,6 +4,7 @@ import type { CatalogKind, CatalogRecord, WorkspaceData } from './model'
 type CatalogEditContext = Pick<WorkspaceData, 'catalogs' | 'lots' | 'stages'> & {
   applicationOrders?: readonly { products: readonly { product_id: string }[] }[]
   applicationTargets?: readonly { actual_products: readonly { product_id: string }[] }[]
+  applicationChanges?: readonly { before: { products: readonly { product_id: string }[] }; after: { products: readonly { product_id: string }[] } }[]
 }
 type LockedField = 'agricultural_unit_id' | 'crop_id' | 'unit'
 
@@ -18,7 +19,8 @@ export function catalogEditLocks(data: CatalogEditContext, kind: CatalogKind, re
   if (kind === 'products' && (
     record.unit_locked ||
     data.applicationOrders?.some(order => order.products.some(product => product.product_id === record.id)) ||
-    data.applicationTargets?.some(target => target.actual_products.some(product => product.product_id === record.id))
+    data.applicationTargets?.some(target => target.actual_products.some(product => product.product_id === record.id)) ||
+    data.applicationChanges?.some(change => [change.before, change.after].some(snapshot => snapshot.products.some(product => product.product_id === record.id)))
   )) {
     return { unit: 'La unidad no puede cambiar porque este producto ya se utilizó en aplicaciones. Las dosis y cantidades históricas conservan su unidad original.' }
   }

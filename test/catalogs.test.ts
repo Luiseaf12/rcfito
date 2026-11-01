@@ -108,13 +108,14 @@ test('la consulta de uso pagina indicación/realización y bloquea unidad sin ca
       const start = url.searchParams.get('offset') ?? range?.split('-')[0] ?? '0'
       const rows = url.pathname.endsWith('application_order_products')
         ? start === '0' ? Array.from({ length: 500 }, () => ({ product_id: 'product-a' })) : [{ product_id: 'product-b' }]
-        : [{ product_id: 'product-c' }]
+        : [{ product_id: url.pathname.endsWith('application_change_products') ? 'historic-product' : 'product-c' }]
       return new Response(JSON.stringify(rows), { status: 200, headers: { 'content-type': 'application/json' } })
     } },
   })
   const used = await loadCatalogProductUsage(client)
-  assert.deepEqual([...used].sort(), ['product-a', 'product-b', 'product-c'])
-  assert.equal(requests.length, 3)
+  assert.deepEqual([...used].sort(), ['historic-product', 'product-a', 'product-b', 'product-c'])
+  assert.equal(requests.length, 4)
+  assert.ok(requests.some(url => url.includes('application_change_products') && url.includes('phase')))
   assert.ok(requests.every(url => url.includes('select=product_id')))
   const data = createDemoData()
   const product = { ...data.catalogs.products[0], unit_locked: used.has('product-a') }

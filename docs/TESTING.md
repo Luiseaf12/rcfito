@@ -318,3 +318,24 @@ Mensaje sin contexto completa proyecto/campo/cultivo únicos sin marcar destinos
 Móvil 375 px sin desbordamiento y lista completa visible. Solo datos ficticios
 en un origen local separado; sin consumo del proveedor ni escrituras operativas.
 [Ficha](flows/ai-capture.md#autocompletado-y-pendientes-de-aprobación).
+
+## Edición de aplicaciones e historial
+
+2026-10-31: 181/181 pruebas de npm, TypeScript y revisión independiente sin
+hallazgos pendientes. Incluyen 17 nuevas de dominio, tres de conciliación REST
+y protección de catálogos usados solo en historial. SQL aislado: 244 comprobaciones
+(65 catálogos, 91 aplicaciones, 78 edición, 10 actualización sobre registros
+anteriores). HTTP/Auth/REST/RLS aislado: 71 (23 nuevas), repetidas tras endurecer
+validaciones. Conflictos/reintentos, firma privada, fechas/tipos, cierre y permisos
+comprobados; stacks aislados retirados, sin fixtures en operación.
+
+UI demo aislada 5184: orden de tres destinos, uno realizado y otro cancelado;
+revisión del único pendiente con A500→600 ml/ha, B250 g/ha agregado, agua660→700,
+fechas20/21→23/24 octubre y nota/motivo. Los dos terminales retuvieron revisión0;
+el pendiente recibió revisión1 y se realizó con esa nueva mezcla sin diferencias.
+Corrección del primer realizado a A550+C100 ml/ha, agua680 y fecha23: historial
+comparado conservó A500/agua660/fecha22, autor/motivo y conteos 0/2/1. Recarga
+conservó corrección y eventos. Móvil sin overflow de página (360/360), historial
+legible; lector demo consulta las versiones y carece de acciones de edición.
+Estas capturas solo acreditan demo local; permisos reales se verificaron en el
+backend aislado. Publicación y migración operativa en OPERATIONS.

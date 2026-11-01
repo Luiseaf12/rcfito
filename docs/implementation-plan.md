@@ -151,3 +151,12 @@ y secretos sin modificarlos como efecto de QA.
 
 Actualizar estos estados solo con evidencia ejecutada. El cierre de la primera
 entrega no acredita esta ampliación ni el reporte completo de RCF-011.
+
+## Ampliación: edición de aplicaciones
+
+Solicitud del Propietario: productos, dosis, fechas e historial con commit/push y
+Sites. Se implementó la [ficha](flows/application-editing.md) antes de la UI,
+separando dominio, adaptador y presentación. Backend, dominio y revisión HTTP/UI
+se comprobaron por separado; 181 pruebas puras/cliente, 244 SQL y 71 HTTP aisladas
+aprobadas. Evidencia de recorrido demo/móvil/lector en TESTING y estado operativo
+en [PLANS](PLANS.md), RCF-019.

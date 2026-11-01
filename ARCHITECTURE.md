@@ -134,3 +134,16 @@ vista. El Worker comprueba Auth/perfil de administrador y guarda la clave cifrad
 en un objeto R2 exclusivo; la captura resuelve esa configuración en cada petición.
 La prueba y el guardado son acciones distintas con comprobante temporal y revisión
 condicional. Contrato y recorrido en [la ficha](docs/flows/ai-settings.md).
+
+## Edición e historial de aplicaciones
+
+[application-editing](src/domain/application-editing.ts) coordina revisiones de
+indicación y correcciones reales con snapshots, versiones e idempotencia. Los
+helpers resuelven indicación por destino; la orden conserva su primera versión.
+[application-history](src/data/application-history.ts) concilia lecturas REST y
+hidrata correcciones desde eventos antes de exponer el workspace. Adaptador RPC
+en Supabase; [editor e historial](src/features/application-editing.tsx) y
+[campos compartidos](src/features/application-fields.tsx) separan presentación.
+La [migración](supabase/migrations/20261101051210_application_revision_history.sql)
+mantiene eventos append-only y referencias de productos con RLS. Flujo completo
+en [edición](docs/flows/application-editing.md).

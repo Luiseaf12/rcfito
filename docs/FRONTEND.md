@@ -94,3 +94,13 @@ cuando no hay pendientes anuncia Captura lista para aprobar y guardar. Conservar
 las selecciones resueltas, los valores del mensaje y la protección de descarte.
 Se verificaron errores recuperables, habilitación/guardado demo y 375 px.
 [Ficha](flows/ai-capture.md#autocompletado-y-pendientes-de-aprobación).
+
+## Edición de aplicaciones e historial
+
+El detalle ofrece **Editar indicación** al administrador con pendientes y
+**Corregir realización** en cada destino realizado. Reutiliza los campos y editor
+de mezcla existentes; motivo obligatorio, lista de pendientes, guardado protegido
+y confirmación de descarte. La vista distingue última revisión de la indicación
+histórica de cada destino, conserva la original y compara eventos antes/después.
+Validación de versiones evita aplicar cambios que el usuario no vio. El lector
+solo consulta su historial. [Ficha y evidencia](flows/application-editing.md).

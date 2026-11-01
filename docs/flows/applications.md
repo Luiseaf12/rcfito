@@ -195,3 +195,12 @@ guardado, recarga y detalle con variedad original; edición con contexto bloquea
 y motivo visible. A 375 px, documento de 375 px y diálogo con scroll interno sin
 desbordamiento. No se modificó el esquema ni se crearon fixtures en operación.
 La revisión React fue del autor; teclado/contraste/zoom completos siguen en RCF-006.
+
+## Edición posterior de una aplicación
+
+La indicación original sigue disponible en solo lectura. **Editar indicación**
+crea una revisión para todos y solo los pendientes; **Corregir realización**
+registra una corrección individual de lo aplicado. Motivo obligatorio e historial
+antes/después, autor/fecha/versiones. Esta ampliación autorizada permite corregir
+sin cancelar/recrear la orden. Contrato, permisos, validaciones y aceptación en
+la [ficha de edición](application-editing.md).

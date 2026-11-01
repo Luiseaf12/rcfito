@@ -23,6 +23,8 @@ Fecha de revisión: 2026-10-31.
 | RCF-017 | Heredar cultivo de las siembras en captura sin historia previa. | cerrada | Agente principal | Commit 0d33a3f en GitHub y Sites versión 14; frontend Docker actualizado. 140 pruebas, QA demo y nueve comprobaciones posteriores aprobadas. | [Captura](flows/ai-capture.md#cultivo-registrado-en-primeras-aplicaciones) y [publicación](OPERATIONS.md#corrección-de-cultivo-en-la-captura) |
 | RCF-018 | Completar contexto conocido y explicar pendientes para aprobar captura IA. | cerrada | Agente principal y revisión independiente | Commit 6b0bd2c en GitHub y Sites versión 15; frontend Docker actualizado. 161 pruebas, QA demo/guardado/móvil y once comprobaciones posteriores aprobadas. | [Captura](flows/ai-capture.md#autocompletado-y-pendientes-de-aprobación) y [publicación](OPERATIONS.md#autocompletado-y-pendientes-de-aprobación) |
 
+| RCF-019 | Editar aplicaciones con productos, dosis, fechas e historial. | en curso | Agente principal y revisión independiente | Código y QA aprobados; 181 pruebas, 244 SQL, 71 HTTP. Respaldo y migración operativa confirmados (4/0 pendientes), sin modificar conteos. Pendiente frontend Docker y publicación en Sites. | [Ficha de edición](flows/application-editing.md) y [operación](OPERATIONS.md#edición-de-aplicaciones-e-historial) |
+
 Estados y cierre: [DOCUMENTATION](../.project-standards/DOCUMENTATION.md#planes-decisiones-y-deuda).
 Una tarea registrada no autoriza implementarla. Conservar su ID y actualizar su
 fuente e índice juntos. Cerrar con evidencia, distinguiendo código, pruebas,

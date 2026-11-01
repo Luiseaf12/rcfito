@@ -367,3 +367,19 @@ pendientes 200 en Site/local, captura/configuración sin sesión 401 en ambos y
 salud Auth 200. Sin escrituras de aplicaciones ni consumo del proveedor durante
 esa verificación. Conservar el mensaje antes de recargar para abrir el borrador
 con la nueva versión. [Evidencia](TESTING.md#autocompletado-y-pendientes-de-aprobación).
+
+## Edición de aplicaciones e historial
+
+Cambio autorizado para commit/push y publicación en el mismo Site, conservando
+audiencia. Requiere aplicar `20261101051210_application_revision_history.sql`
+antes de servir el frontend nuevo. Es aditiva: revisión0 y referencia original
+en registros existentes; no inventa eventos ni modifica productos originales.
+Conservar respaldo privado previo, secretos/volúmenes y configuración IA/R2.
+No ejecutar preparación ni reset de operación.
+
+2026-10-31: respaldo custom de PostgreSQL creado y validado privadamente en
+.artifacts/production-supabase/backups (367,912 bytes). Migración aplicada:
+cuatro registradas, cero pendientes. Conteos de órdenes, destinos por estado y
+productos originales/reales idénticos antes/después; cero eventos inventados.
+181 pruebas, 244 SQL, 71 HTTP aisladas y QA demo/móvil/lector aprobados. Frontend
+Docker y publicación de la revisión validada se confirman en el cierre posterior.

@@ -1,13 +1,16 @@
+import { businessToday, validDate, validateProducts, newProductRow, ProductMixtureEditor, MixtureReadOnly, TextField, type ProductDraft } from './application-fields'
 import { useId, useMemo, useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Check, Droplets, Eye, Layers3, Plus, X } from 'lucide-react'
+import { ArrowLeft, Check, Eye, Layers3, Plus, X } from 'lucide-react'
 import { useWorkspace } from '@/data/workspace-context'
 import { currentApplicationDestinations, matchImportedProducts, resolveImportContext, type ExtractedApplication } from '@/domain/application-import'
-import { applicationDraftIssues, type ApplicationDraftIssue } from '@/domain/application-draft'
+import { applicationDraftIssues } from '@/domain/application-draft'
 import { nextStageApplicationNumber, stageApplicationNumber } from '@/domain/applications'
+import { currentOrderIndication, indicationForTarget } from '@/domain/application-editing'
+import { EditApplicationDialog, ApplicationChangeHistory } from './application-editing'
 import type {
   ApplicationOrder, ApplicationTarget, CatalogRecord, LotSubdivision,
-  ProductLine, ProjectLot, SowingStage, WorkspaceData,
+  ProjectLot, SowingStage, WorkspaceData,
 } from '@/domain/model'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -16,7 +19,6 @@ import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel, FieldLegen
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Textarea } from '@/components/ui/textarea'
 import { Separator } from '@/components/ui/separator'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
@@ -91,88 +93,6 @@ export function StageDestinationPicker({ options, selected, onChange, disabled =
   )
 }
 
-type ProductDraft = { key: string; product_id: string; dose: string; sourceName?: string; importUnit?: 'g' | 'ml' | null }
-const newProductRow = (): ProductDraft => ({ key: crypto.randomUUID(), product_id: '', dose: '' })
-const dosage = (value: number) => new Intl.NumberFormat('es-MX', { maximumFractionDigits: 6 }).format(Number(value))
-
-function businessToday() {
-  const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Mazatlan', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date())
-  const part = (name: string) => parts.find(item => item.type === name)?.value ?? ''
-  return `${part('year')}-${part('month')}-${part('day')}`
-}
-
-function validDate(value: string) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false
-  const parsed = new Date(`${value}T12:00:00Z`)
-  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value
-}
-
-function validateProducts(rows: ProductDraft[]) {
-  if (!rows.length) return 'Agrega al menos un producto a la mezcla.'
-  if (rows.some(row => !row.product_id)) return 'Selecciona un producto en cada renglón.'
-  if (new Set(rows.map(row => row.product_id)).size !== rows.length) return 'Cada producto solo puede aparecer una vez en la mezcla.'
-  if (rows.some(row => !row.dose.trim() || !Number.isFinite(Number(row.dose)) || Number(row.dose) <= 0)) return 'Completa todas las dosis con un valor mayor que cero.'
-  return ''
-}
-
-function ProductMixtureEditor({ rows, onChange, products, original = [], error, imported = false, issues = [] }: {
-  rows: ProductDraft[]
-  onChange: (rows: ProductDraft[]) => void
-  products: CatalogRecord[]
-  original?: ProductLine[]
-  error?: string
-  imported?: boolean
-  issues?: ApplicationDraftIssue[]
-}) {
-  const originalIds = new Set(original.map(product => product.product_id))
-  const options = products.filter(product => product.active || originalIds.has(product.id))
-  const updateRow = (key: string, change: Partial<ProductDraft>) => onChange(rows.map(row => row.key === key ? { ...row, ...change } : row))
-  return (
-    <FieldSet>
-      <FieldLegend>Productos y dosis por hectárea</FieldLegend>
-      <FieldDescription>La mezcla es común a todos los destinos seleccionados. La dosis no cambia la predeterminada del catálogo.</FieldDescription>
-      <div className="flex flex-col gap-4">
-        {rows.map((row, index) => {
-          const product = products.find(item => item.id === row.product_id)
-          const indicated = original.find(item => item.product_id === row.product_id)
-          const unit = indicated?.unit || product?.unit
-          return (
-            <FieldGroup className="application-mixture-row" key={row.key}>
-              <FormSelect label={row.sourceName ? `Producto ${index + 1}: ${row.sourceName}` : `Producto ${index + 1}`} value={row.product_id} onChange={id => {
-                const chosen = products.find(item => item.id === id)
-                const previous = original.find(item => item.product_id === id)
-                updateRow(row.key, { product_id: id, dose: imported ? row.dose : String(previous?.dose ?? chosen?.default_dose ?? '') })
-              }} options={options.map(item => ({ value: item.id, label: `${item.code || item.id} · ${item.name}${!item.active ? ' (inactivo, indicado)' : ''}`, disabled: rows.some(other => other.key !== row.key && other.product_id === item.id) }))} required error={issues.find(issue => issue.field === `product:${index}`)?.message} help={product ? `Código: ${product.code || product.id} · Unidad del catálogo: ${unit}/ha` : 'Selecciona un producto del catálogo.'} />
-              <FormInput label={unit ? `Dosis (${unit}/ha)` : 'Dosis por hectárea'} value={row.dose} onChange={dose => updateRow(row.key, { dose })} type="number" min="0.000001" step="any" required error={issues.find(issue => issue.field === `dose:${index}`)?.message} />
-              <Button type="button" variant="outline" size="icon" aria-label={`Quitar producto ${index + 1}`} onClick={() => onChange(rows.filter(item => item.key !== row.key))}><X /></Button>
-              {imported && row.sourceName && <div className="col-span-full flex flex-col gap-2">
-                <FormSelect label={`Unidad del mensaje para ${row.sourceName}`} value={row.importUnit || ''} onChange={value => updateRow(row.key, { importUnit: value as 'g' | 'ml', dose: '' })} options={[{ value: 'g', label: 'g/ha' }, { value: 'ml', label: 'ml/ha' }]} required error={issues.find(issue => issue.field === `unit:${index}`)?.message} help="Si corriges la unidad, vuelve a capturar la dosis confirmada. Masa y volumen requieren aclaración." />
-              </div>}
-            </FieldGroup>
-          )
-        })}
-      </div>
-      {error && <FieldError>{error}</FieldError>}
-      <div><Button type="button" variant="outline" onClick={() => onChange([...rows, newProductRow()])}><Plus data-icon="inline-start" />Agregar producto</Button></div>
-    </FieldSet>
-  )
-}
-
-function MixtureReadOnly({ products, water, title = 'Mezcla indicada' }: { products: ProductLine[]; water: number; title?: string }) {
-  return (
-    <section className="flex flex-col gap-3" aria-label={title}>
-      <h3 className="section-title">{title}</h3>
-      <div className="table-wrap">
-        <Table>
-          <TableHeader><TableRow><TableHead>Producto</TableHead><TableHead>Dosis por hectárea</TableHead></TableRow></TableHeader>
-          <TableBody>{products.map((product, index) => <TableRow key={`${product.product_id}-${index}`}><TableCell>{product.product_name}</TableCell><TableCell>{dosage(product.dose)} {product.unit}/ha</TableCell></TableRow>)}</TableBody>
-        </Table>
-      </div>
-      <p className="application-water"><Droplets aria-hidden="true" /><strong>Gasto de agua: {dosage(water)} L/ha</strong></p>
-    </section>
-  )
-}
-
 function TargetStatus({ status }: { status: ApplicationTarget['status'] }) {
   const text = { indicated: 'Indicada', performed: 'Realizada', cancelled: 'Cancelada' }
   return <Badge variant={status === 'performed' ? 'default' : status === 'cancelled' ? 'outline' : 'secondary'} data-state={status}>{text[status]}</Badge>
@@ -186,16 +106,6 @@ function TargetCounts({ targets }: { targets: ApplicationTarget[] }) {
   </div>
 }
 
-function TextField({ label, value, onChange, required, error, help }: { label: string; value: string; onChange: (value: string) => void; required?: boolean; error?: string; help?: string }) {
-  const id = useId()
-  return <Field data-invalid={!!error}>
-    <FieldLabel htmlFor={id}>{label}{required && <span aria-hidden="true"> *</span>}</FieldLabel>
-    <Textarea id={id} value={value} onChange={event => onChange(event.target.value)} rows={3} required={required} aria-required={required} aria-invalid={!!error} aria-describedby={error ? `${id}-error` : help ? `${id}-help` : undefined} />
-    {help && <FieldDescription id={`${id}-help`}>{help}</FieldDescription>}
-    {error && <FieldError id={`${id}-error`}>{error}</FieldError>}
-  </Field>
-}
-
 export function ApplicationsPage() {
   const { data, isAdmin, loading } = useWorkspace()
   const [query, setQuery] = useState('')
@@ -207,7 +117,7 @@ export function ApplicationsPage() {
   const [to, setTo] = useState('')
   const [page, setPage] = useState(1)
   const [creating, setCreating] = useState(false)
-  const orders = data.applicationOrders ?? []
+  const orders = useMemo(() => (data.applicationOrders ?? []).map(order => ({ ...order, ...currentOrderIndication(data, order) })), [data])
   const targets = data.applicationTargets ?? []
   const badRange = !!from && !!to && from > to
   const filtered = useMemo(() => {
@@ -386,7 +296,7 @@ export function NewApplicationDialog({ close, imported, onSaved }: { close: () =
             </FieldGroup>
             <TextField label="Nota de la aplicación" value={form.observations} onChange={value => update('observations', value)} error={issueFor('observations')} help="Opcional, hasta 4,000 caracteres. Se conserva para todos los destinos de esta indicación." />
           </FieldGroup>
-          <Alert><AlertTitle>La indicación se conserva como historial</AlertTitle><AlertDescription>Una vez emitida, registra su realización o cancela los destinos pendientes. Para corregirla, cancela e indica nuevamente.</AlertDescription></Alert>
+          <Alert><AlertTitle>La indicación se conserva como historial</AlertTitle><AlertDescription>Podrás editar los destinos pendientes con un motivo de cambio. Los realizados conservan su indicación y permiten una corrección registrada de lo aplicado.</AlertDescription></Alert>
         </fieldset>
         {(imported || submitted) && (draftIssues.length ? <Alert role="status"><AlertTitle>Pendientes para {imported ? 'aprobar' : 'guardar'}: {draftIssues.length}</AlertTitle><AlertDescription><ul className="list-disc pl-5">{draftIssues.map(issue => <li key={`${issue.field}:${issue.message}`}>{issue.message}</li>)}</ul></AlertDescription></Alert> : <p className="flex items-center gap-2" role="status"><Check aria-hidden="true" />Captura lista para {imported ? 'aprobar y guardar' : 'guardar'}.</p>)}
         <div className="dialog-actions"><Button type="button" variant="outline" onClick={dismissal.requestClose} disabled={busy}>Volver</Button><SaveButton busy={busy} disabled={importIncomplete}>{imported ? 'Aprobar y guardar indicación' : 'Guardar indicación'}</SaveButton></div>
@@ -406,7 +316,7 @@ export function ApplicationDetailPage() {
   const location = useLocation()
   const { data, isAdmin, loading } = useWorkspace()
   const [selected, setSelected] = useState<string[]>([])
-  const [modal, setModal] = useState<{ kind: 'perform' | 'cancel'; ids: string[] } | { kind: 'view'; targetId: string } | null>(null)
+  const [modal, setModal] = useState<{ kind: 'perform' | 'cancel'; ids: string[] } | { kind: 'view' | 'correct'; targetId: string } | { kind: 'edit' } | null>(null)
   const [notice, setNotice] = useState(() => typeof location.state?.notice === 'string' ? location.state.notice : '')
   const order = (data.applicationOrders ?? []).find(item => item.id === orderId)
   const targets = (data.applicationTargets ?? []).filter(target => target.order_id === orderId)
@@ -415,6 +325,7 @@ export function ApplicationDetailPage() {
   if (loading) return <LoadingState />
   if (!order) return <EmptyState title="La indicación no está disponible" description="Puede que no tengas acceso a su agrícola o que la consulta todavía deba actualizarse." action={<Button asChild variant="outline"><Link to="/aplicaciones">Volver a aplicaciones</Link></Button>} />
   const project = data.projects.find(item => item.id === order.project_id)
+  const indication = currentOrderIndication(data, order)
   const completed = (message: string) => { setModal(null); setSelected([]); setNotice(message) }
   return <section className="workspace-page flex flex-col gap-6">
     <div><Button asChild variant="ghost"><Link to="/aplicaciones"><ArrowLeft data-icon="inline-start" />Aplicaciones</Link></Button></div>
@@ -424,18 +335,18 @@ export function ApplicationDetailPage() {
     </header>
     {notice && <Alert role="status"><Check /><AlertTitle>{notice}</AlertTitle></Alert>}
     <Card>
-      <CardHeader><CardTitle>Lo indicado</CardTitle><CardDescription>Esta información conserva la instrucción original de todos los destinos.</CardDescription></CardHeader>
+      <CardHeader><div className="section-header"><CardTitle>Indicación vigente · revisión {order.revision ?? 0}</CardTitle>{isAdmin && pending.length > 0 && project?.status === 'active' && <Button variant="outline" onClick={() => setModal({kind:'edit'})}>Editar indicación</Button>}</div><CardDescription>{order.revision ? 'Esta es la última revisión. Cada destino realizado o cancelado conserva la indicación que recibió; consúltala en Ver.' : 'Esta es la primera indicación. Sus valores originales permanecerán en el historial.'}</CardDescription></CardHeader>
       <CardContent className="flex flex-col gap-6">
         <RecordDetails items={[
           { label: 'Agrícola', value: recordName(data.catalogs.agricultural_units, project?.agricultural_unit_id) },
           { label: 'Proyecto', value: order.project_name || project?.name },
-          { label: 'Medio de aplicación', value: order.method_name || recordName(data.catalogs.application_methods, order.method_id) },
-          { label: 'Fecha de indicación', value: formatDate(order.indicated_date) },
-          { label: 'Fecha programada', value: formatDate(order.scheduled_date) },
-          { label: 'Superficie indicada', value: `${formatArea(targets.reduce((sum, target) => sum + Number(target.area_ha), 0))} ha` },
+          { label: 'Medio de aplicación', value: indication.method_name || recordName(data.catalogs.application_methods, indication.method_id) },
+          { label: 'Fecha de indicación', value: formatDate(indication.indicated_date) },
+          { label: 'Fecha programada', value: formatDate(indication.scheduled_date) },
+          { label: 'Superficie total de la orden', value: `${formatArea(targets.reduce((sum, target) => sum + Number(target.area_ha), 0))} ha` },
         ]} />
-        <MixtureReadOnly products={order.products} water={order.water_l_ha} />
-        <div><h3 className="section-title">Nota de la aplicación</h3><p className="whitespace-pre-wrap">{order.observations || 'Sin nota.'}</p></div>
+        <MixtureReadOnly products={indication.products} water={indication.water_l_ha} />
+        <div><h3 className="section-title">Nota de la aplicación</h3><p className="whitespace-pre-wrap">{indication.observations || 'Sin nota.'}</p></div>
         {order.source_text && <Collapsible><CollapsibleTrigger asChild><Button type="button" variant="outline">Mensaje original de la captura</Button></CollapsibleTrigger><CollapsibleContent><p className="whitespace-pre-wrap break-words">{order.source_text}</p></CollapsibleContent></Collapsible>}
       </CardContent>
     </Card>
@@ -452,16 +363,19 @@ export function ApplicationDetailPage() {
           <TableHeader><TableRow>{isAdmin && <TableHead>Seleccionar</TableHead>}<TableHead>Destino</TableHead><TableHead>Superficie</TableHead><TableHead>Estado</TableHead><TableHead>Realización</TableHead><TableHead>Acción</TableHead></TableRow></TableHeader>
           <TableBody>{targets.map(target => <TableRow key={target.id}>
             {isAdmin && <TableCell>{target.status === 'indicated' ? <Checkbox className="application-target-check" aria-label={`Seleccionar ${targetLabel(target)}`} checked={selected.includes(target.id)} onCheckedChange={checked => setSelected(current => checked === true ? [...current, target.id] : current.filter(id => id !== target.id))} /> : <span className="muted">—</span>}</TableCell>}
-            <TableCell><strong>{target.lot_name}</strong><div>{target.subdivision_name} · Etapa {target.stage_number}</div><div>Aplicación {stageApplicationNumber(data, target)}</div><div className="muted record-secondary">{target.crop_name} / {target.variety_name}</div></TableCell>
+            <TableCell><strong>{target.lot_name}</strong><div>{target.subdivision_name} · Etapa {target.stage_number}</div><div>Aplicación {stageApplicationNumber(data, target)}</div><div className="muted record-secondary">{target.crop_name} / {target.variety_name}</div><div className="muted record-secondary">Indicación: revisión {target.indication_change_id ? data.applicationChanges.find(change=>change.id===target.indication_change_id)?.version : 0}</div></TableCell>
             <TableCell>{formatArea(target.area_ha)} ha</TableCell>
             <TableCell><TargetStatus status={target.status} /></TableCell>
             <TableCell>{target.actual_date ? formatDate(target.actual_date) : target.status === 'cancelled' ? 'No se realizó' : 'Pendiente'}{target.status === 'performed' && <div className="muted record-secondary">{target.has_changes ? 'Con cambios registrados' : 'Conforme a lo indicado'}</div>}</TableCell>
-            <TableCell><Button variant="outline" onClick={() => setModal({ kind: 'view', targetId: target.id })} aria-label={`Ver ${targetLabel(target)}`}><Eye data-icon="inline-start" />Ver</Button></TableCell>
+            <TableCell><div className="flex flex-wrap gap-2"><Button variant="outline" onClick={() => setModal({ kind: 'view', targetId: target.id })} aria-label={`Ver ${targetLabel(target)}`}><Eye data-icon="inline-start" />Ver</Button>{isAdmin && target.status==='performed' && <Button variant="outline" onClick={()=>setModal({kind:'correct',targetId:target.id})} aria-label={`Corregir realización de ${targetLabel(target)}`}>Corregir realización</Button>}</div></TableCell>
           </TableRow>)}</TableBody>
         </Table></div>
         {!pending.length && <p className="muted">Todos los destinos tienen su seguimiento registrado.</p>}
       </CardContent>
     </Card>
+    <ApplicationChangeHistory order={order} />
+    {modal?.kind === 'edit' && isAdmin && <EditApplicationDialog order={order} close={()=>setModal(null)} completed={()=>completed('La nueva indicación se guardó para los destinos pendientes.')} />}
+    {modal?.kind === 'correct' && isAdmin && targets.find(target=>target.id===modal.targetId)?.status==='performed' && <EditApplicationDialog order={order} target={targets.find(target=>target.id===modal.targetId)!} close={()=>setModal(null)} completed={()=>completed('La corrección de realización y su historial se guardaron correctamente.')} />}
     {modal?.kind === 'perform' && isAdmin && <PerformDialog order={order} targets={targets.filter(target => modal.ids.includes(target.id) && target.status === 'indicated')} close={() => setModal(null)} completed={() => completed('La realización se guardó correctamente.')} />}
     {modal?.kind === 'cancel' && isAdmin && <CancelTargetsDialog order={order} targets={targets.filter(target => modal.ids.includes(target.id) && target.status === 'indicated')} close={() => setModal(null)} completed={() => completed('La cancelación se guardó correctamente.')} />}
     {modal?.kind === 'view' && <TargetDetailsDialog order={order} target={targets.find(target => target.id === modal.targetId)!} close={() => setModal(null)} />}
@@ -470,12 +384,14 @@ export function ApplicationDetailPage() {
 
 function PerformDialog({ order, targets, close, completed }: { order: ApplicationOrder; targets: ApplicationTarget[]; close: () => void; completed: () => void }) {
   const { data, mutate } = useWorkspace()
+  const [indication] = useState(()=>targets[0]?indicationForTarget(data,order,targets[0]):currentOrderIndication(data,order))
+  const [expectedRevision] = useState(()=>targets[0]?.indication_change_id?data.applicationChanges.find(change=>change.id===targets[0].indication_change_id)?.version??-1:0)
   const changedId = useId()
   const [initial] = useState(() => ({ actual_date: businessToday(), equipment: '', applicator: '', observations: '' }))
   const [form, setForm] = useState(initial)
   const [changed, setChanged] = useState(false)
-  const [water, setWater] = useState(String(order.water_l_ha))
-  const [rows, setRows] = useState<ProductDraft[]>(() => order.products.map(product => ({ key: crypto.randomUUID(), product_id: product.product_id, dose: String(product.dose) })))
+  const [water, setWater] = useState(String(indication.water_l_ha))
+  const [rows, setRows] = useState<ProductDraft[]>(() => indication.products.map(product => ({ key: crypto.randomUUID(), product_id: product.product_id, dose: String(product.dose) })))
   const [error, setError] = useState<string | null>(null)
   const [productError, setProductError] = useState('')
   const [busy, setBusy] = useState(false)
@@ -484,7 +400,7 @@ function PerformDialog({ order, targets, close, completed }: { order: Applicatio
   const earliest = targets.reduce((date, target) => {
     const sowing = data.stages.find(stage => stage.id === target.stage_id)?.actual_sowing_date
     return sowing && sowing > date ? sowing : date
-  }, order.indicated_date)
+  }, indication.indicated_date)
   const update = (key: keyof typeof form, value: string) => setForm(current => ({ ...current, [key]: value }))
   async function submit(event: FormEvent) {
     event.preventDefault()
@@ -500,7 +416,7 @@ function PerformDialog({ order, targets, close, completed }: { order: Applicatio
     }
     setBusy(true)
     try {
-      await mutate({ type: 'perform_application_targets', order_id: order.id, target_ids: targets.map(target => target.id), data: { ...form, changed, ...(changed ? { water_l_ha: Number(water), products: rows.map(row => ({ product_id: row.product_id, dose: Number(row.dose) })) } : {}) } })
+      await mutate({ type: 'perform_application_targets', order_id: order.id, target_ids: targets.map(target => target.id), data: { ...form, expected_revision:expectedRevision, changed, ...(changed ? { water_l_ha: Number(water), products: rows.map(row => ({ product_id: row.product_id, dose: Number(row.dose) })) } : {}) } })
       completed()
     } catch (cause) { setError(errorMessage(cause)) } finally { setBusy(false) }
   }
@@ -510,7 +426,7 @@ function PerformDialog({ order, targets, close, completed }: { order: Applicatio
         <ErrorAlert message={error} />
         <fieldset disabled={busy} className="min-w-0 flex flex-col gap-6">
           <div className="flex flex-col gap-2"><h3 className="section-title">Destinos seleccionados</h3><ul className="list-disc pl-6">{targets.map(target => <li key={target.id}>{targetLabel(target)} · {formatArea(target.area_ha)} ha</li>)}</ul></div>
-          <MixtureReadOnly products={order.products} water={order.water_l_ha} />
+          <MixtureReadOnly products={indication.products} water={indication.water_l_ha} />
           <FieldGroup>
             <FieldGroup className="field-grid">
               <FormInput label="Fecha real de aplicación" type="date" value={form.actual_date} onChange={value => update('actual_date', value)} required min={earliest} max={businessToday()} help="No puede ser anterior a la indicación o a la siembra real, ni posterior a hoy." />
@@ -519,7 +435,7 @@ function PerformDialog({ order, targets, close, completed }: { order: Applicatio
             </FieldGroup>
             <TextField label="Observaciones de la realización" value={form.observations} onChange={value => update('observations', value)} />
             <Field orientation="horizontal"><Checkbox id={changedId} checked={changed} onCheckedChange={value => setChanged(value === true)} /><div><FieldLabel htmlFor={changedId}>Hubo cambios en productos, dosis o agua</FieldLabel><FieldDescription>Activa esta opción solo si lo aplicado fue diferente. La indicación original siempre se conserva.</FieldDescription></div></Field>
-            {changed ? <FieldSet className="flex flex-col gap-5"><FieldLegend>Lo realmente aplicado</FieldLegend><FieldDescription>Estos valores se guardarán para todos los destinos seleccionados.</FieldDescription><ProductMixtureEditor rows={rows} onChange={setRows} products={data.catalogs.products} original={order.products} error={productError} /><FormInput label="Gasto de agua real (L/ha)" type="number" value={water} onChange={setWater} min="0.0001" step="any" required /></FieldSet> : <Alert><AlertTitle>Confirmación de lo indicado</AlertTitle><AlertDescription>Al registrar la realización, confirmas que se aplicaron exactamente los productos, dosis y gasto de agua mostrados arriba.</AlertDescription></Alert>}
+            {changed ? <FieldSet className="flex flex-col gap-5"><FieldLegend>Lo realmente aplicado</FieldLegend><FieldDescription>Estos valores se guardarán para todos los destinos seleccionados.</FieldDescription><ProductMixtureEditor rows={rows} onChange={setRows} products={data.catalogs.products} original={indication.products} error={productError} /><FormInput label="Gasto de agua real (L/ha)" type="number" value={water} onChange={setWater} min="0.0001" step="any" required /></FieldSet> : <Alert><AlertTitle>Confirmación de lo indicado</AlertTitle><AlertDescription>Al registrar la realización, confirmas que se aplicaron exactamente los productos, dosis y gasto de agua mostrados arriba.</AlertDescription></Alert>}
           </FieldGroup>
         </fieldset>
         <div className="dialog-actions"><Button type="button" variant="outline" onClick={dismissal.requestClose} disabled={busy}>Volver</Button><SaveButton busy={busy}>Confirmar realización</SaveButton></div>
@@ -558,17 +474,20 @@ function CancelTargetsDialog({ order, targets, close, completed }: { order: Appl
 }
 
 function TargetDetailsDialog({ order, target, close }: { order: ApplicationOrder; target: ApplicationTarget; close: () => void }) {
+  const {data}=useWorkspace()
   if (!target) return null
-  return <RecordDialog title={targetLabel(target)} description={`${order.folio} · Compara la instrucción original con el seguimiento de este destino.`} open onOpenChange={open => { if (!open) close() }} wide>
+  const indication=indicationForTarget(data,order,target)
+  return <RecordDialog title={targetLabel(target)} description={`${order.folio} · Compara la indicación correspondiente a este destino con su realización.`} open onOpenChange={open => { if (!open) close() }} wide>
     <TargetStatus status={target.status} />
     <RecordDetails items={[
       { label: 'Cultivo y variedad', value: `${target.crop_name} / ${target.variety_name}` },
       { label: 'Superficie', value: `${formatArea(target.area_ha)} ha` },
-      { label: 'Fecha programada', value: formatDate(order.scheduled_date) },
+      { label: 'Fecha de indicación', value: formatDate(indication.indicated_date) },
+      { label: 'Fecha programada', value: formatDate(indication.scheduled_date) },
       { label: 'Fecha real', value: target.status === 'performed' ? formatDate(target.actual_date) : 'Sin realización' },
     ]} />
     <div className="application-comparison">
-      <MixtureReadOnly products={order.products} water={order.water_l_ha} />
+      <MixtureReadOnly products={indication.products} water={indication.water_l_ha} />
       {target.status === 'performed' && target.actual_water_l_ha !== null && <MixtureReadOnly title="Mezcla aplicada" products={target.actual_products} water={target.actual_water_l_ha} />}
     </div>
     {target.status === 'performed' && <>
@@ -577,6 +496,7 @@ function TargetDetailsDialog({ order, target, close }: { order: ApplicationOrder
     </>}
     {target.status === 'cancelled' && <Alert><AlertTitle>Motivo de cancelación</AlertTitle><AlertDescription className="whitespace-pre-wrap">{target.cancellation_reason}</AlertDescription></Alert>}
     {target.status === 'indicated' && <p className="muted">La realización de este destino sigue pendiente.</p>}
+    <ApplicationChangeHistory order={order} target={target} />
     <div className="dialog-actions"><Button variant="outline" onClick={close}>Cerrar</Button></div>
   </RecordDialog>
 }

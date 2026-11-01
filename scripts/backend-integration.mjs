@@ -213,6 +213,144 @@ async function verifyApplications(adminToken, readerToken, noAccessToken, projec
   check(unit.status >= 400, 'Aplicaciones: unidad usada bloqueada también por REST');
   console.log(`Integración aplicaciones: ${assertionCount} comprobaciones HTTP/Auth/REST aprobadas.`);
 }
+async function verifyApplicationChanges(adminToken, readerToken, noAccessToken, projectA) {
+  const fixture = Object.fromEntries(['fieldA', 'fieldB', 'crop', 'variety', 'infrastructure', 'methodA', 'methodB', 'ingredient', 'productA', 'productB', 'productHistory', 'productNew', 'order', 'otherOrder'].map(key => [key, randomUUID()]));
+  const previousAssertions = assertionCount;
+  // New, fictitious fixtures belong only to this CLI project; workflow writes use RPC.
+  sql(`insert into public.fields(id,agricultural_unit_id,code,name) values
+    ('${fixture.fieldA}','${ids.unitA}','QA-EDIT-FA-${suffix}','Campo edición A ficticio'),('${fixture.fieldB}','${ids.unitB}','QA-EDIT-FB-${suffix}','Campo edición B ficticio');
+    insert into public.crops(id,code,name) values('${fixture.crop}','QA-EDIT-C-${suffix}','Cultivo de edición ficticio');
+    insert into public.varieties(id,crop_id,code,name) values('${fixture.variety}','${fixture.crop}','QA-EDIT-V-${suffix}','Variedad de edición ficticia');
+    insert into public.infrastructure_types(id,code,name) values('${fixture.infrastructure}','QA-EDIT-I-${suffix}','Infraestructura de edición ficticia');
+    insert into public.application_methods(id,code,name) values
+    ('${fixture.methodA}','QA-EDIT-MA-${suffix}','Medio original ficticio'),('${fixture.methodB}','QA-EDIT-MB-${suffix}','Medio revisado ficticio');
+    insert into public.active_ingredients(id,code,name) values('${fixture.ingredient}','QA-EDIT-IA-${suffix}','Ingrediente histórico ficticio');
+    insert into public.products(id,code,name,unit,default_dose) values
+    ('${fixture.productA}','QA-EDIT-P1-${suffix}','Sólido original ficticio','g',12),('${fixture.productB}','QA-EDIT-P2-${suffix}','Líquido original ficticio','ml',8),
+    ('${fixture.productHistory}','QA-EDIT-P3-${suffix}','Producto histórico ficticio','g',20),('${fixture.productNew}','QA-EDIT-P4-${suffix}','Producto final ficticio','ml',4);
+    insert into public.product_ingredients(product_id,active_ingredient_id,concentration) values('${fixture.productHistory}','${fixture.ingredient}','25 g/L');`);
+  const otherProjects = await request(`/rest/v1/sowing_projects?agricultural_unit_id=eq.${ids.unitB}&status=eq.active&select=id`, adminToken);
+  if (otherProjects.status !== 200 || otherProjects.data?.length !== 1) throw new Error('Edición: falta la temporada ficticia de segunda agrícola.');
+  const projectB = otherProjects.data[0].id, stageIds = [];
+  for (let index = 0; index < 5; index++) {
+    const lot = await request('/rest/v1/rpc/create_project_lot', adminToken, { p_data: { project_id: index === 4 ? projectB : projectA, field_id: index === 4 ? fixture.fieldB : fixture.fieldA, code: `QA-EDIT-L${index}-${suffix}`, name: `Malla de edición ficticia ${index}`, area_ha: 2, infrastructure_type_id: fixture.infrastructure } });
+    if (lot.status !== 200 || typeof lot.data !== 'string') throw new Error('Edición: falló crear lote ficticio por RPC.');
+    const subdivisions = await request(`/rest/v1/lot_subdivisions?lot_id=eq.${lot.data}&select=id`, adminToken);
+    if (subdivisions.status !== 200 || subdivisions.data?.length !== 1) throw new Error('Edición: subdivisión ficticia no disponible.');
+    const id = randomUUID();
+    const stage = await request('/rest/v1/rpc/save_sowing_stage', adminToken, { p_data: { id, subdivision_id: subdivisions.data[0].id, crop_id: fixture.crop, variety_id: fixture.variety, area_ha: 2, planned_sowing_date: '2026-01-01' } });
+    const planted = await request('/rest/v1/rpc/transition_sowing_stage', adminToken, { p_stage_id: id, p_status: 'planted', p_date: '2026-01-02' });
+    if (stage.status !== 200 || !succeeded(planted)) throw new Error('Edición: no se confirmó sembrar el fixture.');
+    stageIds.push(id);
+  }
+  const originalData = { id: fixture.order, project_id: projectA, field_id: fixture.fieldA, crop_id: fixture.crop, method_id: fixture.methodA, indicated_date: '2026-01-03', scheduled_date: '2026-01-04', water_l_ha: 100, observations: '  Nota original de edición\nSegunda línea  ', source_text: 'Mensaje ficticio de edición\nAplicación 23', application_number: 23 };
+  const originalProducts = [{ product_id: fixture.productA, dose: 12 }, { product_id: fixture.productB, dose: 8 }];
+  const creation = await request('/rest/v1/rpc/create_application_order', adminToken, { p_data: originalData, p_stage_ids: stageIds.slice(0, 4), p_products: originalProducts });
+  const originalOrder = await request(`/rest/v1/application_orders?id=eq.${fixture.order}&select=id,folio,revision,source_text,observations,water_l_ha,method_id,indicated_date,scheduled_date`, adminToken);
+  const initialTargets = await request(`/rest/v1/application_targets?order_id=eq.${fixture.order}&select=*`, adminToken);
+  check(creation.status === 200 && originalOrder.data?.[0]?.revision === 0 && initialTargets.data?.length === 4 && initialTargets.data.every(row => row.correction_version === 0 && row.indication_change_id === null), 'Edición: orden original y cuatro destinos parten con revisión y versiones cero');
+  const targetIds = stageIds.slice(0, 4).map(stageId => initialTargets.data.find(row => row.stage_id === stageId).id);
+  const originalPerformance = { p_order_id: fixture.order, p_target_ids: [targetIds[0]], p_data: { actual_date: '2026-01-05', equipment: 'Equipo original ficticio', applicator: 'Aplicador ficticio', observations: 'Realización original', changed: false } };
+  const normal = await request('/rest/v1/rpc/perform_application_targets', adminToken, originalPerformance);
+  const cancel = await request('/rest/v1/rpc/cancel_application_targets', adminToken, { p_order_id: fixture.order, p_target_ids: [targetIds[1]], p_reason: 'Cancelación ficticia para historial' });
+  check(succeeded(normal) && succeeded(cancel), 'Edición: fixture combina un realizado, un cancelado y dos indicados');
+  const baseTarget = (await request(`/rest/v1/application_targets?id=eq.${targetIds[0]}&select=*`, adminToken)).data[0];
+  const baseCancelled = (await request(`/rest/v1/application_targets?id=eq.${targetIds[1]}&select=*`, adminToken)).data[0];
+  const revisionId = randomUUID();
+  const revision = { id: revisionId, order_id: fixture.order, expected_revision: 0, target_ids: targetIds.slice(2), method_id: fixture.methodB, indicated_date: '2026-01-04', scheduled_date: '2026-01-06', water_l_ha: 150, observations: '  Nota revisada\nSolo destinos pendientes  ', reason: 'Ajuste ficticio de la indicación pendiente' };
+  const revisedProducts = [{ product_id: fixture.productHistory, dose: 20 }, { product_id: fixture.productB, dose: 9 }];
+  const revise = (values, products = revisedProducts, token = adminToken) => request('/rest/v1/rpc/revise_application_order', token, { p_data: values, p_products: products });
+  const correctionId = randomUUID();
+  const correction = { id: correctionId, target_id: targetIds[0], expected_version: 0, actual_date: '2026-01-06', water_l_ha: 110, equipment: 'Equipo corregido ficticio', applicator: 'Aplicador corregido ficticio', observations: '  Nota real corregida\nSegunda línea  ', reason: 'Corrección ficticia de captura real' };
+  const correctedProducts = [{ product_id: fixture.productA, dose: 13 }, { product_id: fixture.productB, dose: 8 }];
+  const correct = (values, products = correctedProducts, token = adminToken) => request('/rest/v1/rpc/correct_application_target', token, { p_data: values, p_products: products });
+  const inactive = await adminCreate(`qa-inactive-editor-${suffix}@example.invalid`, { display_name: 'Admin inactivo ficticio' });
+  sql(`update public.profiles set role='admin',active=false where id='${inactive.id}';`);
+  const inactiveToken = await login(inactive.email);
+  for (const [token, label] of [[readerToken, 'lector'], [publicKey, 'anónimo'], [inactiveToken, 'administrador inactivo']]) {
+    const deniedRevision = await revise(revision, revisedProducts, token), deniedCorrection = await correct(correction, correctedProducts, token);
+    check([401, 403].includes(deniedRevision.status) && [401, 403].includes(deniedCorrection.status), `Edición: ambas RPC rechazan ${label} con autorización de servidor`);
+  }
+  const noReason = await revise({ ...revision, id: randomUUID(), reason: ' \n\t\r\n ' });
+  const invalidRevisionDate = await revise({ ...revision, id: randomUUID(), indicated_date: '2026-1-4' });
+  const partial = await revise({ ...revision, id: randomUUID(), target_ids: [targetIds[2]] });
+  const terminalIncluded = await revise({ ...revision, id: randomUUID(), target_ids: targetIds.slice(1) });
+  const preHistory = await request(`/rest/v1/application_changes?order_id=eq.${fixture.order}&select=id`, adminToken);
+  check(noReason.status >= 400 && invalidRevisionDate.status >= 400 && partial.status >= 400 && terminalIncluded.status >= 400 && preHistory.data?.length === 0, 'Edición: motivo, fechas ISO y conjunto exacto de pendientes obligatorios, sin eventos parciales');
+  const [revised, retry] = await Promise.all([revise(revision), revise(revision)]);
+  const changedSameId = await revise({ ...revision, reason: 'Otra intención con UUID reutilizado' });
+  const stale = await revise({ ...revision, id: randomUUID() });
+  const historyColumns = 'id,order_id,target_id,kind,version,target_ids,reason,changed_by,changed_by_name,changed_at,before,after';
+  const afterRevision = await request(`/rest/v1/application_targets?order_id=eq.${fixture.order}&select=*`, adminToken);
+  const changes = await request(`/rest/v1/application_changes?order_id=eq.${fixture.order}&select=${historyColumns}&order=version.asc`, adminToken);
+  check(revised.status === 200 && revised.data === revisionId && retry.status === 200 && retry.data === revisionId && changedSameId.status >= 400 && stale.status >= 400 && changes.data?.length === 1, 'Edición: CAS e idempotencia crean un solo evento y rechazan otra intención o revisión vencida');
+  const revisionEvent = changes.data[0];
+  check(revisionEvent.kind === 'indication' && revisionEvent.version === 1 && revisionEvent.target_id === null && revisionEvent.target_ids.length === 2 && revisionEvent.reason === revision.reason && revisionEvent.changed_by_name === 'QA Admin' && revisionEvent.changed_at && Number(revisionEvent.before.water_l_ha) === 100 && Number(revisionEvent.after.water_l_ha) === 150 && revisionEvent.after.observations === revision.observations && revisionEvent.after.products.some(row => row.product_id === fixture.productHistory && row.product_name === 'Producto histórico ficticio'), 'Edición: evento REST conserva antes/después, motivo, autor y nota multilínea');
+  check(JSON.stringify(afterRevision.data.find(row => row.id === targetIds[0])) === JSON.stringify(baseTarget) && JSON.stringify(afterRevision.data.find(row => row.id === targetIds[1])) === JSON.stringify(baseCancelled) && afterRevision.data.filter(row => row.status === 'indicated').every(row => row.indication_change_id === revisionId), 'Edición: revisión solo cambia punteros pendientes y conserva realizado/cancelado completos');
+  const signature = await request(`/rest/v1/application_changes?id=eq.${revisionId}&select=request_signature`, adminToken);
+  check(signature.status === 403, 'Edición: firma privada de idempotencia no se expone por REST ni al administrador');
+  const renameProduct = await request(`/rest/v1/products?id=eq.${fixture.productHistory}`, adminToken, { name: 'Producto histórico renombrado', active: false }, 'PATCH');
+  const renameIngredient = await request(`/rest/v1/active_ingredients?id=eq.${fixture.ingredient}`, adminToken, { name: 'Ingrediente histórico renombrado' }, 'PATCH');
+  const stalePerform = await request('/rest/v1/rpc/perform_application_targets', adminToken, { p_order_id: fixture.order, p_target_ids: [targetIds[2]], p_data: { expected_revision: 0, actual_date: '2026-01-07', equipment: 'Equipo desfasado ficticio', changed: false } });
+  const pendingAfterStale = await request(`/rest/v1/application_targets?id=eq.${targetIds[2]}&select=status`, adminToken);
+  check(stalePerform.status >= 400 && pendingAfterStale.data?.[0]?.status === 'indicated', 'Edición: realización con revisión desfasada se rechaza sin procesar el destino');
+  const performRevised = await request('/rest/v1/rpc/perform_application_targets', adminToken, { p_order_id: fixture.order, p_target_ids: [targetIds[2]], p_data: { expected_revision: 1, actual_date: '2026-01-07', equipment: 'Equipo revisión ficticio', observations: 'Cumple revisión uno', changed: false } });
+  const revisedActual = await request(`/rest/v1/application_actual_products?target_id=eq.${targetIds[2]}&select=*`, adminToken);
+  const revisedTarget = await request(`/rest/v1/application_targets?id=eq.${targetIds[2]}&select=*`, adminToken);
+  check(renameProduct.status === 204 && renameIngredient.status === 204 && succeeded(performRevised) && Number(revisedTarget.data?.[0]?.actual_water_l_ha) === 150 && revisedTarget.data[0].indication_change_id === revisionId && revisedTarget.data[0].has_changes === false && revisedActual.data.some(row => row.product_id === fixture.productHistory && row.product_name === 'Producto histórico ficticio' && row.ingredients_snapshot?.[0]?.name === 'Ingrediente histórico ficticio'), 'Edición: realización copia la revisión propia y snapshots aunque se renombre/inactive el catálogo');
+  const secondRevisionId = randomUUID();
+  const finalProducts = [{ product_id: fixture.productB, dose: 8 }, { product_id: fixture.productNew, dose: 4 }];
+  const secondRevision = { ...revision, id: secondRevisionId, expected_revision: 1, target_ids: [targetIds[3]], method_id: fixture.methodA, water_l_ha: 180, observations: 'Segunda nota de indicación', reason: 'Segundo ajuste ficticio del único pendiente' };
+  const staleSet = await revise({ ...secondRevision, id: randomUUID(), target_ids: targetIds.slice(2) }, finalProducts);
+  const second = await revise(secondRevision, finalProducts);
+  const finalTargets = await request(`/rest/v1/application_targets?order_id=eq.${fixture.order}&select=*`, adminToken);
+  check(staleSet.status >= 400 && second.status === 200 && finalTargets.data.find(row => row.id === targetIds[2]).indication_change_id === revisionId && finalTargets.data.find(row => row.id === targetIds[3]).indication_change_id === secondRevisionId, 'Edición: CAS de destinos impide incluir uno ya realizado y conserva revisiones distintas por destino');
+  const deniedPendingCorrection = await correct({ ...correction, id: randomUUID(), target_id: targetIds[3] });
+  const deniedCancelledCorrection = await correct({ ...correction, id: randomUUID(), target_id: targetIds[1] });
+  const noReasonCorrection = await correct({ ...correction, id: randomUUID(), reason: '' });
+  const invalidEquipment = await correct({ ...correction, id: randomUUID(), equipment: 123 });
+  const invalidCorrectionDate = await correct({ ...correction, id: randomUUID(), actual_date: '2026-1-6' });
+  check(deniedPendingCorrection.status >= 400 && deniedCancelledCorrection.status >= 400 && noReasonCorrection.status >= 400 && invalidEquipment.status >= 400 && invalidCorrectionDate.status >= 400, 'Edición: corregir requiere realizado, motivo, fechas ISO y equipo textual sin cambiar estados');
+  const correctionResult = await correct(correction), correctionRetry = await correct(correction);
+  const correctionConflict = await correct({ ...correction, water_l_ha: 111 });
+  const staleCorrection = await correct({ ...correction, id: randomUUID() });
+  const correctionTarget = await request(`/rest/v1/application_targets?id=eq.${targetIds[0]}&select=*`, adminToken);
+  check(correctionResult.status === 200 && correctionResult.data === correctionId && correctionRetry.status === 200 && correctionConflict.status >= 400 && staleCorrection.status >= 400 && correctionTarget.data[0].correction_version === 1 && correctionTarget.data[0].status === 'performed' && correctionTarget.data[0].has_changes === true && correctionTarget.data[0].actual_observations === correction.observations, 'Edición: corrección persistida con CAS, UUID estable, nota y estado realizado');
+  const correctionEvent = await request(`/rest/v1/application_changes?id=eq.${correctionId}&select=${historyColumns}`, adminToken);
+  check(correctionEvent.data?.length === 1 && correctionEvent.data[0].kind === 'performance' && correctionEvent.data[0].target_id === targetIds[0] && Number(correctionEvent.data[0].before.water_l_ha) === 100 && Number(correctionEvent.data[0].after.water_l_ha) === 110 && correctionEvent.data[0].before.equipment === 'Equipo original ficticio' && correctionEvent.data[0].after.equipment === correction.equipment, 'Edición: corrección conserva realización anterior y posterior en historial REST');
+  const secondCorrection = await correct({ ...correction, id: randomUUID(), expected_version: 1, actual_date: '2026-01-06', water_l_ha: 100, equipment: 'Equipo nuevamente corregido', reason: 'Volver a la mezcla indicada, conservando historial' }, originalProducts);
+  const sameMixture = await request(`/rest/v1/application_targets?id=eq.${targetIds[0]}&select=status,correction_version,has_changes`, adminToken);
+  check(secondCorrection.status === 200 && sameMixture.data[0].correction_version === 2 && sameMixture.data[0].has_changes === false && sameMixture.data[0].status === 'performed', 'Edición: has_changes se recalcula contra su indicación original, sin borrar correcciones anteriores');
+  const originalRetry = await request('/rest/v1/rpc/perform_application_targets', adminToken, { ...originalPerformance, p_data: { ...originalPerformance.p_data, expected_revision: 0 } });
+  const afterOriginalRetry = await request(`/rest/v1/application_targets?id=eq.${targetIds[0]}&select=correction_version,equipment,actual_date`, adminToken);
+  check(succeeded(originalRetry) && afterOriginalRetry.data?.[0]?.correction_version === 2 && afterOriginalRetry.data[0].equipment === 'Equipo nuevamente corregido' && afterOriginalRetry.data[0].actual_date === '2026-01-06', 'Edición: retry de realización original no deshace correcciones ni depende de revisión posterior de la orden');
+  const historyRemovalCorrection = await correct({ ...correction, id: randomUUID(), target_id: targetIds[2], actual_date: '2026-01-07', water_l_ha: 160, reason: 'Retirar producto de la realización manteniendo su historia' }, finalProducts);
+  const historyOnlyProducts = await request(`/rest/v1/application_change_products?product_id=eq.${fixture.productHistory}&select=change_id,phase,product_id,snapshot`, adminToken);
+  const removeHistoryProduct = await request(`/rest/v1/products?id=eq.${fixture.productHistory}`, adminToken, undefined, 'DELETE');
+  check(historyRemovalCorrection.status === 200 && historyOnlyProducts.status === 200 && historyOnlyProducts.data.length > 0 && historyOnlyProducts.data.some(row => row.snapshot.product_name === 'Producto histórico ficticio') && removeHistoryProduct.status >= 400, 'Edición: producto retirado de valores actuales sigue protegido por referencias históricas y snapshot');
+  const finalOrder = await request(`/rest/v1/application_orders?id=eq.${fixture.order}&select=id,folio,revision,source_text,observations,water_l_ha,method_id,indicated_date,scheduled_date`, adminToken);
+  const counts = await request(`/rest/v1/application_stage_counts?stage_id=in.(${stageIds.slice(0, 4).join(',')})&select=*`, adminToken);
+  const latestTargets = await request(`/rest/v1/application_targets?order_id=eq.${fixture.order}&select=id,stage_id,application_number,status`, adminToken);
+  check(finalOrder.data?.[0]?.revision === 2 && JSON.stringify({ ...finalOrder.data[0], revision: 0 }) === JSON.stringify(originalOrder.data[0]) && latestTargets.data.length === 4 && latestTargets.data.every(row => row.application_number === 23 && targetIds.includes(row.id)) && counts.data.every(row => Number(row.indicated_count) + Number(row.performed_count) + Number(row.cancelled_count) === 1), 'Edición: identidad, número por etapa, fuente, orden original y conteos se conservan tras revisiones/correcciones');
+  for (const [table, body] of [['application_changes', { id: randomUUID(), order_id: fixture.order, kind: 'indication' }], ['application_change_products', { change_id: revisionId, phase: 'after', product_id: fixture.productA }]]) {
+    const insert = await request(`/rest/v1/${table}`, adminToken, body);
+    const update = await request(`/rest/v1/${table}?${table === 'application_changes' ? `id=eq.${revisionId}` : `change_id=eq.${revisionId}`}`, adminToken, table === 'application_changes' ? { reason: 'Atajo prohibido' } : { snapshot: {} }, 'PATCH');
+    const remove = await request(`/rest/v1/${table}?${table === 'application_changes' ? `id=eq.${revisionId}` : `change_id=eq.${revisionId}`}`, adminToken, undefined, 'DELETE');
+    check(insert.status === 403 && update.status === 403 && remove.status === 403, `Edición: ${table} rechaza DML directo incluso de administrador`);
+  }
+  const otherCreation = await request('/rest/v1/rpc/create_application_order', adminToken, { p_data: { ...originalData, id: fixture.otherOrder, project_id: projectB, field_id: fixture.fieldB }, p_stage_ids: [stageIds[4]], p_products: originalProducts });
+  const otherTarget = await request(`/rest/v1/application_targets?order_id=eq.${fixture.otherOrder}&select=id`, adminToken);
+  const otherRevisionId = randomUUID();
+  const otherRevision = await revise({ ...revision, id: otherRevisionId, order_id: fixture.otherOrder, target_ids: [otherTarget.data[0].id] }, finalProducts);
+  const ownHistory = await request(`/rest/v1/application_changes?order_id=eq.${fixture.order}&select=${historyColumns}`, readerToken);
+  const hiddenHistory = await request(`/rest/v1/application_changes?order_id=eq.${fixture.otherOrder}&select=${historyColumns}`, readerToken);
+  const hiddenProducts = await request(`/rest/v1/application_change_products?change_id=eq.${otherRevisionId}&select=change_id,phase,product_id,snapshot`, readerToken);
+  const noAccessHistory = await request('/rest/v1/application_changes?select=id', noAccessToken);
+  const inactiveHistory = await request('/rest/v1/application_changes?select=id', inactiveToken);
+  const anonHistory = await request('/rest/v1/application_changes?select=id');
+  check(otherCreation.status === 200 && otherRevision.status === 200 && ownHistory.status === 200 && ownHistory.data.length === 5 && hiddenHistory.data?.length === 0 && hiddenProducts.data?.length === 0 && noAccessHistory.data?.length === 0 && inactiveHistory.data?.length === 0 && [401, 403].includes(anonHistory.status), 'Edición: RLS real limita eventos/productos históricos por agrícola y sesión activa');
+  console.log(`Integración edición: ${assertionCount - previousAssertions} comprobaciones HTTP/Auth/REST/RLS nuevas aprobadas.`);
+}
 try {
   const admin = await adminCreate(`qa-admin-${suffix}@example.invalid`, { display_name: 'QA Admin', role: 'admin' });
   const reader = await adminCreate(`qa-reader-${suffix}@example.invalid`, { display_name: 'QA Lector' });
@@ -249,6 +387,7 @@ try {
   const createdUnits = await request('/rest/v1/agricultural_units?select=id', createdToken);
   assert(createdUnits.status === 200 && createdUnits.data.length === 1 && createdUnits.data[0].id === ids.unitA, 'La cuenta creada consulta solo la agrícola asignada');
   await verifyApplications(adminToken, readerToken, noAccessToken, create.data);
+  await verifyApplicationChanges(adminToken, readerToken, noAccessToken, create.data);
   sql(`update public.profiles set active=false where id='${reader.id}';`);
   const revoked = await request('/rest/v1/agricultural_units?select=id', readerToken);
   assert(revoked.status === 200 && revoked.data.length === 0, 'Desactivación bloquea JWT de lector ya emitido');

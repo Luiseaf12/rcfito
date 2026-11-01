@@ -169,3 +169,45 @@ Verificación reproducible: `node scripts/backend-applications-test.mjs`, con
 PostgreSQL efímero `rcfito-applications-test`, sin puertos publicados ni datos
 reales. Comprueba migraciones, invariantes, permisos/RLS e idempotencia; Auth es
 un stub SQL y no acredita por sí solo el recorrido HTTP/Auth del sistema real.
+
+## Revisiones y correcciones de aplicaciones
+
+La migración aditiva `20261101051210_application_revision_history.sql` conserva
+orden y productos originales. Añade `application_orders.revision` (0 inicial),
+`application_targets.indication_change_id` (null = original) y
+`correction_version` (0 inicial). Un destino terminal conserva su indicación.
+
+`application_changes` guarda `id,order_id,target_id,kind,version,target_ids,
+reason,changed_by,changed_by_name,changed_at,before,after`. `kind` distingue
+`indication` y `performance`; snapshots JSON conservan productos/unidad/nombres,
+dosis, agua, fechas y nota, y para lo real equipo/aplicador/`has_changes`.
+`request_signature` es privada: la lectura REST enumera columnas y la excluye.
+`application_change_products` referencia productos por evento/fase `before/after`
+y conserva snapshots; FK restrictiva y guarda de unidad también cubren este uso.
+Ambas tablas son append-only, con SELECT/RLS por agrícola y sin DML de cliente.
+
+| RPC | Entrada |
+| --- | --- |
+| `revise_application_order(p_data jsonb,p_products jsonb)` → UUID | `p_data:{id,order_id,expected_revision,target_ids,method_id,indicated_date,scheduled_date,water_l_ha,observations,reason}`; productos `[{product_id,dose}]`. |
+| `correct_application_target(p_data jsonb,p_products jsonb)` → UUID | `p_data:{id,target_id,expected_version,actual_date,water_l_ha,equipment,applicator,observations,reason}`; mismos productos. |
+
+Administrador activo y motivo no vacío obligatorios. Revisar exige proyecto
+activo y exactamente todos sus destinos pendientes; solo ellos reciben la nueva
+indicación. Corregir exige destino realizado, mantiene estado/conteos y puede
+corregir etapas cerradas sin reabrirlas: fecha entre indicación/siembra y hoy,
+sin superar cierre. Productos/método retenidos pueden estar inactivos; incorporar
+otro exige catálogo activo. Un producto retirado de lo real no se recupera como
+inactivo solo por aparecer en la indicación. Dosis hasta seis decimales, agua
+cuatro; textos hasta 4,000 caracteres y fechas civiles ISO válidas.
+
+UUID estable permite repetir entrada idéntica sin nuevos eventos; otra entrada
+falla. Bloqueo orden→destinos y versión esperada protegen concurrencia con
+realizar/cancelar/editar. `perform_application_targets.p_data.expected_revision`
+debe coincidir con la indicación mostrada cuando revision>0; en órdenes originales
+se conserva compatibilidad omitiéndola. La copia habitual usa la indicación de
+cada destino. Reintentar una realización anterior no deshace una corrección.
+
+El adaptador comprueba coherencia de revisiones/referencias y reintenta una vez
+la lectura si cambió entre peticiones REST; no entrega un workspace incoherente.
+Los campos reales corregidos se hidratan desde el evento correspondiente.
+Flujo y aceptación: [edición](flows/application-editing.md).

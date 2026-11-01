@@ -69,10 +69,34 @@ try {
         rollback;
       `);
     }
+    if (file.endsWith('_application_revision_history.sql')) {
+      const setupEnd = applicationTests.indexOf('-- Captura asistida:');
+      if (setupEnd < 0) throw new Error('Falta el límite de fixtures para probar revisiones aditivas.');
+      sql(`${applicationTests.slice(0, setupEnd)}
+        select public.create_application_order(pg_temp.order_data()||'{"application_number":9,"source_text":"Mensaje anterior ficticio"}',pg_temp.stages(),pg_temp.mixture());
+        select public.perform_application_targets('90000000-0000-4000-8000-000000000001',array[(select id from public.application_targets where stage_id='80000000-0000-4000-8000-000000000001')],'{"changed":false,"actual_date":"2026-01-04"}');
+        reset role;
+        create temporary table before_revision_upgrade as select
+          (select jsonb_agg(to_jsonb(t) order by t.id) from public.application_targets t) as targets,
+          (select jsonb_agg(to_jsonb(o) order by o.id) from public.application_orders o) as orders;
+        ${migrationBody(source)}
+        select pg_temp.assert_true((select bool_and(revision=0) from public.application_orders) and (select bool_and(indication_change_id is null and correction_version=0) from public.application_targets),'migración de revisión inicializa metadatos anteriores sin eventos');
+        select pg_temp.assert_true((select jsonb_agg(to_jsonb(t)-array['indication_change_id','correction_version'] order by t.id) from public.application_targets t)=(select targets from before_revision_upgrade),'migración conserva ejecución, número y snapshots de destinos');
+        select pg_temp.assert_true((select jsonb_agg(to_jsonb(o)-'revision' order by o.id) from public.application_orders o)=(select orders from before_revision_upgrade),'migración conserva órdenes, notas y fuente');
+        select pg_temp.assert_true((select count(*)=0 from public.application_changes) and (select count(*)=0 from public.application_change_products),'migración no inventa historial ni referencias de productos');
+        set local role authenticated;
+        select public.perform_application_targets('90000000-0000-4000-8000-000000000001',array[(select id from public.application_targets where stage_id='80000000-0000-4000-8000-000000000001')],'{"changed":false,"actual_date":"2026-01-04"}');
+        select pg_temp.assert_true((select count(*)=2 from public.application_actual_products),'reintento anterior sigue idempotente tras migración de revisión');
+        rollback;
+      `);
+    }
     sql(source);
   }
   sql(readFileSync(resolve(root, 'supabase/tests/catalogs-and-sowing.sql'), 'utf8'));
   sql(applicationTests);
+  const editingSetupEnd = applicationTests.indexOf('-- Captura asistida:');
+  if (editingSetupEnd < 0) throw new Error('Falta el límite de fixtures para pruebas de edición.');
+  sql(applicationTests.slice(0, editingSetupEnd) + readFileSync(resolve(root, 'supabase/tests/application-editing.sql'), 'utf8'));
   console.log(`Backend aplicaciones verificado: ${migrations.length} migración(es), fixtures aislados y controles de RLS/integridad. Auth es un stub de prueba; REST/Auth reales requieren integración aparte.`);
 } finally {
   if (started) removeOwnedContainer();

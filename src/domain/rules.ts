@@ -9,7 +9,7 @@ const uuid = () => crypto.randomUUID()
 const normalized = (value:string) => value.trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es-MX')
 
 export function scopeWorkspace(data: WorkspaceData, profile: UserProfile): WorkspaceData {
-  const result = structuredClone({ ...data, applicationOrders: data.applicationOrders ?? [], applicationTargets: data.applicationTargets ?? [], sowingGroups: data.sowingGroups ?? [] })
+  const result = structuredClone({ ...data, applicationOrders: data.applicationOrders ?? [], applicationTargets: data.applicationTargets ?? [], applicationChanges: data.applicationChanges ?? [], sowingGroups: data.sowingGroups ?? [] })
   if (profile.role === 'admin') return result
   const allowed = new Set(result.assignments.filter(a => a.user_id === profile.id).map(a=>a.agricultural_unit_id))
   result.catalogs.agricultural_units = result.catalogs.agricultural_units.filter(a=>allowed.has(a.id))
@@ -24,6 +24,7 @@ export function scopeWorkspace(data: WorkspaceData, profile: UserProfile): Works
   result.applicationOrders = result.applicationOrders.filter(o => projects.has(o.project_id))
   const orders = new Set(result.applicationOrders.map(o => o.id))
   result.applicationTargets = result.applicationTargets.filter(t => orders.has(t.order_id))
+  result.applicationChanges = result.applicationChanges.filter(change => orders.has(change.order_id))
   result.sowingGroups = result.sowingGroups.filter(g => projects.has(g.project_id))
   result.profiles = result.profiles.filter(p=>p.id===profile.id)
   result.assignments = result.assignments.filter(a=>a.user_id===profile.id)
@@ -32,7 +33,7 @@ export function scopeWorkspace(data: WorkspaceData, profile: UserProfile): Works
 
 export function applyCommand(input: WorkspaceData, command: WorkspaceCommand, profile: UserProfile): WorkspaceData {
   if (profile.role !== 'admin') fail('Tu usuario tiene acceso de consulta. Solo la administración puede guardar cambios.')
-  const d = structuredClone({ ...input, applicationOrders: input.applicationOrders ?? [], applicationTargets: input.applicationTargets ?? [], sowingGroups: input.sowingGroups ?? [] })
+  const d = structuredClone({ ...input, applicationOrders: input.applicationOrders ?? [], applicationTargets: input.applicationTargets ?? [], applicationChanges: input.applicationChanges ?? [], sowingGroups: input.sowingGroups ?? [] })
   if (applyApplicationCommand(d, command, profile)) return d
   const catalog = (kind:CatalogKind,id:string|undefined) => d.catalogs[kind].find(row=>row.id===id)
   const requireActive = (kind:CatalogKind,id:string|undefined) => { const row=catalog(kind,id); if(!row?.active) fail('Selecciona un elemento activo del catálogo.'); return row! }
@@ -61,8 +62,8 @@ export function applyCommand(input: WorkspaceData, command: WorkspaceCommand, pr
         :kind==='brands'?d.catalogs.products.some(p=>p.brand_id===id)
         :kind==='product_families'?d.catalogs.products.some(p=>p.family_id===id)
         :kind==='active_ingredients'?d.catalogs.products.some(p=>p.ingredients?.some(i=>i.ingredient_id===id))
-        :kind==='products'?d.applicationOrders.some(o=>o.products.some(p=>p.product_id===id))||d.applicationTargets.some(t=>t.actual_products.some(p=>p.product_id===id))
-        :kind==='application_methods'?d.applicationOrders.some(o=>o.method_id===id):false
+        :kind==='products'?d.applicationOrders.some(o=>o.products.some(p=>p.product_id===id))||d.applicationTargets.some(t=>t.actual_products.some(p=>p.product_id===id))||d.applicationChanges.some(change=>[change.before,change.after].some(snapshot=>snapshot.products.some(product=>product.product_id===id)))
+        :kind==='application_methods'?d.applicationOrders.some(o=>o.method_id===id)||d.applicationChanges.some(change=>[change.before,change.after].some(snapshot=>'method_id' in snapshot&&snapshot.method_id===id)):false
       if(referenced) fail('Este registro ya está relacionado. Márcalo como inactivo para conservar su historial.')
       d.catalogs[kind]=d.catalogs[kind].filter(r=>r.id!==id); break
     }

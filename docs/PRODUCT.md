@@ -331,3 +331,15 @@ por campo: incluye fechas anteriores a siembra, número repetido, salto pendient
 de confirmación, productos/unidades/dosis y destinos. Nota vacía es válida.
 Completar o corregir lo señalado actualiza la lista y habilita la aprobación.
 [Contrato y evidencia](flows/ai-capture.md#autocompletado-y-pendientes-de-aprobación).
+
+## Edición de aplicaciones autorizada
+
+La primera indicación permanece como historial. El administrador puede agregar,
+quitar o cambiar productos, dosis, medio, agua, fechas y nota para todos los
+destinos todavía pendientes; realizados/cancelados conservan su indicación.
+También puede corregir los datos reales de un destino realizado, con productos,
+dosis, agua y fecha real, equipo, aplicador y observaciones. Cada guardado exige
+motivo y conserva antes/después, autor, fecha y versión. No cambia folio,
+número por etapa, destinos, estado ni conteos. El lector consulta historial
+asignado sin editar. Esta ampliación sustituye la restricción anterior de cancelar
+y emitir de nuevo para corregir; [contrato de edición](flows/application-editing.md).

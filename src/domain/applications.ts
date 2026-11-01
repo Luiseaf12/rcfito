@@ -1,4 +1,5 @@
-import type { ApplicationOrderInput, ApplicationPerformanceInput, ApplicationProductInput, ApplicationTarget, ProductLine, SowingStage, UserProfile, WorkspaceCommand, WorkspaceData } from './model'
+import type { ApplicationActualSnapshot, ApplicationOrderInput, ApplicationPerformanceInput, ApplicationProductInput, ApplicationTarget, ProductLine, SowingStage, UserProfile, WorkspaceCommand, WorkspaceData } from './model'
+import { applyApplicationEditing, indicationForTarget } from './application-editing.ts'
 
 const fail = (message: string): never => { throw new Error(message) }
 const validDate = (value: string) => /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(`${value}T12:00:00Z`)) && new Date(`${value}T12:00:00Z`).toISOString().slice(0, 10) === value
@@ -62,18 +63,27 @@ function requestKey(record: ApplicationOrderInput) {
     source_text: record.source_text ?? '', application_number: record.application_number ?? null, stage_ids: [...record.stage_ids].sort(), products: mixtureKey(record.products) })
 }
 
-function performance(data: WorkspaceData, command: Extract<WorkspaceCommand, { type: 'perform_application_targets' }>) {
+function firstPerformance(data: WorkspaceData, target: ApplicationTarget): ApplicationActualSnapshot {
+  const firstCorrection = (data.applicationChanges ?? []).filter(change => change.kind === 'performance' && change.target_id === target.id && change.order_id === target.order_id)
+    .reduce<(typeof data.applicationChanges)[number] | undefined>((first, change) => !first || change.version < first.version ? change : first, undefined)
+  if (firstCorrection) return structuredClone(firstCorrection.before as ApplicationActualSnapshot)
+  return { actual_date: target.actual_date!, water_l_ha: target.actual_water_l_ha!, products: target.actual_products, equipment: target.equipment, applicator: target.applicator, observations: target.actual_observations, has_changes: target.has_changes }
+}
+
+function performance(data: WorkspaceData, command: Extract<WorkspaceCommand, { type: 'perform_application_targets' }>, target: ApplicationTarget) {
   const order = data.applicationOrders.find(o => o.id === command.order_id) ?? fail('No se encontró la orden.')
+  const indication = indicationForTarget(data, order, target)
   const values: ApplicationPerformanceInput = command.data
-  if (!validDate(values.actual_date) || values.actual_date < order.indicated_date || values.actual_date > today()) fail('La fecha real debe ser válida, igual o posterior a la indicación y no futura.')
-  const historical = data.applicationTargets.filter(t => command.target_ids.includes(t.id) && t.order_id === order.id && t.status === 'performed').flatMap(t => t.actual_products)
-  const products = values.changed ? productLines(data, values.products ?? [], [...order.products, ...historical]) : structuredClone(order.products)
-  const water = values.changed ? values.water_l_ha! : order.water_l_ha
+  if (!validDate(values.actual_date) || values.actual_date < indication.indicated_date || values.actual_date > today()) fail('La fecha real debe ser válida, igual o posterior a la indicación histórica del destino y no futura.')
+  const historical = target.status === 'performed' ? firstPerformance(data, target).products : []
+  const products = values.changed ? productLines(data, values.products ?? [], [...historical, ...indication.products]) : structuredClone(indication.products)
+  const water = values.changed ? values.water_l_ha! : indication.water_l_ha
   positive(water, 'El gasto de agua')
-  return { order, actual_date: values.actual_date, actual_products: products, actual_water_l_ha: water, equipment: trim(values.equipment), applicator: trim(values.applicator), actual_observations: trim(values.observations), has_changes: water !== order.water_l_ha || mixtureKey(products) !== mixtureKey(order.products) }
+  return { order, actual_date: values.actual_date, actual_products: products, actual_water_l_ha: water, equipment: trim(values.equipment), applicator: trim(values.applicator), actual_observations: trim(values.observations), has_changes: water !== indication.water_l_ha || mixtureKey(products) !== mixtureKey(indication.products) }
 }
 
 export function applyApplicationCommand(data: WorkspaceData, command: WorkspaceCommand, profile: UserProfile): boolean {
+  if (applyApplicationEditing(data, profile, command)) return true
   if (!['create_application_order', 'perform_application_targets', 'cancel_application_targets', 'save_sowing_group'].includes(command.type)) return false
   if (profile.role !== 'admin') fail('Solo la administración puede guardar aplicaciones.')
   switch (command.type) {
@@ -102,31 +112,38 @@ export function applyApplicationCommand(data: WorkspaceData, command: WorkspaceC
       }
       const nextNumber = Math.max(0, ...data.applicationOrders.map(o => Number(o.folio.replace(/^APL-/, '')) || 0)) + 1
       const { stage_ids: _stageIds, ...order } = record
-      data.applicationOrders.push({ ...order, products, folio: `APL-${String(nextNumber).padStart(6, '0')}`, project_name: data.projects.find(p => p.id === record.project_id)!.name, field_name: data.catalogs.fields.find(f => f.id === record.field_id)!.name, crop_name: data.catalogs.crops.find(c => c.id === record.crop_id)!.name, method_name: method.name })
+      data.applicationOrders.push({ ...order, products, revision: 0, folio: `APL-${String(nextNumber).padStart(6, '0')}`, project_name: data.projects.find(p => p.id === record.project_id)!.name, field_name: data.catalogs.fields.find(f => f.id === record.field_id)!.name, crop_name: data.catalogs.crops.find(c => c.id === record.crop_id)!.name, method_name: method.name })
       for (const stage of stages) {
         const sub = data.subdivisions.find(s => s.id === stage.subdivision_id)!
         const lot = data.lots.find(l => l.id === sub.lot_id)!
-        data.applicationTargets.push({ id: crypto.randomUUID(), order_id: record.id, stage_id: stage.id, application_number: applicationNumbers.get(stage.id)!, status: 'indicated', lot_name: lot.name, subdivision_name: sub.name, stage_number: stage.stage_number, crop_name: stage.crop_name_snapshot ?? data.catalogs.crops.find(c => c.id === stage.crop_id)!.name, variety_name: stage.variety_name_snapshot ?? data.catalogs.varieties.find(v => v.id === stage.variety_id)!.name, area_ha: stage.area_ha, actual_date: null, actual_water_l_ha: null, actual_products: [], equipment: '', applicator: '', actual_observations: '', cancellation_reason: '', has_changes: false })
+        data.applicationTargets.push({ id: crypto.randomUUID(), order_id: record.id, stage_id: stage.id, application_number: applicationNumbers.get(stage.id)!, indication_change_id: null, correction_version: 0, status: 'indicated', lot_name: lot.name, subdivision_name: sub.name, stage_number: stage.stage_number, crop_name: stage.crop_name_snapshot ?? data.catalogs.crops.find(c => c.id === stage.crop_id)!.name, variety_name: stage.variety_name_snapshot ?? data.catalogs.varieties.find(v => v.id === stage.variety_id)!.name, area_ha: stage.area_ha, actual_date: null, actual_water_l_ha: null, actual_products: [], equipment: '', applicator: '', actual_observations: '', cancellation_reason: '', has_changes: false })
       }
       return true
     }
     case 'perform_application_targets': {
-      const actual = performance(data, command)
       if (!command.target_ids.length || new Set(command.target_ids).size !== command.target_ids.length) fail('Selecciona destinos sin repetirlos.')
+      const order = data.applicationOrders.find(item => item.id === command.order_id) ?? fail('No se encontró la orden.')
       const targets = command.target_ids.map(id => data.applicationTargets.find(t => t.id === id && t.order_id === command.order_id) ?? fail('Hay un destino que no pertenece a la orden.'))
+      if (targets.some(target => target.status === 'indicated')) {
+        const expected = command.data.expected_revision
+        if (expected === undefined ? (order.revision ?? 0) > 0 : !Number.isSafeInteger(expected) || expected < 0 || expected !== (order.revision ?? 0)) fail('La indicación cambió desde que abriste la realización. Actualiza y revisa los valores vigentes antes de confirmar.')
+      }
+      const pending = new Map<string, ReturnType<typeof performance>>()
       for (const target of targets) {
         if (target.status === 'cancelled') fail('Una aplicación cancelada no puede realizarse.')
+        const actual = performance(data, command, target)
         if (target.status === 'performed') {
-          if (target.actual_date !== actual.actual_date || target.actual_water_l_ha !== actual.actual_water_l_ha || mixtureKey(target.actual_products) !== mixtureKey(actual.actual_products) || target.equipment !== actual.equipment || target.applicator !== actual.applicator || target.actual_observations !== actual.actual_observations) fail('Ese destino ya fue realizado con otros datos y conserva su historia.')
+          const initial = firstPerformance(data, target)
+          if (initial.actual_date !== actual.actual_date || initial.water_l_ha !== actual.actual_water_l_ha || mixtureKey(initial.products) !== mixtureKey(actual.actual_products) || initial.equipment !== actual.equipment || initial.applicator !== actual.applicator || initial.observations !== actual.actual_observations) fail('Ese destino ya fue realizado con otros datos y conserva su historia y correcciones.')
           continue
         }
         destinations(data, [target.stage_id], actual.order.project_id, actual.order.field_id, actual.order.crop_id)
-        if (command.data.changed) productLines(data, command.data.products ?? [], actual.order.products)
         const stage = data.stages.find(s => s.id === target.stage_id)!
         if (actual.actual_date < stage.actual_sowing_date!) fail('La realización no puede ser anterior a la siembra real.')
+        pending.set(target.id, actual)
       }
       for (const target of targets.filter(t => t.status === 'indicated')) {
-        const { order: _order, ...values } = actual
+        const { order: _order, ...values } = pending.get(target.id)!
         Object.assign(target, structuredClone(values), { status: 'performed' })
       }
       return true
