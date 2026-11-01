@@ -99,8 +99,10 @@ Estado de la ampliación: implementación, 224 pruebas y QA demo aprobados. Se
 comprobaron lotes homónimos de temporadas distintas, conteos/superficie, orden
 ascendente con L/kg intercalados, historial exclusivo, paginación y retorno de
 foco. Lector limitado y 375/1440 px sin overflow de página; cero errores de
-consola. Revisión independiente integrada. Revisión limpia y publicación: en
-verificación.
+consola. Revisión independiente integrada. Cierre: revisión limpia ce7ed07 con 224/224 pruebas, tipos/build y checker
+aprobados. Commit/push a GitHub y repositorio de Sites; publicación versión 20
+confirmada con tres comprobaciones HTTP posteriores.
+[Publicación](../OPERATIONS.md#publicación-del-resumen-por-lote).
 
 La primera revisión pasó 206 pruebas desde checkout limpio y QA de filtros,
 paginación, dosis ponderada, lector demo y 375/1440 px. La rectificación a Todas
