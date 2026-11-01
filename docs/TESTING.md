@@ -464,3 +464,16 @@ pruebas, tipos/build y checker aprobados. Sites versión 23 succeeded y tres
 comprobaciones HTTP 200 de HTML/bundle/filtro aprobadas. No hubo escrituras en operación.
 [Contrato](flows/product-dashboard.md#filtro-global-por-lote) y
 [publicación](OPERATIONS.md#publicación-del-filtro-global-por-lote).
+
+## Decimales en reportes
+
+2026-11-01, RCF-027: 228/228 pruebas cliente, tipos y checker aprobados; ocho
+comprobaciones puntuales de formato es-MX, redondeo hacia arriba/abajo, ceros
+finales, conversión y límites pequeñas/cantidades grandes aprobadas. QA demo
+local en 5196 confirmó métricas, tabla general, ranking con conteos enteros,
+resumen/productos por lote e historial. Ejemplos: 3.60 L, 28.00 ha y promedio
+128.57 ml/ha. Móvil a 375 px sin overflow de página y cero errores de consola.
+Autorrevisión: el cambio se limita al formato de salida, sin tocar dominio,
+ordenamiento, snapshots o formularios. Sin migraciones ni escrituras de datos
+operativos. [Regla](FRONTEND.md#decimales-en-reportes).
+Publicación pendiente en [operación](OPERATIONS.md#dos-decimales-en-reportes).

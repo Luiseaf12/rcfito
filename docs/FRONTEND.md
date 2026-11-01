@@ -153,3 +153,24 @@ cada aviso sustituía la ruta por el skeleton de `App` y destruía su estado loc
 Se retiró únicamente esa activación repetida; las consultas, tokens y controles
 de acceso continúan funcionando. Esto no incorpora recuperación de borradores
 tras una recarga manual o cierre completo del navegador.
+
+## Decimales en reportes
+
+Regla solicitada por el Propietario el 2026-11-01: los valores decimales de los
+reportes se presentan redondeados a dos posiciones, con formato es-MX y ceros
+finales (12.345 → 12.35; 8 → 8.00). Aplica a cantidades, dosis, promedios y
+superficies en métricas, tablas generales, resúmenes por lote e historiales. Los
+conteos de aplicaciones, productos y etapas permanecen enteros; fechas y códigos
+no son medidas decimales. Los nuevos reportes deben reutilizar el mismo formato.
+
+El redondeo se realiza únicamente al presentar, después de convertir a la unidad
+mostrada (ml a L o g a kg). No redondear dosis guardadas, snapshots, resultados
+intermedios, sumas ni promedios; ordenar con el valor numérico original. Un valor
+positivo menor que 0.005 se muestra como 0.00 en esa unidad y conserva su valor
+interno. Los campos de captura mantienen su precisión y validaciones vigentes.
+
+Implementación compartida en [report-format](../src/lib/report-format.ts), usada
+por [product-usage-shared](../src/features/product-usage-shared.tsx). Aceptación:
+comprobar un redondeo hacia arriba/abajo, ceros finales, conversión L/kg y dosis
+ponderada; verificar todos los reportes existentes y que los conteos sigan
+enteros. Evidencia en [verificación](TESTING.md#decimales-en-reportes).

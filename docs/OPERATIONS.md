@@ -532,3 +532,12 @@ posteriores verificaron HTML, bundle exacto y filtro Todos los lotes/Todas.
 Sin migraciones ni escrituras ficticias en operación; servidor/tab de QA cerrados.
 Recargar después de terminar cualquier captura abierta para recibir la versión.
 [Contrato](flows/product-dashboard.md#filtro-global-por-lote).
+
+## Dos decimales en reportes
+
+2026-11-01, RCF-027: regla local documentada y formato de presentación compartido
+aplicado a métricas, tablas generales/por lote e historial del dashboard. Se
+conservan cálculos, captura y conteos; sin migraciones ni cambios de configuración.
+228 pruebas, tipos/checker y QA demo/móvil aprobados. Autorrevisión. Pendiente
+publicación en Sites con la audiencia pública existente.
+[Regla](FRONTEND.md#decimales-en-reportes) y [QA](TESTING.md#decimales-en-reportes).

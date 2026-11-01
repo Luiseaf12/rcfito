@@ -381,3 +381,9 @@ métricas, productos, ranking, resumen e historiales dentro de ese lote. Opcione
 con campo, temporada y agrícola para distinguir nombres repetidos.
 [Contrato del filtro](flows/product-dashboard.md#filtro-global-por-lote).
 [Recorrido y cálculos](flows/product-dashboard.md#ampliación-resumen-por-lote).
+
+## Presentación numérica de reportes
+
+Desde el 2026-11-01, los reportes muestran sus medidas con dos decimales;
+los conteos permanecen enteros. El redondeo visual no modifica lo guardado ni la
+precisión de los cálculos. [Regla y aceptación](FRONTEND.md#decimales-en-reportes).

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { reportNumber as number } from '@/lib/report-format'
 import type { ProductUsageSummary } from '@/domain/product-usage'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -7,10 +8,9 @@ import { formatDate, RecordDialog } from './shared'
 
 export const PAGE_SIZE = 10
 const historyStatusLabels = { indicated: 'Indicada', performed: 'Realizada', cancelled: 'Cancelada' }
-export const number = new Intl.NumberFormat('es-MX', { maximumSignificantDigits: 8 })
-export const doseNumber = new Intl.NumberFormat('es-MX', { maximumFractionDigits: 6 })
+export { number }
 export const quantity = (value: number, unit: 'g' | 'ml') => `${number.format(value / 1000)} ${unit === 'ml' ? 'L' : 'kg'}`
-export const dose = (value: number, unit: 'g' | 'ml') => `${doseNumber.format(value)} ${unit}/ha`
+export const dose = (value: number, unit: 'g' | 'ml') => `${number.format(value)} ${unit}/ha`
 
 export function PageControls({ page, count, onPage, label }: { page: number; count: number; onPage: (page: number) => void; label: string }) {
   const pages = Math.max(1, Math.ceil(count / PAGE_SIZE))

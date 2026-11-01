@@ -55,6 +55,10 @@ Indicadas, Realizadas y Canceladas y se conserva en la URL.
   agrícola/cultivo/estado retira filtros dependientes incompatibles. Las selecciones
   permanecen en la URL, sin guardar datos de negocio.
 
+La presentación de cantidades, dosis y superficies sigue la regla de
+[dos decimales](../FRONTEND.md#decimales-en-reportes), también en resumen por lote,
+ranking e historial. Cálculos y ordenamiento conservan su precisión original.
+
 ## Presentación y permisos
 
 Reutiliza shell, Card, FieldGroup/FormSelect, Table, Button, Alert, Empty y
