@@ -735,3 +735,35 @@ despliegue `appgdep_6ae8c8c4a1ec81918c8a41707e175895`, en
 entorno 1 conservados. Nueve comprobaciones HTTPS de conexión y tres del código
 publicado aprobaron sin escrituras. Los cambios ajenos del workspace quedaron
 fuera del commit de implementación.
+
+
+## Captura unificada de indicaciones — RCF-030
+
+2026-11-02: fuente `32c4937a27e8a603c45f123115911dc5b81fd7c1` publicada en
+GitHub, Docker y Sites versión **31**. Aplicaciones muestra un solo botón
+**Nueva indicación**: última activa por defecto, búsqueda de anteriores activas
+y modo desde cero en el mismo formulario. Se conservan selección manual,
+numeración opcional revisada y la revisión propia de captura con IA.
+[Contrato y evidencia](flows/recipe-creation.md#ampliación-autorizada-una-sola-entrada).
+
+301 pruebas de dominio y 167 controles HTTP/Auth/REST/Edge/RLS aprobados;
+advisors sin WARN/ERROR. Tipos, build, docs y diff aprobados. QA con datos
+ficticios: carga inicial, empates, búsqueda, rechazo de recetas individuales
+para un grupo, confirmación de reemplazo, fechas conservadas, guardado individual
+desde anterior, manual desde cero con dos destinos/número confirmado, recarga,
+contexto heredado, lector y móvil 375 px. Autorrevisión de React/contratos;
+no se presenta como revisión independiente. Advertencia previa del bundle
+principal mayor de 500 kB conservada.
+
+No se añadieron migraciones ni se escribieron datos de operación. Registro
+comprobado: 10 aplicadas/0 pendientes. Los respaldos e historial anteriores
+permanecen conservados. Docker healthy, frontend/código/Auth HTTP 200, consulta
+anónima 401 y bundle exacto comprobados.
+
+Sites confirmó `succeeded`, versión
+`appgprj_6ae67ae019e88191a7012093bb19c505~appgver_87b8216f08f881918b442689242a2abb`,
+despliegue `appgdep_6ae8dcb73e60819187a068ca1b16fb9d`, en
+[RCFito](https://rcfito.paxxa.chatgpt.site). Audiencia pública, R2 y revisión de
+entorno 1 conservados. Nueve controles HTTPS de conexión y tres de código
+publicado aprobados sin crear datos ni cuentas. Fuente trabajada en checkout
+limpio; cambios ajenos preexistentes fuera del commit.

@@ -4,8 +4,7 @@ RCF-030. Diseño presentado y desarrollo autorizado por el Propietario el
 2026-11-02. Primera entrega publicada en Sites 30. La ampliación de captura unificada fue
 autorizada el mismo día tras revisar la propuesta interactiva: una entrada
 **Nueva indicación**, última receta activa por defecto, búsqueda de anteriores
-y captura desde cero. Implementada en `/aplicaciones/nueva`, en verificación
-para publicación; `/aplicaciones/nueva-receta` conserva compatibilidad.
+y captura desde cero. Implementada en `/aplicaciones/nueva`, publicada en Sites 31, GitHub y Docker; `/aplicaciones/nueva-receta` conserva compatibilidad.
 
 ## Decisiones confirmadas
 
@@ -303,4 +302,6 @@ sin creación comprobados. `typecheck`, `build`, `docs:check` y diff aprobados;
 se conserva la advertencia previa de chunk mayor de 500 kB.
 Autorrevisión de React y permisos; no se atribuye revisión independiente.
 
-Publicación de la ampliación: pendiente de confirmar.
+Fuente `32c4937` publicada en GitHub, Docker healthy y Sites versión 31 con
+resultado `succeeded`. Nueve controles HTTPS de conexión y tres del código
+publicado aprobados, sin escrituras operativas. [Registro](../OPERATIONS.md#captura-unificada-de-indicaciones--rcf-030).
