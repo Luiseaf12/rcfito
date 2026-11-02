@@ -38,6 +38,7 @@ Fecha de revisión: 2026-11-02.
 
 | RCF-033 | Contexto implícito y tabla de productos aplicados por malla en consultas y CLI. | cerrada | Agente principal y especialistas | Corrección8aea36e publicada en Sites versión28 y Docker:286 pruebas,132 HTTP, QA móvil y12 controles posteriores aprobados; revisión independiente cerrada. Productos antes de filtros y consulta explícita de indicados sin sustituir realizadas; sin migraciones/escrituras operativas. | [Ficha](flows/application-chat.md#preguntas-equivalentes-y-ausencia-de-realizadas) |
 | RCF-034 | Configurar la combinación de colores con la preferencia del equipo por defecto. | pendiente | Por asignar | Permitir configurar los colores o tema de la aplicación; por defecto seguir la preferencia de apariencia del equipo. Plantear dudas sobre opciones y alcance antes de desarrollar. | [Colores configurables](PRODUCT.md#combinación-de-colores-configurable) |
+| RCF-035 | Exportar un borrador PDF de la receta antes de guardar. | en curso | Agente principal | Dosis y agua por hectárea, destinos y fecha por confirmar; 306 pruebas y descargas demo aprobadas. Completar comprobaciones y publicar sin crear órdenes ni reservar números. | [Flujo y contrato](flows/recipe-draft-pdf.md) |
 
 Estados y cierre: [DOCUMENTATION](../.project-standards/DOCUMENTATION.md#planes-decisiones-y-deuda).
 Una tarea registrada no autoriza implementarla. Conservar su ID y actualizar su

@@ -581,3 +581,26 @@ migraciones; las 372 comprobaciones SQL anteriores permanecen evidencia de la
 primera entrega. QA demo del botón único, búsqueda/empates, guardado desde anterior
 y desde cero, selección manual/numeración, recarga, grupo, descarte y móvil 375 px.
 [Detalle y límites](flows/recipe-creation.md#ampliación-autorizada-una-sola-entrada).
+
+## PDF del borrador de receta — RCF-035
+
+2026-11-02: 306 pruebas aprobadas, incluidos cinco casos nuevos en
+`test/application-draft-document.test.ts`: snapshot sin mutaciones, excepción
+acotada de fecha pendiente, validaciones/permisos/unidades, origen y revisión
+de grupo, referencia que cambia con el contenido. Tipos y build aprobados.
+
+`node --import tsx scripts/verify-draft-pdf.mts` genera solo fixtures ficticios
+en `.artifacts/rcf035-pdf-qa`. PDF de una y cuatro páginas extraídos y renderizados
+con pypdf/Poppler: todos los destinos/productos, acentos, dosis de 0.000001,
+encabezados, pies y nota extensa revisados. Se corrigió un título de nota
+separado de su contenido. Glifos no disponibles se rechazan explícitamente.
+
+Navegador demo: descarga sin fecha programada desde receta anterior; edición
+y segunda descarga con referencia distinta, dosis 0.123456 y agua 120.1234;
+guardar sin fecha bloqueado. Revisión ficticia de IA permite descargar sin
+aprobar ni guardar. Móvil 375 px con acciones visibles y sin desbordamiento.
+Las descargas se inspeccionan como PDF real, no solo como clic de botón.
+No se invoca proveedor de IA ni se escriben datos operativos. No cambia el
+backend: los 167 controles HTTP y 372 SQL de RCF-030 no se presentan como nuevas
+ejecuciones. Auditoría de dependencias de producción: cero vulnerabilidades.
+[Flujo y límites](flows/recipe-draft-pdf.md).

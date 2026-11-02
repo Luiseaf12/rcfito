@@ -5,6 +5,8 @@ import { useWorkspace } from '@/data/workspace-context'
 import { currentApplicationDestinations } from '@/domain/application-import'
 import { applicationDraftIssues, type ApplicationDraftForm } from '@/domain/application-draft'
 import { recipeCandidates, recipeHistory, recipeSource, validateRecipeSource, type RecipeCandidate } from '@/domain/application-recipes'
+import { draftPdfIssues, snapshotDraftRecipe } from '@/domain/application-draft-document'
+import { DraftRecipePdfButton, useDraftRecipePdf } from './application-draft-pdf'
 import { currentOrderIndication } from '@/domain/application-editing'
 import { applicationOriginLabel, eligibleGroupStages } from '@/domain/application-groups'
 import { nextStageApplicationNumber } from '@/domain/applications'
@@ -27,7 +29,7 @@ type Base = { candidate: RecipeCandidate; indication: ApplicationIndicationSnaps
 const blank = (): ApplicationDraftForm => ({ project_id: '', field_id: '', crop_id: '', method_id: '', indicated_date: businessToday(), scheduled_date: '', water_l_ha: '', observations: '', application_number: '' })
 
 export function ApplicationCreationPage() {
-  const { data, isAdmin, mutate, refresh } = useWorkspace()
+  const { data, profile, isAdmin, mutate, refresh } = useWorkspace()
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const [selection, setSelection] = useState<Selection>(() => {
@@ -48,6 +50,9 @@ export function ApplicationCreationPage() {
   const [edited, setEdited] = useState(false)
   const [datesEdited, setDatesEdited] = useState(false)
   const [busy, setBusy] = useState(false)
+  const pdf = useDraftRecipePdf()
+  const working = busy || pdf.busy
+  const [lastAttempt, setLastAttempt] = useState<'save' | 'pdf'>('save')
   const saving = useRef(false)
   const [orderId] = useState(() => crypto.randomUUID())
   const [error, setError] = useState('')
@@ -72,22 +77,24 @@ export function ApplicationCreationPage() {
   if (mode === 'previous' && stageIds.length && !base) issues.unshift({ field: 'base', message: 'Elige la receta que servirá de base.' })
   if (destinationsChanged) issues.unshift({ field: 'destinations', message: 'Los destinos cambiaron. Vuelve a seleccionar el lote o grupo para revisar la base y los destinos; tu captura se conserva hasta que aceptes reemplazarla.' })
   if (stale) issues.unshift({ field: 'base', message: stale })
-  const issue = (field: string) => attempted ? issues.find(item => item.field === field)?.message : undefined
+  const pdfIssues = draftPdfIssues(form, issues)
+  const visibleIssues = lastAttempt === 'pdf' ? pdfIssues : issues
+  const issue = (field: string) => attempted ? visibleIssues.find(item => item.field === field)?.message : undefined
   const unusualNumber = form.application_number.trim() && Number.isInteger(Number(form.application_number)) && Number(form.application_number) > 0 && !issues.some(item => item.field === 'application_number') && chosen.some(item => nextStageApplicationNumber(data, item.stage.id) !== Number(form.application_number))
   const dirty = edited || datesEdited
-  const blocker = useBlocker(({ currentLocation, nextLocation }) => !saving.current && dirty && (currentLocation.pathname !== nextLocation.pathname || currentLocation.search !== nextLocation.search))
+  const blocker = useBlocker(({ currentLocation, nextLocation }) => !saving.current && (dirty || pdf.busy) && (currentLocation.pathname !== nextLocation.pathname || currentLocation.search !== nextLocation.search))
   const request = (action: () => void, leaving = false) => {
-    if (saving.current) return
+    if (saving.current || pdf.busy) return
     if (!leaving && edited) setPending({ action, leaving })
     else action()
   }
   // Router blocking covers shell links, Cancel and browser Back; native close/reload is separate.
   useEffect(() => {
-    if (!dirty && !busy) return
+    if (!dirty && !working) return
     const unload = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = '' }
     window.addEventListener('beforeunload', unload)
     return () => window.removeEventListener('beforeunload', unload)
-  }, [dirty, busy])
+  }, [dirty, working])
 
   function load(candidate: RecipeCandidate | undefined) {
     const order = data.applicationOrders.find(item => item.id === candidate?.order_id)
@@ -113,9 +120,18 @@ export function ApplicationCreationPage() {
     if (field === 'indicated_date' || field === 'scheduled_date' || field === 'application_number') setDatesEdited(true)
     else setEdited(true)
   }
+  function exportPdf() {
+    if (working) return
+    setLastAttempt('pdf'); setAttempted(true); setError('')
+    if (pdfIssues.length || !isAdmin) return
+    try {
+      const snapshot = snapshotDraftRecipe(data, { id: orderId, profile, generated_at: new Date().toISOString(), form: { ...form, project_id: selection.project_id, field_id: selection.field_id, crop_id: selection.crop_id }, products: rows, stage_ids: stageIds, source_group_id: group?.id, recipe_source: source, review: { imported: false, unresolvedDestinations: [], destinationsReviewed: true, numberReviewed } })
+      void pdf.exportDocument(snapshot)
+    } catch (err) { setError(errorMessage(err)) }
+  }
   async function submit(event: FormEvent) {
-    event.preventDefault(); setAttempted(true)
-    if (saving.current || issues.length || !isAdmin) return
+    event.preventDefault(); setLastAttempt('save'); setAttempted(true)
+    if (saving.current || pdf.busy || issues.length || !isAdmin) return
     saving.current = true; setBusy(true); setError('')
     try { await mutate({ type: 'create_application_order', record }); setEdited(false); setDatesEdited(false); navigate(`/aplicaciones/${orderId}`) }
     catch (err) { setError(errorMessage(err)) }
@@ -131,7 +147,7 @@ export function ApplicationCreationPage() {
   return <div className="workspace-page">
     <header className="page-header"><div><Button type="button" variant="ghost" onClick={() => request(() => navigate('/aplicaciones'), true)}><ArrowLeft data-icon="inline-start" />Aplicaciones</Button><h1 className="page-title">Nueva indicación</h1><p className="muted">Usa una receta anterior o comienza desde cero en el mismo formulario.</p></div></header>
     <form className="flex flex-col gap-6" onSubmit={submit} noValidate>
-      <fieldset disabled={busy} className="flex min-w-0 flex-col gap-6">
+      <fieldset disabled={working} className="flex min-w-0 flex-col gap-6">
         <Card><CardHeader><CardTitle>Destino de la indicación</CardTitle><CardDescription>Solo etapas sembradas vigentes del mismo campo y cultivo.</CardDescription></CardHeader><CardContent className="flex flex-col gap-5">
           <FieldGroup className="field-grid [container-type:normal]">
             <FormSelect label="Proyecto de temporada" value={selection.project_id} required options={projects.map(item => ({ value: item.id, label: `${recordName(data.catalogs.agricultural_units, item.agricultural_unit_id)} · ${item.name}` }))} onChange={value => request(() => change({ ...selection, project_id: value, field_id: '', crop_id: '', id: '' }))} error={issue('project_id')} />
@@ -159,19 +175,21 @@ export function ApplicationCreationPage() {
           {(form.method_id && !data.catalogs.application_methods.some(item => item.id === form.method_id && item.active) || rows.some(row => row.product_id && !data.catalogs.products.some(item => item.id === row.product_id && item.active))) && <Alert variant="destructive"><AlertTitle>Hay referencias inactivas en la copia</AlertTitle><AlertDescription>Reemplaza los productos o el medio inactivos antes de guardar. La receta anterior conserva sus valores históricos.</AlertDescription></Alert>}
           <FieldGroup className="field-grid [container-type:normal]">
             <FormInput label="Fecha de indicación" type="date" value={form.indicated_date} onChange={value => update('indicated_date', value)} required error={issue('indicated_date')} />
-            <FormInput label="Fecha programada" type="date" value={form.scheduled_date} onChange={value => update('scheduled_date', value)} required error={issue('scheduled_date')} />
+            <FormInput label="Fecha programada" help="Obligatoria para guardar. En el PDF puede quedar por confirmar." type="date" value={form.scheduled_date} onChange={value => update('scheduled_date', value)} required error={issue('scheduled_date')} />
             <FormSelect label="Medio de aplicación" value={form.method_id} onChange={value => update('method_id', value)} options={methods.map(method => ({ value: method.id, label: `${method.name}${method.active ? '' : ' (inactivo; reemplazar)'}`, disabled: !method.active }))} required error={issue('method_id')} />
             <FormInput label="Gasto de agua (L/ha)" type="number" min="0.0001" step="any" value={form.water_l_ha} onChange={value => update('water_l_ha', value)} required error={issue('water_l_ha')} />
           </FieldGroup>
-          <ProductMixtureEditor rows={rows} onChange={value => { setRows(value); setEdited(true) }} products={data.catalogs.products} activeIngredients={data.catalogs.active_ingredients} original={base?.indication.products} issues={attempted ? issues : []} error={issue('products')} />
+          <ProductMixtureEditor rows={rows} onChange={value => { setRows(value); setEdited(true) }} products={data.catalogs.products} activeIngredients={data.catalogs.active_ingredients} original={base?.indication.products} issues={attempted ? visibleIssues : []} error={issue('products')} />
           <TextField label="Nota de la aplicación" value={form.observations} onChange={value => update('observations', value)} error={issue('observations')} />
           <Collapsible><CollapsibleTrigger asChild><Button type="button" variant="outline" className="min-h-11">Numeración de la aplicación<ChevronDown data-icon="inline-end" /></Button></CollapsibleTrigger><CollapsibleContent className="flex flex-col gap-4 pt-4"><FormInput label="Número de aplicación en la etapa" type="number" min="1" max="2147483647" step="1" value={form.application_number} onChange={value => update('application_number', value)} help="Vacío: asigna el siguiente número disponible en cada etapa." error={issue('application_number')} />{unusualNumber && <Field orientation="horizontal"><Checkbox id="new-application-number-reviewed" checked={numberReviewed} onCheckedChange={value => setNumberReviewed(value === true)} /><FieldLabel htmlFor="new-application-number-reviewed">Revisé el historial y confirmo este número, aunque difiera del siguiente disponible.</FieldLabel></Field>}{issue('number_review') && <FieldDescription>{issue('number_review')}</FieldDescription>}</CollapsibleContent></Collapsible>
         </CardContent></Card>}
       </fieldset>
       {destinationsChanged && <ErrorAlert message="Los destinos cambiaron durante la captura. Revisa la selección antes de guardar." retry={() => request(() => change(selection))} />}
       {error && <ErrorAlert message={error} retry={() => void refresh().catch(err => setError(errorMessage(err)))} />}
-      {attempted && issues.length > 0 && <Alert variant="destructive"><AlertTitle>Revisa la nueva indicación</AlertTitle><AlertDescription><ul className="list-disc pl-5">{issues.map(item => <li key={item.field}>{item.message}</li>)}</ul></AlertDescription></Alert>}
-      <div className="section-actions"><Button type="button" variant="outline" disabled={busy} onClick={() => request(() => navigate('/aplicaciones'), true)}>Cancelar</Button><SaveButton busy={busy} disabled={!stageIds.length || destinationsChanged || !!stale || mode === 'previous' && !base}>Guardar indicación</SaveButton></div>
+      {pdf.error && <ErrorAlert message={pdf.error} />}
+      {attempted && visibleIssues.length > 0 && <Alert variant="destructive"><AlertTitle>Revisa la nueva indicación</AlertTitle><AlertDescription><ul className="list-disc pl-5">{visibleIssues.map(item => <li key={item.field}>{item.message}</li>)}</ul></AlertDescription></Alert>}
+      <FieldDescription>El PDF es un borrador para revisión. Si cambias datos, vuelve a exportarlo para confirmar esa versión.</FieldDescription>
+      <div className="section-actions"><Button type="button" variant="outline" disabled={working} onClick={() => request(() => navigate('/aplicaciones'), true)}>Cancelar</Button><DraftRecipePdfButton busy={pdf.busy} disabled={busy || !stageIds.length || destinationsChanged || !!stale || mode === 'previous' && !base} onClick={exportPdf} /><SaveButton busy={busy} disabled={pdf.busy || !stageIds.length || destinationsChanged || !!stale || mode === 'previous' && !base}>Guardar indicación</SaveButton></div>
     </form>
     {picking && <ApplicationRecipePicker data={data} history={history} latest={candidates} selectedId={base?.candidate.order_id} close={() => setPicking(false)} choose={candidate => { setPicking(false); request(() => load(candidate)) }} />}
     <AlertDialog open={!!pending || blocker.state === 'blocked'} onOpenChange={open => { if (!open) { setPending(null); if (blocker.state === 'blocked') blocker.reset() } }}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>{blocker.state === 'blocked' ? '¿Descartar los cambios?' : '¿Reemplazar la mezcla editada?'}</AlertDialogTitle><AlertDialogDescription>{blocker.state === 'blocked' ? 'La nueva indicación todavía no se ha guardado.' : 'Se cargará la base del nuevo destino o receta. Las fechas que capturaste se conservan.'}</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Seguir editando</AlertDialogCancel><AlertDialogAction onClick={() => { if (blocker.state === 'blocked') blocker.proceed(); else pending?.action(); setPending(null) }}>{blocker.state === 'blocked' ? 'Descartar cambios' : 'Reemplazar mezcla'}</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>

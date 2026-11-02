@@ -169,6 +169,11 @@ intermedios, sumas ni promedios; ordenar con el valor numérico original. Un val
 positivo menor que 0.005 se muestra como 0.00 en esa unidad y conserva su valor
 interno. Los campos de captura mantienen su precisión y validaciones vigentes.
 
+El [PDF de borrador](flows/recipe-draft-pdf.md) es una copia de captura para
+confirmar la receta: dosis hasta seis decimales y agua hasta cuatro; superficies
+conservan dos. Su botón junto a Guardar descarga sin persistir y admite la fecha
+programada pendiente. Si se edita la mezcla hay que exportar esa nueva versión.
+
 Implementación compartida en [report-format](../src/lib/report-format.ts), usada
 por [product-usage-shared](../src/features/product-usage-shared.tsx). Aceptación:
 comprobar un redondeo hacia arriba/abajo, ceros finales, conversión L/kg y dosis

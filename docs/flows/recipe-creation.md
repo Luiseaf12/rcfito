@@ -275,6 +275,10 @@ aprobadas; audiencia conservada. [Registro operativo](../OPERATIONS.md#nuevas-re
 
 ## Ampliación autorizada: una sola entrada
 
+La ampliación posterior de [PDF del borrador — RCF-035](recipe-draft-pdf.md)
+añade descarga antes de guardar en este mismo formulario, con mezcla y destinos
+actuales y sin modificar las reglas de persistencia.
+
 La solicitud «adelante» posterior a la propuesta autoriza integrar ambos recorridos.
 La última activa se propone si es única; los empates o historias diferentes por
 subdivisión conservan la elección explícita. Buscar otra no modifica los destinos.

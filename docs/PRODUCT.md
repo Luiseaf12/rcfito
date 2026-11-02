@@ -464,6 +464,11 @@ Antes de desarrollar se plantearán las dudas conforme a AGENTS.
 
 ## Exportación de productos a PDF
 
+La copia de una receta sin guardar se define por separado en
+[PDF del borrador de receta — RCF-035](flows/recipe-draft-pdf.md): destinos,
+productos, dosis y agua por hectárea para revisión externa, con fecha programada
+opcional solo al exportar. No genera una aplicación ni reserva numeración.
+
 RCF-032, solicitado el 2026-11-01. Pendiente de desarrollar una exportación a PDF
 que muestre todos los productos registrados que correspondan a los resultados
 filtrados y los filtros aplicados para obtenerlos. La exportación debe incluir

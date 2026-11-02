@@ -4,6 +4,8 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Check, Eye, Layers3, Plus, X } from 'lucide-react'
 import { useWorkspace } from '@/data/workspace-context'
 import { currentApplicationDestinations, matchImportedProducts, resolveImportContext, type ExtractedApplication } from '@/domain/application-import'
+import { draftPdfIssues, snapshotDraftRecipe } from '@/domain/application-draft-document'
+import { DraftRecipePdfButton, useDraftRecipePdf } from './application-draft-pdf'
 import { applicationDraftIssues } from '@/domain/application-draft'
 import { nextStageApplicationNumber, stageApplicationNumber } from '@/domain/applications'
 import { applicationOriginLabel, targetGroupMembershipLabel } from '@/domain/application-groups'
@@ -190,7 +192,7 @@ export function ApplicationsPage() {
 }
 
 export function NewApplicationDialog({ close, imported, onSaved }: { close: () => void; imported?: { extracted: ExtractedApplication; source_text: string }; onSaved?: () => void }) {
-  const { data, mutate } = useWorkspace()
+  const { data, profile, mutate } = useWorkspace()
   const navigate = useNavigate()
   const [orderId] = useState(() => crypto.randomUUID())
   const [seed] = useState(() => imported ? { context: resolveImportContext(data, imported.extracted), rows: matchImportedProducts(imported.extracted.products, data.catalogs.products) } : null)
@@ -202,11 +204,14 @@ export function NewApplicationDialog({ close, imported, onSaved }: { close: () =
   const [numberReviewed, setNumberReviewed] = useState(false)
   const [groupId, setGroupId] = useState('manual')
   const [busy, setBusy] = useState(false)
+  const pdf = useDraftRecipePdf()
+  const working = busy || pdf.busy
+  const [lastAttempt, setLastAttempt] = useState<'save' | 'pdf'>('save')
   const [error, setError] = useState<string | null>(null)
   const [submitted, setSubmitted] = useState(false)
   const [contextChange, setContextChange] = useState<{ key: 'project_id' | 'field_id' | 'crop_id'; value: string } | null>(null)
   const dirty = !!imported || JSON.stringify(form) !== JSON.stringify(initial) || selected.length > 0 || rows.length !== 1 || rows.some(row => row.product_id || row.dose)
-  const dismissal = useFormClose(!!dirty, busy, close)
+  const dismissal = useFormClose(!!dirty, working, close)
   const projects = data.projects.filter(project => project.status === 'active')
   const fields = data.catalogs.fields.filter(field => field.active && data.lots.some(lot => lot.project_id === form.project_id && lot.field_id === field.id && lot.active !== false))
   const fieldOptions = eligibleDestinations(data, form.project_id, form.field_id || undefined)
@@ -215,7 +220,8 @@ export function NewApplicationDialog({ close, imported, onSaved }: { close: () =
   const importContext = imported ? resolveImportContext(data, imported.extracted, { agriculturalUnitId: data.projects.find(project => project.id === form.project_id)?.agricultural_unit_id, projectId: form.project_id, fieldId: form.field_id || undefined, cropId: form.crop_id || undefined }) : null
   const chosenOptions = options.filter(option => selected.includes(option.stage.id))
   const draftIssues = applicationDraftIssues(data, form, rows, selected, { imported: !!imported, unresolvedDestinations: importContext?.unresolvedDestinations ?? [], destinationsReviewed, numberReviewed })
-  const visibleIssues = imported || submitted ? draftIssues : []
+  const pdfIssues = draftPdfIssues(form, draftIssues)
+  const visibleIssues = imported || submitted ? lastAttempt === 'pdf' ? pdfIssues : draftIssues : []
   const issueFor = (field: string) => visibleIssues.find(issue => issue.field === field)?.message
   const unusualNumbers = form.application_number && !draftIssues.some(issue => issue.field === 'application_number') ? chosenOptions.filter(option => nextStageApplicationNumber(data, option.stage.id) !== Number(form.application_number)) : []
   const importIncomplete = !!imported && draftIssues.length > 0
@@ -239,11 +245,20 @@ export function NewApplicationDialog({ close, imported, onSaved }: { close: () =
     if (selected.length && form[key]) setContextChange({ key, value })
     else applyContextChange(key, value)
   }
+  function exportPdf() {
+    if (working) return
+    setLastAttempt('pdf'); setSubmitted(true); setError(null)
+    if (pdfIssues.length) return
+    try {
+      const snapshot = snapshotDraftRecipe(data, { id: orderId, profile, generated_at: new Date().toISOString(), form, products: rows, stage_ids: selected, source_group_id: groupId === 'manual' ? undefined : groupId, review: { imported: !!imported, unresolvedDestinations: importContext?.unresolvedDestinations ?? [], destinationsReviewed, numberReviewed } })
+      void pdf.exportDocument(snapshot)
+    } catch (err) { setError(errorMessage(err)) }
+  }
   async function submit(event: FormEvent) {
     event.preventDefault()
-    if (busy) return
+    if (working) return
     setError(null)
-    setSubmitted(true)
+    setLastAttempt('save'); setSubmitted(true)
     if (draftIssues.length) { setError(draftIssues[0].message); return }
     const chosen = chosenOptions
     setBusy(true)
@@ -258,8 +273,8 @@ export function NewApplicationDialog({ close, imported, onSaved }: { close: () =
   return <>
     <RecordDialog title={imported ? 'Revisar y aprobar la captura' : 'Nueva indicación'} description="Completa los datos y revisa productos, destinos, número por etapa y nota antes de guardar la indicación." open onOpenChange={dismissal.onOpenChange} wide>
       <form onSubmit={submit} noValidate className="flex flex-col gap-6">
-        <ErrorAlert message={error} />
-        <fieldset disabled={busy} className="min-w-0 flex flex-col gap-6">
+        <ErrorAlert message={error} /><ErrorAlert message={pdf.error} />
+        <fieldset disabled={working} className="min-w-0 flex flex-col gap-6">
           {imported && <Collapsible><CollapsibleTrigger asChild><Button type="button" variant="outline">Mensaje original</Button></CollapsibleTrigger><CollapsibleContent><p className="whitespace-pre-wrap break-words">{imported.source_text}</p></CollapsibleContent></Collapsible>}
           {importContext && (importContext.cropSuggestionReason || importContext.warnings.length > 0) && <Alert><AlertTitle>Revisa las referencias del mensaje</AlertTitle><AlertDescription>{importContext.cropSuggestionReason && <p>{importContext.cropSuggestionReason}</p>}{importContext.warnings.filter(warning => warning !== importContext.cropSuggestionReason).map(warning => <p key={warning}>{warning}</p>)}</AlertDescription></Alert>}
           {!projects.length && <Alert><AlertTitle>Activa un proyecto de siembra</AlertTitle><AlertDescription>Necesitas un proyecto activo con etapas sembradas para indicar aplicaciones. <Link to="/proyectos">Consultar proyectos</Link></AlertDescription></Alert>}
@@ -292,14 +307,15 @@ export function NewApplicationDialog({ close, imported, onSaved }: { close: () =
             <FieldGroup className="field-grid">
               <FormInput label="Gasto de agua (L/ha)" value={form.water_l_ha} onChange={value => update('water_l_ha', value)} type="number" min="0.0001" step="any" required error={issueFor('water_l_ha')} />
               <FormInput label="Fecha de indicación" type="date" value={form.indicated_date} onChange={value => update('indicated_date', value)} required error={issueFor('indicated_date')} />
-              <FormInput label="Fecha programada" type="date" value={form.scheduled_date} onChange={value => update('scheduled_date', value)} min={form.indicated_date} required error={issueFor('scheduled_date')} />
+              <FormInput label="Fecha programada" help="Obligatoria para guardar. En el PDF puede quedar por confirmar." type="date" value={form.scheduled_date} onChange={value => update('scheduled_date', value)} min={form.indicated_date} required error={issueFor('scheduled_date')} />
             </FieldGroup>
             <TextField label="Nota de la aplicación" value={form.observations} onChange={value => update('observations', value)} error={issueFor('observations')} help="Opcional, hasta 4,000 caracteres. Se conserva para todos los destinos de esta indicación." />
           </FieldGroup>
           <Alert><AlertTitle>La indicación se conserva como historial</AlertTitle><AlertDescription>Podrás editar los destinos pendientes con un motivo de cambio. Los realizados conservan su indicación y permiten una corrección registrada de lo aplicado.</AlertDescription></Alert>
         </fieldset>
         {(imported || submitted) && (draftIssues.length ? <Alert role="status"><AlertTitle>Pendientes para {imported ? 'aprobar' : 'guardar'}: {draftIssues.length}</AlertTitle><AlertDescription><ul className="list-disc pl-5">{draftIssues.map(issue => <li key={`${issue.field}:${issue.message}`}>{issue.message}</li>)}</ul></AlertDescription></Alert> : <p className="flex items-center gap-2" role="status"><Check aria-hidden="true" />Captura lista para {imported ? 'aprobar y guardar' : 'guardar'}.</p>)}
-        <div className="dialog-actions"><Button type="button" variant="outline" onClick={dismissal.requestClose} disabled={busy}>Volver</Button><SaveButton busy={busy} disabled={importIncomplete}>{imported ? 'Aprobar y guardar indicación' : 'Guardar indicación'}</SaveButton></div>
+        <FieldDescription>El PDF es un borrador para revisión. Si cambias datos, vuelve a exportarlo para confirmar esa versión.</FieldDescription>
+        <div className="dialog-actions"><Button type="button" variant="outline" onClick={dismissal.requestClose} disabled={busy}>Volver</Button><DraftRecipePdfButton busy={pdf.busy} disabled={busy || !selected.length} onClick={exportPdf} /><SaveButton busy={busy} disabled={pdf.busy || importIncomplete}>{imported ? 'Aprobar y guardar indicación' : 'Guardar indicación'}</SaveButton></div>
       </form>
     </RecordDialog>
     {dismissal.confirmation}

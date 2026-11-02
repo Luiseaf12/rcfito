@@ -232,3 +232,11 @@ receta previa y `application-recipe-picker.tsx` su buscador de historia activa;
 el adaptador recupera `recipe_source` y la RPC valida su versión/estado antes de
 crear una orden independiente. La navegación hash usa `createHashRouter` para
 proteger cambios también con Atrás. [Contrato](docs/flows/recipe-creation.md).
+
+RCF-035: `domain/application-draft-document.ts` valida y copia la indicación
+editable en un documento independiente. `features/application-draft-pdf.tsx`
+coordina estado/error y carga diferida; `export/download-application-draft.ts`
+carga fuentes locales y descarga, mientras `export/application-draft-pdf.ts`
+renderiza texto y tablas sin conocer el workspace ni su adaptador. No hay RPC,
+persistencia de borradores, reservas ni envío externo al exportar.
+[Contrato y precisión](docs/flows/recipe-draft-pdf.md).
