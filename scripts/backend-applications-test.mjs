@@ -110,11 +110,29 @@ try {
         rollback;
       `);
     }
+    if (file.endsWith('_application_recipe_source.sql')) {
+      const setup = applicationTests.slice(0, applicationTests.indexOf('-- Captura asistida:'));
+      sql(`${setup}
+        select public.create_application_order(pg_temp.order_data(),pg_temp.stages(),pg_temp.mixture());
+        reset role;
+        create temporary table before_recipe_upgrade as select
+          (select jsonb_agg(to_jsonb(o) order by o.id) from public.application_orders o) orders,
+          (select jsonb_agg(to_jsonb(t) order by t.id) from public.application_targets t) targets;
+        ${migrationBody(source)}
+        select pg_temp.assert_true((select jsonb_agg(to_jsonb(o)-array['recipe_source_order_id','recipe_source_revision','recipe_source_stage_id'] order by o.id) from public.application_orders o)=(select orders from before_recipe_upgrade),'migración de recetas conserva órdenes, origen y firmas anteriores');
+        select pg_temp.assert_true((select jsonb_agg(to_jsonb(t) order by t.id) from public.application_targets t)=(select targets from before_recipe_upgrade),'migración de recetas conserva destinos, números y snapshots');
+        select pg_temp.assert_true((select bool_and(recipe_source_order_id is null and recipe_source_revision is null and recipe_source_stage_id is null) from public.application_orders),'migración no inventa receta base histórica');
+        set local role authenticated;
+        select pg_temp.assert_true(public.create_application_order(pg_temp.order_data(),pg_temp.stages(),pg_temp.mixture())='90000000-0000-4000-8000-000000000001'::uuid,'reintento anterior compatible tras migración de recetas');
+        rollback;
+      `);
+    }
     sql(source);
   }
   sql(readFileSync(resolve(root, 'supabase/tests/catalogs-and-sowing.sql'), 'utf8'));
   sql(readFileSync(resolve(root, 'supabase/tests/ingredient-classifications.sql'), 'utf8'));
   sql(applicationTests);
+  sql(applicationTests.slice(0, applicationTests.indexOf('-- Captura asistida:')) + readFileSync(resolve(root, 'supabase/tests/application-recipes.sql'), 'utf8'));
   const groupSetupEnd = applicationTests.indexOf('-- Captura asistida:');
   if (groupSetupEnd < 0) throw new Error('Faltan fixtures aislados para el origen de grupo.');
   sql(applicationTests.slice(0, groupSetupEnd) + readFileSync(resolve(root, 'supabase/tests/application-groups.sql'), 'utf8'));

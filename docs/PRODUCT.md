@@ -402,13 +402,13 @@ el chat. Recorrido, alternativas y criterios en [la ficha](flows/application-cha
 
 ## Propuesta de pantalla de recetas
 
-RCF-030, solicitado el 2026-11-01. Diseño iniciado por solicitud del Propietario
-el 2026-11-02. Las cuatro dudas previas quedaron resueltas por el Propietario.
-La [propuesta de pantalla y flujo](flows/recipe-creation.md) recoge el diseño,
-sus alternativas y criterios de aceptación. El alcance de esta tarea es
-presentar el diseño, sin acreditar una implementación de la pantalla real.
+RCF-030, solicitado el 2026-11-01. Diseño y desarrollo autorizados por el
+Propietario el 2026-11-02 con ocho aclaraciones resueltas. La pantalla
+**Nueva receta** dentro de Aplicaciones implementa el [flujo de recetas](flows/recipe-creation.md),
+sus alternativas y criterios de aceptación. Guardar crea una nueva aplicación
+indicada, conservando la anterior.
 
-La propuesta debe cubrir:
+La pantalla permite:
 
 - Elegir un grupo de lotes o un lote individual.
 - Mostrar la información de la última receta que afectó al lote seleccionado.
@@ -419,8 +419,11 @@ La propuesta debe cubrir:
 - Sugerir automáticamente el siguiente número de aplicación que corresponda
   a cada combinación de lote y etapa, conforme a su numeración existente.
 
-La revisión de si la aplicación ya conserva el grupo del lote se sigue por
-separado en RCF-029. Las decisiones que falten se aclararán antes de desarrollar
+La identidad histórica del grupo quedó resuelta en RCF-029. La copia conserva
+una referencia a la receta y versión base; el servidor rechaza una base cambiada
+o cancelada durante la captura. Se exige sustituir referencias inactivas y elegir
+explícitamente entre empates o historias distintas por subdivisión.
+
 ### Aclaraciones de la propuesta
 
 Confirmadas por el Propietario el 2026-11-02:

@@ -1,6 +1,7 @@
 import type { ApplicationActualSnapshot, ApplicationOrderInput, ApplicationPerformanceInput, ApplicationProductInput, ApplicationTarget, ProductLine, SowingStage, UserProfile, WorkspaceCommand, WorkspaceData } from './model'
 import { applyApplicationEditing, indicationForTarget } from './application-editing.ts'
 import { applicationGroupOrigin, groupMembershipsAtCreation } from './application-groups.ts'
+import { validateRecipeSource } from './application-recipes.ts'
 
 const fail = (message: string): never => { throw new Error(message) }
 const validDate = (value: string) => /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(`${value}T12:00:00Z`)) && new Date(`${value}T12:00:00Z`).toISOString().slice(0, 10) === value
@@ -61,7 +62,7 @@ function mixtureKey(products: ApplicationProductInput[]) {
 function requestKey(record: ApplicationOrderInput) {
   return JSON.stringify({ id: record.id, project_id: record.project_id, field_id: record.field_id, crop_id: record.crop_id, method_id: record.method_id,
     indicated_date: record.indicated_date, scheduled_date: record.scheduled_date, water_l_ha: record.water_l_ha, observations: record.observations,
-    source_text: record.source_text ?? '', source_group_id: record.source_group_id ?? null, application_number: record.application_number ?? null, stage_ids: [...record.stage_ids].sort(), products: mixtureKey(record.products) })
+    source_text: record.source_text ?? '', source_group_id: record.source_group_id ?? null, recipe_source: record.recipe_source ? [record.recipe_source.order_id, record.recipe_source.revision, record.recipe_source.stage_id ?? null] : null, application_number: record.application_number ?? null, stage_ids: [...record.stage_ids].sort(), products: mixtureKey(record.products) })
 }
 
 function firstPerformance(data: WorkspaceData, target: ApplicationTarget): ApplicationActualSnapshot {
@@ -101,6 +102,7 @@ export function applyApplicationCommand(data: WorkspaceData, command: WorkspaceC
       }
       const stages = destinations(data, record.stage_ids, record.project_id, record.field_id, record.crop_id)
       const groupOrigin = applicationGroupOrigin(data, record)
+      validateRecipeSource(data, record)
       if (!validDate(record.indicated_date) || !validDate(record.scheduled_date) || record.scheduled_date < record.indicated_date) fail('La fecha programada debe ser igual o posterior a la indicación.')
       if (stages.some(stage => !stage.actual_sowing_date || record.indicated_date < stage.actual_sowing_date)) fail('La indicación no puede ser anterior a la siembra real de sus destinos.')
       positive(record.water_l_ha, 'El gasto de agua')

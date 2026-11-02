@@ -1,8 +1,8 @@
-# Propuesta: nueva receta desde la última indicación
+# Nueva receta desde la última indicación
 
-RCF-030. Propuesta presentada el 2026-11-02 para revisión del Propietario.
-El entregable es el diseño de la pantalla y su recorrido. La aplicación real
-todavía no incorpora esta pantalla ni la consulta de recetas base.
+RCF-030. Diseño presentado y desarrollo autorizado por el Propietario el
+2026-11-02. Pantalla implementada en `/aplicaciones/nueva-receta`; verificación y
+publicación en curso. Conserva las ocho decisiones confirmadas.
 
 ## Decisiones confirmadas
 
@@ -33,13 +33,13 @@ editar la copia sin sobrescribir la receta anterior, sugerir el grupo de origen
 y mostrar el siguiente número por lote-etapa. Los destinos reales pertenecen a
 etapas concretas de subdivisiones; el nombre de lote no sustituye su identidad.
 
-## Flujo propuesto
+## Flujo implementado
 
 - Usuario y objetivo: administrador que necesita indicar una nueva aplicación
   sin recapturar una mezcla anterior. El lector conserva su consulta actual.
 - Entrada: acción **Nueva receta** dentro de Aplicaciones, junto a la captura
   manual existente. Abrir la pantalla conserva el proyecto/campo/cultivo elegido
-  cuando sea compatible. Ruta propuesta: `/aplicaciones/nueva-receta`.
+  cuando sea compatible. Ruta: `/aplicaciones/nueva-receta`.
 - Precondiciones: sesión administradora, proyecto activo y etapas sembradas
   vigentes del mismo proyecto, campo y cultivo. La autorización efectiva seguirá
   en el servidor, conforme al [contrato existente](applications.md).
@@ -62,10 +62,10 @@ etapas concretas de subdivisiones; el nombre de lote no sustituye su identidad.
   mezcla editada y proteger el descarte al salir. Un guardado ya confirmado no se
   repite por un fallo posterior al actualizar la consulta.
 - Éxito observable: nueva orden con identidad propia, destinos en estado indicada
-  y numeración por etapa; receta anterior e historial conservados. En el prototipo
-  el resultado se identifica como simulación y no demuestra persistencia.
+  y numeración por etapa; receta anterior e historial conservados. La demostración usa datos ficticios en el navegador; la persistencia real se
+  comprueba por separado en Supabase aislado.
 - Evidencia: revisión del prototipo y límites al final de esta ficha. Pruebas de
-  integración, permisos y persistencia de esta ampliación: **pendientes**.
+  integración, permisos y persistencia: evidencia al final de esta ficha.
 
 ## Composición de la pantalla
 
@@ -90,8 +90,7 @@ ubicación; no implementa un segundo sistema de navegación.
 
 ## Reutilización de controles
 
-Esta tabla es una propuesta de composición para el desarrollo posterior,
-no evidencia de componentes nuevos instalados:
+Composición reutilizada por la pantalla implementada:
 
 | Necesidad | Composición del proyecto |
 | --- | --- |
@@ -107,17 +106,16 @@ no evidencia de componentes nuevos instalados:
 La maqueta usa controles HTML para explorar el recorrido, sin instalar
 dependencias ni modificar los componentes de la aplicación.
 
-## Detalles propuestos para revisión
+## Comportamientos de la implementación
 
-Los siguientes comportamientos completan el diseño. Son propuestas del agente;
-las ocho respuestas anteriores son las decisiones ya confirmadas.
+Estos comportamientos completan las ocho decisiones confirmadas.
 
 - **Identificar la base:** restringir siempre a etapas vigentes del contexto.
   La selección de una base entre subdivisiones no cambia por sí sola los destinos
   de la nueva indicación; se revisan explícitamente antes de guardar. Mostrar
   referencia de la revisión copiada y aplicar las decisiones confirmadas sobre
   actividad, empates y mezcla por subdivisión.
-- **Fecha nueva:** iniciar indicación en la fecha local del usuario, editable;
+- **Fecha nueva:** iniciar indicación en la fecha operativa de RCFito (America/Mazatlan), editable;
   programación comienza vacía y debe confirmarse. Conservar las validaciones
   existentes, incluida programación igual o posterior a indicación.
 - **Cambio de destino:** si se editaron mezcla, agua, medio o nota, confirmar
@@ -143,28 +141,41 @@ las ocho respuestas anteriores son las decisiones ya confirmadas.
 
 ## Grupo de origen y alcance técnico
 
-Revisión de código preparatoria: `NewApplicationDialog` mantiene `groupId` para
-elegir destinos, pero el comando de creación envía `stage_ids` sin identidad del
-grupo. Esto no equivale a una auditoría de persistencia y no cierra RCF-029.
+La [implementación de RCF-029](application-group-origin.md) conserva el grupo
+usado para emitir la orden por su ID y nombre histórico. Las pertenencias actuales
+no sustituyen ese origen. La corrección única confirmada por el Propietario ya
+vinculó las 23 órdenes anteriores al grupo completo; esta pantalla no la repite.
 
-Para implementar esta propuesta se deberá resolver la identidad histórica del
-grupo utilizado al emitir una receta. No basta consultar los grupos a los que
-pertenece hoy un lote ni comparar una lista de destinos con los integrantes
-actuales. Una receta emitida manualmente para varios lotes no acredita que se
-haya emitido para un grupo guardado. Las órdenes anteriores sin ese dato tendrán
-un estado explícito de grupo no identificable; no se inventará su asociación.
-La [implementación de RCF-029](application-group-origin.md) distingue el grupo
-usado para emitir la orden de las pertenencias de cada destino al momento del
-registro. Esta base ya está implementada y probada; su publicación se registra
-por separado de la pantalla propuesta en esta ficha.
+`application-recipes.ts` resuelve candidatas por etapa vigente y grupo explícito.
+Activa significa que el destino de la base está **indicado o realizado**, nunca
+cancelado. La fecha se toma de la última versión de la indicación. No se copian
+realizaciones, programación, número ni texto de captura con IA.
 
-La futura ampliación deberá mantener reglas/casos de uso, coordinación y
-adaptador separados. El diseño no incorpora una llamada de IA: la selección de
-la receta base y la numeración se determinan por reglas y datos existentes.
+`ApplicationRecipesPage` coordina selección, confirmaciones y borrador con los
+editores compartidos. Conserva fechas nuevas al cambiar la base y muestra los
+valores históricos inactivos hasta que se sustituyan. La navegación por menú,
+Cancelar o Atrás usa el bloqueo de React Router; cerrar/recargar usa el aviso
+nativo del navegador. El router mantiene las mismas rutas hash mediante
+`createHashRouter`, para cubrir también Atrás del navegador.
+
+Al guardar se envía `recipe_source: { order_id, revision, stage_id? }` junto al
+comando existente. La etapa es obligatoria para una copia individual; se omite
+para una base grupal. La migración aditiva `20261102171500_application_recipe_source`
+conserva tres referencias inmutables, sin inferir bases históricas ni cambiar las
+firmas de reintentos anteriores. El servidor comprueba versión, contexto, estado
+no cancelado y origen explícito de grupo antes de crear. Bloquea la orden base
+antes del grupo/etapas para serializar revisiones o cancelaciones concurrentes.
+Un reintento exacto ya confirmado devuelve la misma identidad aunque la base
+haya cambiado después. Los números se asignan por etapa bajo bloqueo existente.
+
+El adaptador recupera la referencia al recargar y el detalle enlaza la base y
+versión copiadas. El borrador permanece ante errores; Actualizar vuelve a consultar
+sin sustituirlo. Reemplazarlo exige confirmación si se editó la mezcla, agua,
+medio o nota. No se incorpora ninguna llamada de IA.
 
 ## Estados y criterios de aceptación
 
-| Caso | Resultado esperado del desarrollo posterior |
+| Caso | Resultado esperado |
 | --- | --- |
 | Lote con receta previa | Mostrar última indicación de su etapa vigente, consulta anterior y copia editable. |
 | Lote cuya base provino de grupo | Sugerir el grupo identificado; conservar solo el lote hasta aceptar. |
@@ -207,8 +218,38 @@ Verificación del prototipo en navegador el 2026-11-02:
 - Sin errores de consola observados en el recorrido final. `npm run docs:check`
   aprobado: estándar 4.3.0 válido, sin diferencias de integridad.
 
-Solo se verificó el prototipo. Recorrido completo de teclado, zoom 200 %,
-contraste medido y casos concurrentes del diseño: pendientes de la implementación.
-No se atribuyen pruebas de frontend operativo, RLS/RPC, migraciones, Docker ni
-Sites a esta propuesta. La apariencia del prototipo sigue el tema del chat;
-la implementación futura conserva el perfil de marca vigente del proyecto.
+La evidencia anterior corresponde exclusivamente al prototipo. La implementación
+conserva el perfil de marca del proyecto. Recorrido exhaustivo de teclado, zoom
+200 % y contraste medido no se acreditan con esa maqueta.
+
+
+## Verificación de la pantalla real — 2026-11-02
+
+- 297 pruebas de dominio aprobadas: fecha indicada, empates, historias distintas
+  por subdivisión, emisión de grupo frente a individual posterior, cancelación,
+  última revisión, reintentos y referencia persistida. Sin conexiones reales.
+- 372 comprobaciones SQL en PostgreSQL efímero: migración conserva órdenes,
+  destinos y firmas previas; nuevas referencias y números, bases obsoletas,
+  canceladas o ajenas, inmutabilidad y RLS. Auth simulado solo en esta suite.
+- 167 controles HTTP con Auth/REST/Edge/RLS reales en Supabase aislado; 14 nuevos
+  de recetas. Relectura, número individual, copia de grupo, lector, ámbito,
+  rechazo atómico y reintento. Advisors sin WARN/ERROR; stack de prueba retirado.
+- Navegador con datos ficticios: copia individual con dosis editada y referencia
+  tras recarga; grupo sin historia no toma las recetas individuales; primera
+  receta grupal con números distintos 6/2 y posterior copia desde esa emisión.
+  Cambio de destino y Atrás/menú protegen el borrador mediante confirmación.
+- Revisión de React, accesibilidad y permisos realizada por el mismo agente;
+  no se presenta como revisión independiente.
+
+- Empates comprobados en pantalla: elección entre tres recetas de la misma
+  fecha; sugerencia de grupo solo tras elegir una base grupal y acción explícita
+  Usar grupo. Móvil 375 px y escritorio 1440 px sin desbordamiento general;
+  controles visibles de al menos 44 px. Lector directo sin formulario de creación.
+- `typecheck`, `build`, `docs:check` y revisión del diff aprobados. Se conserva
+  la advertencia previa de chunk principal mayor de 500 kB.
+- Migración operativa confirmada: 10 aplicadas/0 pendientes. Respaldo privado
+  validado de 531,292 bytes. Hashes de órdenes, destinos, productos e historial
+  idénticos antes/después, excluyendo únicamente las tres columnas nuevas nulas;
+  23 órdenes/92 destinos conservados. Sin capturas ficticias en operación.
+
+Publicación del frontend: pendiente hasta confirmar Sites y Docker.

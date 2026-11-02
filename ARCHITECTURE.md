@@ -224,3 +224,10 @@ separado. La migración aditiva conserva desconocido el origen antiguo.
 [Contrato y verificación](docs/flows/application-group-origin.md).
 completa acompaña cada respuesta y se conserva al seleccionar coincidencias.
 [Contrato](docs/flows/application-chat.md#contexto-implícito-y-tabla-de-consumo-por-malla).
+
+
+RCF-030: `domain/application-recipes.ts` resuelve bases por fecha y etapa/origen;
+`features/application-recipes.tsx` coordina el borrador con editores compartidos;
+el adaptador recupera `recipe_source` y la RPC valida su versión/estado antes de
+crear una orden independiente. La navegación hash usa `createHashRouter` para
+proteger cambios también con Atrás. [Contrato](docs/flows/recipe-creation.md).

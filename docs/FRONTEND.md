@@ -199,3 +199,10 @@ libera pistas/URLs al cancelar o desmontar. Una grabación dura como máximo 120
 segundos; adjuntos hasta 10 MB, con comprobación de duración cuando el navegador
 la informa. Fuentes parciales se identifican como muestra; detalle accesible
 expone agua/equipo/aplicador/notas y cambios. [Ficha](flows/application-chat.md).
+
+
+RCF-030 incorpora **Nueva receta** desde Aplicaciones, en
+`/aplicaciones/nueva-receta`, con ToggleGroup de shadcn y editores compartidos.
+Base histórica y copia editable permanecen separadas. Cambiar base o destinos
+confirma el reemplazo de una mezcla editada; menú, Cancelar y Atrás protegen el
+borrador. [Flujo, estados y evidencia](flows/recipe-creation.md).

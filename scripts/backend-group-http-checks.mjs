@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { verifyApplicationRecipes } from './backend-recipe-http-checks.mjs';
 
 export async function verifyApplicationGroups({ request, check, adminToken, readerToken, noAccessToken, data, mixture, varietyId, infrastructureId }) {
   const stages = [], groupId = randomUUID(), groupName = 'Grupo de origen ficticio';
@@ -37,6 +38,7 @@ export async function verifyApplicationGroups({ request, check, adminToken, read
   check((await request(orderPath, adminToken)).data?.[0]?.source_group_name === groupName, 'Origen: nombre de emisión permanece tras renombrar grupo');
   const reloadedTargets = await request(targetPath, adminToken);
   check(reloadedTargets.data?.every(row => row.group_memberships_snapshot?.some(group => group.name === groupName)), 'Origen: snapshots permanecen tras actualizar grupo');
+  await verifyApplicationRecipes({ request, check, adminToken, readerToken, noAccessToken, grouped, stages, mixture });
   // Resolve these additional orders so the existing closure regression retains its scope.
   check((await request('/rest/v1/rpc/cancel_application_targets', adminToken, { p_order_id: grouped.id, p_target_ids: targets.data.map(row => row.id), p_reason: 'Fin del caso ficticio de origen' })).status < 300, 'Origen: destinos de prueba resueltos');
   const singleTargets = await request(`/rest/v1/application_targets?order_id=eq.${individual.id}&select=id`, adminToken);

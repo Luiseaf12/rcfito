@@ -558,3 +558,15 @@ Tras publicar RCF-029: cinco controles locales del frontend Docker sano y nueve
 HTTPS del Site aprobados. Se confirmó el código nuevo en el bundle servido,
 Auth y rechazo de datos sin sesión. Ninguno crea fixtures en operación.
 [Fuente y despliegue](OPERATIONS.md#origen-de-grupo-en-aplicaciones).
+
+
+## Nueva receta por lote o grupo — RCF-030
+
+2026-11-02: 297 pruebas de dominio, 372 comprobaciones SQL y 167 HTTP aprobadas.
+`test/application-recipes.test.ts`, `supabase/tests/application-recipes.sql` y
+`scripts/backend-recipe-http-checks.mjs` cubren selección, copia, referencia,
+reintentos, cancelación, versión obsoleta y permisos. La suite SQL comprueba la
+compatibilidad aditiva sobre órdenes anteriores. Advisors sin WARN/ERROR.
+Navegador con datos ficticios y recorridos individual/grupo, empates, confirmación
+al cambiar mezcla o salir, persistencia demo tras recarga y móvil. No se crean
+fixtures en operación. [Evidencia y límites](flows/recipe-creation.md#verificación-de-la-pantalla-real--2026-11-02).

@@ -147,7 +147,7 @@ export function ApplicationsPage() {
     <section className="workspace-page">
       <header className="page-header">
         <div><p className="eyebrow">Del campo a su historial</p><h1 className="page-title">Aplicaciones</h1><p className="muted">Indica una mezcla y da seguimiento a su realización por lote y etapa.</p></div>
-        <div className="section-actions"><Button variant="outline" asChild><Link to="/grupos-siembra"><Layers3 data-icon="inline-start" />Grupos de siembra</Link></Button>{isAdmin && <Button onClick={() => setCreating(true)}><Plus data-icon="inline-start" />Nueva indicación</Button>}</div>
+        <div className="section-actions"><Button variant="outline" asChild><Link to="/grupos-siembra"><Layers3 data-icon="inline-start" />Grupos de siembra</Link></Button>{isAdmin && <Button variant="outline" asChild><Link to={`/aplicaciones/nueva-receta?field=${fieldId === 'all' ? '' : fieldId}&crop=${cropId === 'all' ? '' : cropId}`}>Nueva receta</Link></Button>}{isAdmin && <Button onClick={() => setCreating(true)}><Plus data-icon="inline-start" />Nueva indicación</Button>}</div>
       </header>
       <div className="stat-grid" aria-label="Destinos de las órdenes filtradas">
         <article className="metric-card"><span>Aplicaciones indicadas</span><strong>{filteredTargets.filter(target => target.status === 'indicated').length}</strong><small>Destinos pendientes en el filtro actual</small></article>
@@ -344,6 +344,7 @@ export function ApplicationDetailPage() {
           { label: 'Agrícola', value: recordName(data.catalogs.agricultural_units, project?.agricultural_unit_id) },
           { label: 'Proyecto', value: order.project_name || project?.name },
           { label: 'Origen de la aplicación', value: applicationOriginLabel(order) },
+          ...(order.recipe_source ? [{ label: 'Receta base', value: <Link to={`/aplicaciones/${order.recipe_source.order_id}`}>{data.applicationOrders.find(item => item.id === order.recipe_source!.order_id)?.folio ?? 'Consultar receta'} · Versión {order.recipe_source.revision}</Link> }] : []),
           { label: 'Destinos al indicar', value: `${targets.length} ${targets.length === 1 ? 'destino' : 'destinos'} · ${lotCount} ${lotCount === 1 ? 'lote' : 'lotes'}` },
           { label: 'Medio de aplicación', value: indication.method_name || recordName(data.catalogs.application_methods, indication.method_id) },
           { label: 'Fecha de indicación', value: formatDate(indication.indicated_date) },

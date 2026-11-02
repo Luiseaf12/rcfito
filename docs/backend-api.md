@@ -279,3 +279,19 @@ obtenido de grupos activos en servidor. `null` conserva historia desconocida;
 y origen derivados por servidor no se aceptan como snapshots del cliente.
 Reintentos idénticos conservan sus snapshots y un cambio de grupo con el mismo
 UUID se rechaza. RLS y permisos de escritura permanecen en servidor.
+
+
+## Receta base de una nueva indicación
+
+RCF-030 añade `p_data.recipe_source` opcional a `create_application_order`:
+`{ order_id: UUID, revision: entero >= 0, stage_id?: UUID }`. Para copia individual
+se exige una etapa de destino no cancelada en la base. Para grupo se omite etapa
+y se exige coincidencia explícita de `source_group_id` con al menos un destino
+vigente no cancelado. Contexto y revisión deben coincidir con la orden fuente.
+El servidor bloquea la fuente antes de grupo/etapas y conserva idempotencia.
+
+La lectura de `application_orders` añade `recipe_source_order_id`,
+`recipe_source_revision` y `recipe_source_stage_id`, todos nulos para historia
+anterior. FK e índices conservan las referencias; las guardas existentes impiden
+alterarlas. No hay permisos nuevos ni endpoint alternativo. El lector mantiene
+su ámbito RLS y no crea indicaciones. [Contrato y pruebas](flows/recipe-creation.md).
