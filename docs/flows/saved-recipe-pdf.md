@@ -51,4 +51,8 @@ lector asignado, agrícola ajena no disponible, móvil 375 px y regresión del
 borrador sin fecha. Archivos descargados inspeccionados. Autorrevisión de React,
 contratos y permisos; no se atribuye revisión independiente.
 
-Publicación pendiente; sin nuevas migraciones ni cambios en datos de operación.
+Fuente `cd165f8` publicada en GitHub, Docker healthy y Sites versión 33 con
+resultado `succeeded`. Nueve verificaciones HTTPS de conexión y comprobaciones
+del bundle exacto, botón, módulo PDF, fuentes, licencia, Auth y rechazo anónimo
+en Docker/Sites aprobadas. Sin nuevas migraciones ni cambios en datos de operación.
+[Registro](../OPERATIONS.md#pdf-de-recetas-guardadas--rcf-036).

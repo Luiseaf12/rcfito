@@ -795,3 +795,31 @@ Sites confirmó `succeeded`, versión
 despliegue `appgdep_6ae8f304dac4819190c5691154dfc8bc`, en
 [RCFito](https://rcfito.paxxa.chatgpt.site). Audiencia pública, R2 y revisión de
 entorno 1 conservados. Cambios ajenos del workspace fuera de los commits propios.
+
+## PDF de recetas guardadas — RCF-036
+
+2026-11-02: fuente `cd165f882c6d02a71c75ccf0d50fc70b40b44dcc` publicada en
+GitHub, frontend Docker y Sites versión **33**. El detalle ofrece **Exportar
+receta PDF** de la última versión indicada confirmada por el Propietario, con
+folio/revisión, destinos históricos, productos, dosis y agua por hectárea.
+No incluye la mezcla real aplicada ni calcula totales. Conserva número, estado
+y revisión indicada por destino; identifica los que recibieron otra revisión.
+[Contrato](flows/saved-recipe-pdf.md).
+
+311 pruebas, tipos, build, checker y revisión del diff aprobados. PDF ficticios
+de una/seis páginas renderizados e inspeccionados, más regresión de borrador
+de una/cuatro. Navegador: descargas de revisión 0 y última revisión 1 tras recarga,
+lector asignado, rechazo de agrícola ajena, móvil 375 px y borrador sin fecha.
+Archivos descargados verificados. Autorrevisión de React/contratos/permisos;
+sin revisión independiente ni pruebas nuevas de SQL/HTTP de RCF-030.
+
+No hay nuevos endpoints, dependencias, migraciones ni datos operativos escritos.
+Docker `healthy`; código exacto, botón, formatos guardado/borrador, fuentes,
+licencia, Auth y rechazo anónimo comprobados en local y Sites. Nueve controles
+HTTPS de conexión aprobaron. Advertencias anteriores de tooling/chunk conservadas.
+
+Sites confirmó `succeeded`, versión
+`appgprj_6ae67ae019e88191a7012093bb19c505~appgver_f73c308ae0a08191841e82afc92be9ab`,
+despliegue `appgdep_6ae8f79ea7a48191b7436c6e5e81f135`, en
+[RCFito](https://rcfito.paxxa.chatgpt.site). Audiencia pública, R2 y revisión de
+entorno 1 conservados. Los PDF de QA ficticios quedan fuera de Git y builds.
