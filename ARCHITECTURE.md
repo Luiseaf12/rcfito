@@ -240,3 +240,10 @@ carga fuentes locales y descarga, mientras `export/application-draft-pdf.ts`
 renderiza texto y tablas sin conocer el workspace ni su adaptador. No hay RPC,
 persistencia de borradores, reservas ni envío externo al exportar.
 [Contrato y precisión](docs/flows/recipe-draft-pdf.md).
+
+RCF-036 añade `domain/saved-recipe-document.ts`: copia de la última indicación
+guardada y snapshots de destinos, sin reconstruir mezclas desde el catálogo.
+`export/saved-recipe-pdf.ts` y el borrador comparten `recipe-pdf-layout.ts`, fuentes,
+descarga y estado/error del hook. El detalle ofrece exportación de consulta;
+no hay nuevos endpoints, escrituras ni migraciones.
+[Contrato](docs/flows/saved-recipe-pdf.md).

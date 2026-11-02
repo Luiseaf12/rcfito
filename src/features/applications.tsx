@@ -5,7 +5,8 @@ import { ArrowLeft, Check, Eye, Layers3, Plus, X } from 'lucide-react'
 import { useWorkspace } from '@/data/workspace-context'
 import { currentApplicationDestinations, matchImportedProducts, resolveImportContext, type ExtractedApplication } from '@/domain/application-import'
 import { draftPdfIssues, snapshotDraftRecipe } from '@/domain/application-draft-document'
-import { DraftRecipePdfButton, useDraftRecipePdf } from './application-draft-pdf'
+import { DraftRecipePdfButton, SavedRecipePdfButton, useDraftRecipePdf, useSavedRecipePdf } from './application-draft-pdf'
+import { snapshotSavedRecipe } from '@/domain/saved-recipe-document'
 import { applicationDraftIssues } from '@/domain/application-draft'
 import { nextStageApplicationNumber, stageApplicationNumber } from '@/domain/applications'
 import { applicationOriginLabel, targetGroupMembershipLabel } from '@/domain/application-groups'
@@ -330,7 +331,9 @@ function targetLabel(target: ApplicationTarget) {
 export function ApplicationDetailPage() {
   const { orderId } = useParams()
   const location = useLocation()
-  const { data, isAdmin, loading } = useWorkspace()
+  const { data, isAdmin, loading, profile } = useWorkspace()
+  const pdf = useSavedRecipePdf()
+  const [pdfError, setPdfError] = useState('')
   const [selected, setSelected] = useState<string[]>([])
   const [modal, setModal] = useState<{ kind: 'perform' | 'cancel'; ids: string[] } | { kind: 'view' | 'correct'; targetId: string } | { kind: 'edit' } | null>(null)
   const [notice, setNotice] = useState(() => typeof location.state?.notice === 'string' ? location.state.notice : '')
@@ -344,13 +347,20 @@ export function ApplicationDetailPage() {
   const project = data.projects.find(item => item.id === order.project_id)
   const indication = currentOrderIndication(data, order)
   const completed = (message: string) => { setModal(null); setSelected([]); setNotice(message) }
+  const exportPdf = () => {
+    if (pdf.busy) return
+    setPdfError('')
+    try { void pdf.exportDocument(snapshotSavedRecipe(data, profile, order.id, new Date().toISOString())) }
+    catch (err) { setPdfError(errorMessage(err)) }
+  }
   return <section className="workspace-page flex flex-col gap-6">
     <div><Button asChild variant="ghost"><Link to="/aplicaciones"><ArrowLeft data-icon="inline-start" />Aplicaciones</Link></Button></div>
     <header className="page-header">
       <div><p className="eyebrow">Indicación de aplicación</p><h1 className="page-title">{order.folio}</h1><p className="muted">{order.field_name || recordName(data.catalogs.fields, order.field_id)} · {order.crop_name || recordName(data.catalogs.crops, order.crop_id)}</p></div>
-      <TargetCounts targets={targets} />
+      <div className="flex flex-wrap items-center gap-3"><TargetCounts targets={targets} /><SavedRecipePdfButton busy={pdf.busy} disabled={!targets.length} onClick={exportPdf} /></div>
     </header>
     {notice && <Alert role="status"><Check /><AlertTitle>{notice}</AlertTitle></Alert>}
+    {(pdfError || pdf.error) && <ErrorAlert message={pdfError || pdf.error} />}
     <Card>
       <CardHeader><div className="section-header"><CardTitle>Indicación vigente · revisión {order.revision ?? 0}</CardTitle>{isAdmin && pending.length > 0 && project?.status === 'active' && <Button variant="outline" onClick={() => setModal({kind:'edit'})}>Editar indicación</Button>}</div><CardDescription>{order.revision ? 'Esta es la última revisión. Cada destino realizado o cancelado conserva la indicación que recibió; consúltala en Ver.' : 'Esta es la primera indicación. Sus valores originales permanecerán en el historial.'}</CardDescription></CardHeader>
       <CardContent className="flex flex-col gap-6">

@@ -464,6 +464,12 @@ Antes de desarrollar se plantearán las dudas conforme a AGENTS.
 
 ## Exportación de productos a PDF
 
+La copia de una receta ya guardada se define en
+[PDF de recetas guardadas — RCF-036](flows/saved-recipe-pdf.md). Usa la última
+versión indicada confirmada por el Propietario, con folio/revisión, destinos,
+dosis y agua por hectárea. Está disponible desde el detalle para quien tiene
+acceso a consultar la agrícola.
+
 La copia de una receta sin guardar se define por separado en
 [PDF del borrador de receta — RCF-035](flows/recipe-draft-pdf.md): destinos,
 productos, dosis y agua por hectárea para revisión externa, con fecha programada

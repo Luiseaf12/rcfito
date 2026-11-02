@@ -174,6 +174,11 @@ confirmar la receta: dosis hasta seis decimales y agua hasta cuatro; superficies
 conservan dos. Su botón junto a Guardar descarga sin persistir y admite la fecha
 programada pendiente. Si se edita la mezcla hay que exportar esa nueva versión.
 
+El detalle guardado incorpora **Exportar receta PDF** con el mismo formato,
+precisión y preparación diferida; muestra folio/revisión y seguimiento por
+destino. Disponible para consulta autorizada, incluido lector asignado, también
+en proyectos cerrados. [Contrato](flows/saved-recipe-pdf.md).
+
 Implementación compartida en [report-format](../src/lib/report-format.ts), usada
 por [product-usage-shared](../src/features/product-usage-shared.tsx). Aceptación:
 comprobar un redondeo hacia arriba/abajo, ceros finales, conversión L/kg y dosis

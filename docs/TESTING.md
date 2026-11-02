@@ -604,3 +604,26 @@ No se invoca proveedor de IA ni se escriben datos operativos. No cambia el
 backend: los 167 controles HTTP y 372 SQL de RCF-030 no se presentan como nuevas
 ejecuciones. Auditoría de dependencias de producción: cero vulnerabilidades.
 [Flujo y límites](flows/recipe-draft-pdf.md).
+
+## PDF de recetas guardadas — RCF-036
+
+2026-11-02: 311 pruebas aprobadas. Cinco casos nuevos en
+`test/saved-recipe-document.test.ts` verifican última indicación y exclusión de
+mezcla real, revisiones por destino, snapshots con catálogo/proyecto retirados,
+acceso de lector asignado, historial incompleto, copia independiente y referencia.
+Tipos y build aprobados; advertencia anterior del chunk principal conservada.
+
+`node --import tsx scripts/verify-saved-recipe-pdf.mts`: PDF ficticios de una y
+seis páginas, 28 destinos, ocho productos, 0.000001 de dosis y nota de 40 líneas;
+extracción pypdf y render Poppler revisados con encabezados/pies y seguimiento.
+Regresión `verify-draft-pdf.mts`: una/cuatro páginas conservadas tras compartir
+la plantilla. Glifos no disponibles producen error explícito.
+
+Navegador demo: descarga de revisión 0, edición ficticia a revisión 1 y nueva
+descarga tras recarga con 0.345678 ml/ha y 190.1234 L/ha; folio y dos destinos
+conservados. Lector asignado descarga; otra agrícola no ofrece detalle ni botón.
+Móvil 375 px sin desbordamiento y botón visible. Borrador previo a guardar
+continúa descargando con fecha pendiente. Archivos descargados extraídos y copia
+revisada renderizada, no solo clics. No hay nuevas escrituras ni fixtures en
+operación; no se repiten ni se atribuyen como nuevas las pruebas SQL/HTTP de RCF-030.
+[Flujo](flows/saved-recipe-pdf.md).

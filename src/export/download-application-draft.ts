@@ -1,7 +1,9 @@
 import regularUrl from '@/assets/fonts/Vera.ttf?url'
 import boldUrl from '@/assets/fonts/VeraBd.ttf?url'
 import type { DraftRecipeDocument } from '@/domain/application-draft-document'
+import type { SavedRecipeDocument } from '@/domain/saved-recipe-document'
 import { createDraftRecipePdf, type DraftPdfFonts } from './application-draft-pdf'
+import { createSavedRecipePdf } from './saved-recipe-pdf'
 
 let cachedFonts: Promise<DraftPdfFonts> | undefined
 async function font(url: string) {
@@ -19,7 +21,14 @@ function fonts() {
 }
 
 export async function downloadDraftRecipe(snapshot: DraftRecipeDocument) {
-  const { doc, filename } = await createDraftRecipePdf(snapshot, await fonts())
+  downloadPdf(await createDraftRecipePdf(snapshot, await fonts()))
+}
+
+export async function downloadSavedRecipe(snapshot: SavedRecipeDocument) {
+  downloadPdf(await createSavedRecipePdf(snapshot, await fonts()))
+}
+
+function downloadPdf({ doc, filename }: Awaited<ReturnType<typeof createDraftRecipePdf>>) {
   const url = URL.createObjectURL(doc.output('blob'))
   const anchor = document.createElement('a')
   anchor.href = url; anchor.download = filename; anchor.hidden = true
