@@ -213,5 +213,14 @@ prevalecen. Las RPC de cantidades existentes mantienen el cálculo histórico.
 CLI acepta `preguntar "..."` o la pregunta entre comillas como único argumento.
 Chat y CLI muestran las mismas filas y procedencia de filtros; la UI utiliza
 tablas shadcn y el CLI una tabla de texto/JSON. El modo de resolución y lista
+
+## Origen histórico de aplicaciones
+
+RCF-029 añade `application-groups` al dominio y `application-group-history` al
+adaptador. La UI envía solo el grupo elegido; la RPC valida el conjunto completo
+y guarda el origen en la orden y las pertenencias en cada destino. El adaptador
+recupera esos snapshots, mientras que la simulación demo mantiene su contrato
+separado. La migración aditiva conserva desconocido el origen antiguo.
+[Contrato y verificación](docs/flows/application-group-origin.md).
 completa acompaña cada respuesta y se conserva al seleccionar coincidencias.
 [Contrato](docs/flows/application-chat.md#contexto-implícito-y-tabla-de-consumo-por-malla).

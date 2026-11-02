@@ -636,6 +636,24 @@ Despliegue: `appgdep_6ae776da2ce881919574998505cbe9d2`.
 
 2026-11-01: la pregunta «Qué productos hemos usado en malla 5» conserva la
 resolución del lote y devuelve productos/cantidades. Si no hay realizadas,
+
+## Origen de grupo en aplicaciones
+
+2026-11-02: RCF-029 autorizado después de revisar la distinción entre emisión
+para grupo e individual. Respaldo custom privado de PostgreSQL creado y validado
+(516,088 bytes) antes de aplicar `20261102152713_application_group_origin.sql`.
+Registro operativo: nueve migraciones aplicadas, cero pendientes. Comparación
+privada antes/después confirmó órdenes, destinos, estados, números y valores
+originales intactos. No se cargaron fixtures en operación.
+
+La migración conserva desconocido el origen antiguo y registra el origen de
+las creaciones nuevas. Secretos, volúmenes, configuración pública y audiencia
+vigente se conservan. La reversión del frontend no elimina estas columnas ni
+reescribe historia. Validación previa: 290 pruebas, 351 SQL, 153 HTTP, advisors
+sin WARN/ERROR y QA demo de origen/recarga/móvil. Hubo autorrevisión.
+
+Frontend Docker, commit/push y Sites: en publicación. El cierre se registra aquí
+tras confirmar sus resultados. [Contrato](flows/application-group-origin.md).
 explica la ausencia y permite consultar indicadas explícitamente con los mismos
 filtros. Verificación en backend aislado con Auth/REST/RLS reales y navegador
 ficticio a375 px.286 pruebas,132 comprobaciones acumuladas de integración,

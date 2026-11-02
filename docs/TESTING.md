@@ -511,6 +511,26 @@ SQL:124 comprobaciones de consultas (75 anteriores y49 de contexto). Integració
 completa:129 comprobaciones HTTP/Auth/REST/Edge/RLS, con30 del módulo consultas.
 El pipeline CLI→handler→Auth/REST→resolver→consulta se ejerció sin simulación de
 base/Auth: última Ensenada ficticia, Malla5 y Malla15, temporadas anteriores,
+
+## Origen de grupo en aplicaciones
+
+2026-11-02, RCF-029: `npm test` 290/290; tipos/build y checker documental
+aprobados. `backend-applications-test.mjs`: 351 comprobaciones SQL con nueve
+migraciones; incluye actualización de historia previa sin atribución de grupo,
+reintentos, varias pertenencias y conservación de origen/estados. Integración
+Auth/REST/RPC/RLS: 153 comprobaciones totales, 21 nuevas del origen de grupo;
+advisors de seguridad local sin WARN/ERROR. Ambos entornos de QA se retiraron.
+
+La integración admite `RCFITO_SUPABASE_CLI` con la ruta a la CLI oficial para
+invocarla directamente desde su directorio aislado. Esta entrega usó 2.120.0;
+se evitó que `npm exec` buscara el entorno en un proyecto padre. Nunca usar el
+`.env` raíz para QA. No se cambió la versión del stack de operación.
+
+Navegador demo: grupo guardado, indicación grupal e individual del mismo lote,
+recarga y origen/pertenencia correctos. Captura conservada al corregir dosis y
+contexto visible al aparecer destinos. Detalle a 1440/375 px, sin overflow de
+página a 375 px. Teclado completo, zoom y contraste medido siguen en RCF-006.
+[Detalle, autorrevisión y límites](flows/application-group-origin.md).
 realización corregida80g/40ml, indicadas999 y canceladas888 excluidas. La pregunta
 mostró dos productos, filtros last_used/active_season/unique_match y cero tokens.
 Advisors sin WARN/ERROR; stack aislado detenido y fixtures retirados.

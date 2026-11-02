@@ -245,6 +245,15 @@ devuelve un destino autorizado de esa agrícola. La resolución explícita valid
 el acceso incluso si todavía no hay aplicaciones.
 
 La pregunta habitual de consumo por malla tiene una interpretación determinista
+
+## Historial del grupo de origen
+
+RCF-029 conserva RLS/grants existentes. La RPC administradora valida el grupo,
+su ámbito y todos los destinos vigentes; deriva ID/nombre y pertenencias en
+servidor. Guardas de actualización conservan los snapshots históricos también
+en las transiciones de realización/cancelación. El lector autorizado consulta
+estos datos sin recibir permisos de escritura. No se agregan tablas expuestas.
+Pruebas SQL/HTTP y advisors aislados aprobados; [evidencia](flows/application-group-origin.md).
 acotada; no consume proveedor. Otras preguntas mantienen el esquema validado y
 la configuración existente. Las elecciones de coincidencias conservan el modo
 de alcance del pedido original, incluso todas las temporadas. El agregado de

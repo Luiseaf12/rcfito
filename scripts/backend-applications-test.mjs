@@ -90,11 +90,34 @@ try {
         rollback;
       `);
     }
+    if (file.endsWith('_application_group_origin.sql')) {
+      const setupEnd = applicationTests.indexOf('-- Captura asistida:');
+      if (setupEnd < 0) throw new Error('Faltan fixtures para verificar migración histórica del grupo.');
+      sql(`${applicationTests.slice(0, setupEnd)}
+        select public.save_sowing_group(pg_temp.group_data(),pg_temp.stages());
+        select public.create_application_order(pg_temp.order_data(),pg_temp.stages(),pg_temp.mixture());
+        reset role;
+        create temporary table before_group_upgrade as select
+          (select jsonb_agg(to_jsonb(t) order by t.id) from public.application_targets t) as targets,
+          (select jsonb_agg(to_jsonb(o) order by o.id) from public.application_orders o) as orders;
+        ${migrationBody(source)}
+        select pg_temp.assert_true((select bool_and(selection_origin='unknown' and source_group_id is null and source_group_name is null) from public.application_orders),'migración no atribuye origen grupal a historia previa coincidente');
+        select pg_temp.assert_true((select bool_and(group_memberships_snapshot is null) from public.application_targets),'migración no confunde pertenencia histórica desconocida con ausencia');
+        select pg_temp.assert_true((select jsonb_agg(to_jsonb(t)-'group_memberships_snapshot' order by t.id) from public.application_targets t)=(select targets from before_group_upgrade),'migración de grupo conserva todos los destinos y números anteriores');
+        select pg_temp.assert_true((select jsonb_agg(to_jsonb(o)-array['selection_origin','source_group_id','source_group_name'] order by o.id) from public.application_orders o)=(select orders from before_group_upgrade),'migración de grupo conserva órdenes y firmas anteriores');
+        set local role authenticated;
+        select pg_temp.assert_true(public.create_application_order(pg_temp.order_data(),pg_temp.stages(),pg_temp.mixture())='90000000-0000-4000-8000-000000000001'::uuid,'reintento histórico permanece compatible sin inventar grupo');
+        rollback;
+      `);
+    }
     sql(source);
   }
   sql(readFileSync(resolve(root, 'supabase/tests/catalogs-and-sowing.sql'), 'utf8'));
   sql(readFileSync(resolve(root, 'supabase/tests/ingredient-classifications.sql'), 'utf8'));
   sql(applicationTests);
+  const groupSetupEnd = applicationTests.indexOf('-- Captura asistida:');
+  if (groupSetupEnd < 0) throw new Error('Faltan fixtures aislados para el origen de grupo.');
+  sql(applicationTests.slice(0, groupSetupEnd) + readFileSync(resolve(root, 'supabase/tests/application-groups.sql'), 'utf8'));
   const editingSetupEnd = applicationTests.indexOf('-- Captura asistida:');
   if (editingSetupEnd < 0) throw new Error('Falta el límite de fixtures para pruebas de edición.');
   sql(applicationTests.slice(0, editingSetupEnd) + readFileSync(resolve(root, 'supabase/tests/application-editing.sql'), 'utf8'));

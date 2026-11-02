@@ -183,6 +183,18 @@ Button, Select, Alert, Badge y Collapsible. La dependencia `@shadcn/react` se fi
 para el control de scroll; las superficies conservan tokens locales.
 
 Audio ofrece grabación, adjunto, preescucha, descarte y transcripción editable;
+
+## Origen de grupo en aplicaciones
+
+La captura anuncia el grupo elegido y vuelve a selección manual al ajustar
+sus destinos. El detalle muestra Origen de la aplicación y Destinos al indicar;
+cada destino muestra su pertenencia histórica, separada de su estado real.
+Los nombres proceden del registro guardado, sin consultar la pertenencia actual
+para reinterpretar el origen. La grilla de contexto usa FieldGroup sin
+contención de tamaño para evitar que se colapse al aparecer los destinos.
+
+QA demo: creación grupal e individual del mismo lote, recarga de ambos detalles
+y vista móvil de 375 px aprobadas. [Contrato y límites](flows/application-group-origin.md).
 libera pistas/URLs al cancelar o desmontar. Una grabación dura como máximo 120
 segundos; adjuntos hasta 10 MB, con comprobación de duración cuando el navegador
 la informa. Fuentes parciales se identifican como muestra; detalle accesible

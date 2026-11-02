@@ -6,6 +6,7 @@ import { useWorkspace } from '@/data/workspace-context'
 import { currentApplicationDestinations, matchImportedProducts, resolveImportContext, type ExtractedApplication } from '@/domain/application-import'
 import { applicationDraftIssues } from '@/domain/application-draft'
 import { nextStageApplicationNumber, stageApplicationNumber } from '@/domain/applications'
+import { applicationOriginLabel, targetGroupMembershipLabel } from '@/domain/application-groups'
 import { currentOrderIndication, indicationForTarget } from '@/domain/application-editing'
 import { EditApplicationDialog, ApplicationChangeHistory } from './application-editing'
 import type {
@@ -250,7 +251,7 @@ export function NewApplicationDialog({ close, imported, onSaved }: { close: () =
     setBusy(true)
     try {
       const { application_number, ...values } = form
-      await mutate({ type: 'create_application_order', record: { ...values, id: orderId, ...(application_number.trim() ? { application_number: Number(application_number) } : {}), ...(imported ? { source_text: imported.source_text } : {}), water_l_ha: Number(form.water_l_ha), stage_ids: chosen.map(option => option.stage.id), products: rows.map(row => ({ product_id: row.product_id, dose: Number(row.dose) })) } })
+      await mutate({ type: 'create_application_order', record: { ...values, id: orderId, ...(groupId !== 'manual' ? { source_group_id: groupId } : {}), ...(application_number.trim() ? { application_number: Number(application_number) } : {}), ...(imported ? { source_text: imported.source_text } : {}), water_l_ha: Number(form.water_l_ha), stage_ids: chosen.map(option => option.stage.id), products: rows.map(row => ({ product_id: row.product_id, dose: Number(row.dose) })) } })
       onSaved?.()
       close()
       navigate(`/aplicaciones/${orderId}`, { state: { notice: 'La indicación se guardó correctamente.' } })
@@ -264,7 +265,7 @@ export function NewApplicationDialog({ close, imported, onSaved }: { close: () =
           {imported && <Collapsible><CollapsibleTrigger asChild><Button type="button" variant="outline">Mensaje original</Button></CollapsibleTrigger><CollapsibleContent><p className="whitespace-pre-wrap break-words">{imported.source_text}</p></CollapsibleContent></Collapsible>}
           {importContext && (importContext.cropSuggestionReason || importContext.warnings.length > 0) && <Alert><AlertTitle>Revisa las referencias del mensaje</AlertTitle><AlertDescription>{importContext.cropSuggestionReason && <p>{importContext.cropSuggestionReason}</p>}{importContext.warnings.filter(warning => warning !== importContext.cropSuggestionReason).map(warning => <p key={warning}>{warning}</p>)}</AlertDescription></Alert>}
           {!projects.length && <Alert><AlertTitle>Activa un proyecto de siembra</AlertTitle><AlertDescription>Necesitas un proyecto activo con etapas sembradas para indicar aplicaciones. <Link to="/proyectos">Consultar proyectos</Link></AlertDescription></Alert>}
-          <FieldGroup className="field-grid">
+          <FieldGroup className="field-grid shrink-0 [container-type:normal]">
             <FormSelect label="Proyecto de temporada" value={form.project_id} required onChange={value => changeContext('project_id', value)} options={projects.map(project => ({ value: project.id, label: `${recordName(data.catalogs.agricultural_units, project.agricultural_unit_id)} · ${project.name} (${project.season})` }))} error={issueFor('project_id')} />
             <FormSelect label="Campo" value={form.field_id} required disabled={!form.project_id} onChange={value => changeContext('field_id', value)} options={fields.map(field => ({ value: field.id, label: field.name }))} error={issueFor('field_id')} />
             <FormSelect label="Cultivo" value={form.crop_id} required disabled={!form.field_id} onChange={value => changeContext('crop_id', value)} options={data.catalogs.crops.filter(crop => cropIds.has(crop.id)).map(crop => ({ value: crop.id, label: crop.name }))} help="Se completa cuando las siembras identifican un único cultivo. Puedes revisar la selección." error={issueFor('crop_id')} />
@@ -278,6 +279,7 @@ export function NewApplicationDialog({ close, imported, onSaved }: { close: () =
               setSelected(group ? group.stage_ids.filter(stageId => options.some(option => option.stage.id === stageId)) : [])
             }} options={[{ value: 'manual', label: 'Seleccionar destinos manualmente' }, ...groups.map(group => ({ value: group.id, label: `${group.name} · ${group.stage_ids.filter(id => options.some(option => option.stage.id === id)).length} vigentes` }))]} help="Los grupos son una selección manual guardada. Puedes ajustar los destinos para esta indicación." />
             {staleMembers > 0 && <Alert><AlertTitle>Este grupo conserva etapas anteriores</AlertTitle><AlertDescription>{staleMembers} {staleMembers === 1 ? 'etapa ya no está disponible y quedó excluida' : 'etapas ya no están disponibles y quedaron excluidas'}. Solo se seleccionan sus siembras vigentes.</AlertDescription></Alert>}
+            {currentGroup && <p className="muted" role="status">Origen: todo el grupo {currentGroup.name}. Al ajustar los destinos, la captura pasa a selección manual.</p>}
             <StageDestinationPicker options={options} selected={selected} onChange={ids => { setError(null); setSelected(ids); setGroupId('manual'); setDestinationsReviewed(false); setNumberReviewed(false) }} error={issueFor('destinations')} />
           </FieldGroup>}
           {!!importContext?.unresolvedDestinations.length && <Field orientation="horizontal"><Checkbox id={`${orderId}-destinations-reviewed`} checked={destinationsReviewed} onCheckedChange={checked => setDestinationsReviewed(checked === true)} /><FieldLabel htmlFor={`${orderId}-destinations-reviewed`}>Revisé {importContext.unresolvedDestinations.join(', ')} y confirmé que la selección incluye todos los destinos del mensaje.</FieldLabel></Field>}
@@ -320,6 +322,7 @@ export function ApplicationDetailPage() {
   const [notice, setNotice] = useState(() => typeof location.state?.notice === 'string' ? location.state.notice : '')
   const order = (data.applicationOrders ?? []).find(item => item.id === orderId)
   const targets = (data.applicationTargets ?? []).filter(target => target.order_id === orderId)
+  const lotCount = new Set(targets.map(target => data.subdivisions.find(subdivision => subdivision.id === data.stages.find(stage => stage.id === target.stage_id)?.subdivision_id)?.lot_id ?? target.stage_id)).size
   const pending = targets.filter(target => target.status === 'indicated')
   const chosen = pending.filter(target => selected.includes(target.id))
   if (loading) return <LoadingState />
@@ -340,6 +343,8 @@ export function ApplicationDetailPage() {
         <RecordDetails items={[
           { label: 'Agrícola', value: recordName(data.catalogs.agricultural_units, project?.agricultural_unit_id) },
           { label: 'Proyecto', value: order.project_name || project?.name },
+          { label: 'Origen de la aplicación', value: applicationOriginLabel(order) },
+          { label: 'Destinos al indicar', value: `${targets.length} ${targets.length === 1 ? 'destino' : 'destinos'} · ${lotCount} ${lotCount === 1 ? 'lote' : 'lotes'}` },
           { label: 'Medio de aplicación', value: indication.method_name || recordName(data.catalogs.application_methods, indication.method_id) },
           { label: 'Fecha de indicación', value: formatDate(indication.indicated_date) },
           { label: 'Fecha programada', value: formatDate(indication.scheduled_date) },
@@ -363,7 +368,7 @@ export function ApplicationDetailPage() {
           <TableHeader><TableRow>{isAdmin && <TableHead>Seleccionar</TableHead>}<TableHead>Destino</TableHead><TableHead>Superficie</TableHead><TableHead>Estado</TableHead><TableHead>Realización</TableHead><TableHead>Acción</TableHead></TableRow></TableHeader>
           <TableBody>{targets.map(target => <TableRow key={target.id}>
             {isAdmin && <TableCell>{target.status === 'indicated' ? <Checkbox className="application-target-check" aria-label={`Seleccionar ${targetLabel(target)}`} checked={selected.includes(target.id)} onCheckedChange={checked => setSelected(current => checked === true ? [...current, target.id] : current.filter(id => id !== target.id))} /> : <span className="muted">—</span>}</TableCell>}
-            <TableCell><strong>{target.lot_name}</strong><div>{target.subdivision_name} · Etapa {target.stage_number}</div><div>Aplicación {stageApplicationNumber(data, target)}</div><div className="muted record-secondary">{target.crop_name} / {target.variety_name}</div><div className="muted record-secondary">Indicación: revisión {target.indication_change_id ? data.applicationChanges.find(change=>change.id===target.indication_change_id)?.version : 0}</div></TableCell>
+            <TableCell><strong>{target.lot_name}</strong><div>{target.subdivision_name} · Etapa {target.stage_number}</div><div>Aplicación {stageApplicationNumber(data, target)}</div><div className="muted record-secondary">{targetGroupMembershipLabel(target)}</div><div className="muted record-secondary">{target.crop_name} / {target.variety_name}</div><div className="muted record-secondary">Indicación: revisión {target.indication_change_id ? data.applicationChanges.find(change=>change.id===target.indication_change_id)?.version : 0}</div></TableCell>
             <TableCell>{formatArea(target.area_ha)} ha</TableCell>
             <TableCell><TargetStatus status={target.status} /></TableCell>
             <TableCell>{target.actual_date ? formatDate(target.actual_date) : target.status === 'cancelled' ? 'No se realizó' : 'Pendiente'}{target.status === 'performed' && <div className="muted record-secondary">{target.has_changes ? 'Con cambios registrados' : 'Conforme a lo indicado'}</div>}</TableCell>

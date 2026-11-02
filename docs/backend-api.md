@@ -263,3 +263,19 @@ Cada filtro contiene `key`, `label`, `value` y `source` (`explicit`, `last_used`
 `active_season` o `unique_match`). La lista de productos puede completarse por
 páginas de30 hasta300, con resultado parcial explícito al alcanzar el límite.
 No cambia los permisos de tablas ni concede escritura al chat.
+
+## Origen de grupo en aplicaciones
+
+RCF-029: [contrato y recorrido](flows/application-group-origin.md). La RPC
+`create_application_order` admite `p_data.source_group_id` opcional. El servidor
+valida el grupo activo y todos sus destinos vigentes antes de crear la orden.
+La ausencia de ese ID crea origen individual para un lote o manual para varios.
+
+Lectura de `application_orders`: `selection_origin` (`group`, `individual`,
+`manual`, `unknown`), `source_group_id` y `source_group_name`. Lectura de
+`application_targets`: `group_memberships_snapshot`, arreglo de `{id,name}`
+obtenido de grupos activos en servidor. `null` conserva historia desconocida;
+`[]` acredita ausencia de pertenencias activas al crear. Nombres, pertenencias
+y origen derivados por servidor no se aceptan como snapshots del cliente.
+Reintentos idénticos conservan sus snapshots y un cambio de grupo con el mismo
+UUID se rechaza. RLS y permisos de escritura permanecen en servidor.

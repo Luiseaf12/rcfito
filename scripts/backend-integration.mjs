@@ -4,6 +4,7 @@ import { readFileSync, readdirSync, writeFileSync, mkdirSync, copyFileSync, exis
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { verifyApplicationQueries } from './backend-query-http-checks.mjs';
+import { verifyApplicationGroups } from './backend-group-http-checks.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const workdir = resolve(root, '.artifacts/supabase-integration');
@@ -11,7 +12,9 @@ const npmCli = resolve(dirname(process.execPath), 'node_modules/npm/bin/npm-cli.
 const project = 'rcfito-local-test';
 const databaseContainer = `supabase_db_${project}`;
 function cli(args) {
-  const result = process.platform === 'win32'
+  const result = process.env.RCFITO_SUPABASE_CLI
+    ? spawnSync(process.env.RCFITO_SUPABASE_CLI, [...args, '--workdir', workdir], { cwd: workdir, encoding: 'utf8', maxBuffer: 12 * 1024 * 1024 })
+    : process.platform === 'win32'
     ? spawnSync(process.execPath, [npmCli, 'exec', '--yes', '--package=supabase', '--', 'supabase', ...args, '--workdir', workdir], { cwd: workdir, encoding: 'utf8', maxBuffer: 12 * 1024 * 1024 })
     : spawnSync('npx', ['--yes', 'supabase', ...args, '--workdir', workdir], { cwd: workdir, encoding: 'utf8', maxBuffer: 12 * 1024 * 1024 });
   if (result.status !== 0) {
@@ -212,6 +215,7 @@ async function verifyApplications(adminToken, readerToken, noAccessToken, projec
   check(automaticOrder.status === 200 && automaticTarget.status === 200 && automaticTarget.data?.length === 1 && automaticTarget.data[0].application_number === 10 && automaticTarget.data[0].stage_id === stages[2], 'Captura IA: numeración automática continúa en 10 tras número 9 cancelado');
   const unit = await request(`/rest/v1/products?id=eq.${fixture.productA}`, adminToken, { unit: 'ml' }, 'PATCH');
   check(unit.status >= 400, 'Aplicaciones: unidad usada bloqueada también por REST');
+  await verifyApplicationGroups({ request, check, adminToken, readerToken, noAccessToken, data, mixture: [{ product_id: fixture.productB, dose: 8 }], varietyId: fixture.variety, infrastructureId: fixture.infrastructure });
   console.log(`Integración aplicaciones: ${assertionCount} comprobaciones HTTP/Auth/REST aprobadas.`);
 }
 async function verifyApplicationChanges(adminToken, readerToken, noAccessToken, projectA) {

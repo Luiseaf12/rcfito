@@ -402,9 +402,11 @@ el chat. Recorrido, alternativas y criterios en [la ficha](flows/application-cha
 
 ## Propuesta de pantalla de recetas
 
-RCF-030, solicitado el 2026-11-01. Pendiente de diseñar y presentar la propuesta;
-registrarla no acredita una pantalla implementada ni inicia su desarrollo.
-Antes de empezar se deben plantear las dudas conforme a AGENTS.
+RCF-030, solicitado el 2026-11-01. Diseño iniciado por solicitud del Propietario
+el 2026-11-02. Las cuatro dudas previas quedaron resueltas por el Propietario.
+La [propuesta de pantalla y flujo](flows/recipe-creation.md) recoge el diseño,
+sus alternativas y criterios de aceptación. El alcance de esta tarea es
+presentar el diseño, sin acreditar una implementación de la pantalla real.
 
 La propuesta debe cubrir:
 
@@ -419,6 +421,26 @@ La propuesta debe cubrir:
 
 La revisión de si la aplicación ya conserva el grupo del lote se sigue por
 separado en RCF-029. Las decisiones que falten se aclararán antes de desarrollar
+### Aclaraciones de la propuesta
+
+Confirmadas por el Propietario el 2026-11-02:
+
+1. Guardar crea una aplicación indicada mediante el flujo actual.
+2. La base copia la mezcla indicada de la receta anterior.
+3. Para el lote se usa la fecha de indicación más reciente en su etapa vigente.
+4. Para el grupo se usa la última receta emitida para ese grupo, aunque sus
+   lotes tengan indicaciones individuales posteriores.
+5. Solo recetas activas; excluir las canceladas de las candidatas.
+6. Ante igual fecha, mostrar candidatas para elegir.
+7. Ante recetas distintas por subdivisión, permitir elegir una base.
+8. Copiar la última versión de la indicación corregida.
+
+Revisión preparatoria del código, sin pruebas de persistencia: la captura actual
+ya muestra el siguiente número por etapa y permite editar mezcla, agua, fechas
+y nota. El grupo seleccionado se usa para elegir destinos y su identidad no se
+envía en el comando de creación. Esto informa el diseño del grupo sugerido;
+no sustituye ni cierra la revisión RCF-029.
+
 el pendiente, sin convertirlas en reglas implícitas.
 
 ## Orden descendente de productos de una malla
@@ -435,5 +457,12 @@ RCF-032, solicitado el 2026-11-01. Pendiente de desarrollar una exportación a P
 que muestre todos los productos registrados que correspondan a los resultados
 filtrados y los filtros aplicados para obtenerlos. La exportación debe incluir
 el conjunto completo de resultados, aunque la pantalla esté paginada.
+
+## Origen histórico de aplicaciones
+
+RCF-029: conservación del grupo utilizado al emitir una aplicación y de las
+pertenencias activas de sus destinos en ese momento. La captura individual y la
+emisión para todo el grupo mantienen orígenes distintos. Contrato, autorización,
+recorrido y límites en [la ficha](flows/application-group-origin.md).
 El diseño y las aclaraciones necesarias se revisarán con el Propietario antes
 de desarrollar, conforme a AGENTS.

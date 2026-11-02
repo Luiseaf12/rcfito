@@ -1,6 +1,6 @@
 # Pendientes de RCFito
 
-Fecha de revisión: 2026-11-01.
+Fecha de revisión: 2026-11-02.
 
 | ID | Trabajo | Estado | Responsable | Próxima acción | Fuente |
 | --- | --- | --- | --- | --- | --- |
@@ -31,8 +31,8 @@ Fecha de revisión: 2026-11-01.
 | RCF-026 | Filtro global por lote para productos, ranking e historial. | cerrada | Agente principal y revisión independiente | Commit 20c8ca6 en GitHub y Sites versión 23; revisión limpia con 228 pruebas, tipos/build/checker, QA demo/móvil y tres comprobaciones HTTP aprobados. Todas y audiencia conservadas. | [Ficha](flows/product-dashboard.md#filtro-global-por-lote) y [operación](OPERATIONS.md#publicación-del-filtro-global-por-lote) |
 | RCF-027 | Documentar y aplicar dos decimales en reportes. | cerrada | Agente principal | Commit 672dd1b en GitHub y Sites versión 24; 228 pruebas, ocho comprobaciones de formato, tipos/build/checker, QA demo/móvil y tres checks HTTP aprobados. Cálculos y conteos conservados. | [Regla](FRONTEND.md#decimales-en-reportes) y [verificación](TESTING.md#decimales-en-reportes) |
 | RCF-028 | Consultas de aplicaciones por chat, audio y CLI compartido. | cerrada | Agente principal y especialistas frontend/backend | Fuente integrada 2e530ff en GitHub y Sites versión 25; Docker actualizado. 265 pruebas, 75 SQL, 19 HTTP nuevas, QA ficticio de texto/audio/homónimos y nueve HTTPS aprobados; migración operativa 7/0 con respaldo. Voz/proveedor reales no ejercidos. | [Ficha](flows/application-chat.md) y [publicación](OPERATIONS.md#consultas-por-chat-audio-y-cli) |
-| RCF-029 | Revisar si la aplicación conserva el grupo al que pertenece el lote. | pendiente | Por asignar | Comprobar guardado y recuperación del grupo cuando el lote pertenece a alguno; documentar resultado y ajustes necesarios. Plantear dudas antes de iniciar. | [Alcance de revisión](#revisión-del-grupo-guardado-en-la-aplicación) |
-| RCF-030 | Diseñar y presentar propuesta de pantalla para crear recetas desde la última receta de lote o grupo. | pendiente | Por asignar | Presentar dudas y después la propuesta: selección de lote/grupo, última receta editable, grupo anterior sugerido y siguiente número por lote-etapa. | [Propuesta de recetas](PRODUCT.md#propuesta-de-pantalla-de-recetas) |
+| RCF-029 | Conservar origen de grupo y pertenencias históricas de aplicaciones. | en verificación | Agente principal | Desarrollo autorizado e implementado; 290 pruebas, 351 SQL y 153 HTTP, advisors y QA demo aprobados. Migración operativa 9/0 con respaldo y valores originales conservados; publicar frontend/GitHub/Sites. | [Contrato y evidencia](flows/application-group-origin.md) |
+| RCF-030 | Diseñar y presentar propuesta de pantalla para crear recetas desde la última receta de lote o grupo. | en verificación | Agente principal y Propietario | Revisar propuesta presentada el 2026-11-02, con ocho decisiones confirmadas y prototipo ficticio. La implementación real y la identidad histórica del grupo siguen pendientes. | [Propuesta de recetas](flows/recipe-creation.md) |
 | RCF-031 | Ordenar productos de una malla de mayor a menor por cantidad calculada. | pendiente | Por asignar | Al elegir una malla en el resumen y pulsar Ver productos, presentar sus productos en orden descendente por cantidad calculada. Plantear dudas antes de desarrollar. | [Orden solicitado](PRODUCT.md#orden-descendente-de-productos-de-una-malla) |
 | RCF-032 | Exportar a PDF los productos registrados y los filtros aplicados. | pendiente | Por asignar | Incluir todos los productos de los resultados filtrados y mostrar los filtros que originan esos resultados. Plantear dudas antes de desarrollar. | [Exportación solicitada](PRODUCT.md#exportación-de-productos-a-pdf) |
 
@@ -53,6 +53,51 @@ conserva el grupo al que pertenece el lote cuando existe esa pertenencia.
 Comprobar qué se guarda, dónde persiste y si se recupera al volver a consultar
 la aplicación. Entregar la conclusión y, si falta información, el ajuste
 propuesto. Registrar esta revisión no equivale a afirmar que ya está resuelta.
+
+### Propuesta de solución para RCF-029
+
+Solicitud del Propietario el 2026-11-02: «como resolverias rcf-029».
+Diagnóstico por inspección de código, sin consultar datos de operación:
+
+- [Captura](../src/features/applications.tsx): `groupId` selecciona etapas, pero
+  el comando de creación envía destinos sin la identidad del grupo.
+- [Modelo](../src/domain/model.ts) y [adaptador](../src/data/supabase.ts): la orden
+  no contiene ni recupera grupo de origen o pertenencias históricas por destino.
+- [Esquema](../supabase/migrations/20261101013723_applications_and_groups.sql)
+  y [RPC vigente de creación](../supabase/migrations/20261101022356_application_capture_source_and_stage_number.sql):
+  las aplicaciones persisten destinos y sus snapshots, mientras que las
+  pertenencias se guardan aparte en `sowing_group_members`. Las migraciones
+  revisadas no vinculan ese grupo con la aplicación emitida.
+
+Propuesta del agente, autorizada por el Propietario el 2026-11-02 mediante
+«adelatne». Implementación y evidencia en [la ficha](flows/application-group-origin.md):
+
+1. Guardar en la orden el **grupo elegido para emitirla**, con ID y nombre al
+   registrar. Conservar su identidad aunque el grupo se renombre o cambie.
+2. Conservar por destino las **pertenencias a grupos al momento del registro**,
+   calculadas por el servidor. La relación real es con etapas, no con el nombre
+   del lote, y puede haber más de un grupo. Esta información no convierte una
+   captura individual en una receta emitida para un grupo.
+3. Distinguir selección de grupo, selección manual y origen histórico desconocido.
+   La ausencia del dato en una orden antigua no acredita selección manual ni
+   ausencia de pertenencia. Si se modifican los destinos del grupo en la captura,
+   volver a selección manual, como hace hoy el formulario.
+4. Validar grupo activo, ámbito y destinos vigentes en la RPC, guardar la orden y
+   sus referencias en una sola transacción y conservar la protección de reintentos.
+   Los nombres históricos se obtienen en servidor; no se confía en snapshots
+   enviados por el navegador. Una migración nueva y compatible no reescribe
+   migraciones aplicadas ni modifica las mezclas o números existentes.
+5. Recuperar estos datos en el adaptador y mostrarlos en el detalle después de
+   recargar. RCF-030 usa el grupo de origen confirmado para encontrar la última
+   receta emitida para ese grupo; las pertenencias actuales no sustituyen ese dato.
+6. Para órdenes antiguas, mostrar **Grupo de origen no registrado**. No completar
+   automáticamente comparando destinos o pertenencias actuales. Una eventual
+   vinculación retrospectiva requiere evidencia y un registro de quién la confirmó.
+
+Los casos de origen grupal/individual, renombre, varias pertenencias, lector,
+reintentos y recarga quedaron comprobados en QA aislado/demo. Migración operativa
+aplicada con respaldo y sin modificar valores originales; publicación en curso.
+El cierre se conserva en [OPERATIONS](OPERATIONS.md#origen-de-grupo-en-aplicaciones).
 
 ## Cierres confirmados el 2026-11-01
 

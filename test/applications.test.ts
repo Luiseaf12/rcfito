@@ -3,6 +3,8 @@ import test from 'node:test'
 import { createDemoData, DEMO_ADMIN_ID, DEMO_READER_ID } from '../src/domain/demo.ts'
 import { nextStageApplicationNumber, stageApplicationCounts, stageApplicationNumber } from '../src/domain/applications.ts'
 import { applyCommand, scopeWorkspace } from '../src/domain/rules.ts'
+import { applicationOriginLabel, targetGroupMembershipLabel } from '../src/domain/application-groups.ts'
+import { readOrderGroupHistory, readTargetGroupHistory } from '../src/data/application-group-history.ts'
 import type { ApplicationOrderInput, ApplicationPerformanceInput, SowingGroup, UserProfile, WorkspaceCommand, WorkspaceData } from '../src/domain/model.ts'
 
 // Only fictitious in-memory fixtures: never connect to Docker, Auth or operation.
@@ -38,6 +40,59 @@ function group(data: WorkspaceData, admin: UserProfile) {
   assert.ok(created)
   return { data: next, group: created }
 }
+
+test('grupo de origen y pertenencias sobreviven renombre, retiro y reintento sin reinterpretar la historia', () => {
+  const { data, admin } = fixture()
+  const grouped = group(data, admin)
+  const record = input({ source_group_id: grouped.group.id })
+  const created = indicate(grouped.data, admin, record)
+  assert.equal(created.order.selection_origin, 'group')
+  assert.equal(created.order.source_group_name, 'Grupo ficticio')
+  assert.ok(created.targets.every(target => target.group_memberships_snapshot?.[0]?.id === grouped.group.id))
+  const changed = applyCommand(created.data, { type: 'save_sowing_group', record: { ...grouped.group, name: 'Grupo renombrado', active: false, stage_ids: [] } }, admin)
+  const reloaded = JSON.parse(JSON.stringify(changed)) as WorkspaceData
+  const retry = indicate(reloaded, admin, record)
+  assert.equal(retry.order.source_group_name, 'Grupo ficticio')
+  assert.equal(retry.order.source_group_id, grouped.group.id)
+  assert.equal(retry.targets[0].group_memberships_snapshot?.[0]?.name, 'Grupo ficticio')
+  assert.equal(retry.targets.length, 2)
+  assert.throws(() => indicate(reloaded, admin, { ...record, source_group_id: null }), /identificador/)
+  assert.match(applicationOriginLabel(retry.order), /Todo el grupo.*Grupo ficticio/)
+})
+
+test('individual y selección manual conservan pertenencias múltiples sin convertirse en emisión de grupo', () => {
+  const { data, admin } = fixture()
+  const grouped = group(data, admin)
+  const another = applyCommand(grouped.data, { type: 'save_sowing_group', record: { ...grouped.group, id: crypto.randomUUID(), name: 'Segundo grupo' } }, admin)
+  const single = indicate(another, admin, input({ stage_ids: ['stage-1'] }))
+  assert.equal(single.order.selection_origin, 'individual')
+  assert.equal(single.order.source_group_id, null)
+  assert.equal(single.targets[0].group_memberships_snapshot?.length, 2)
+  assert.match(targetGroupMembershipLabel(single.targets[0]), /Grupo ficticio/)
+  const multiple = indicate(another, admin)
+  assert.equal(multiple.order.selection_origin, 'manual')
+})
+
+test('un grupo exige contexto activo y todos sus destinos vigentes; una etapa cerrada no se sustituye', () => {
+  const { data, admin } = fixture()
+  const grouped = group(data, admin)
+  assert.throws(() => indicate(grouped.data, admin, input({ source_group_id: grouped.group.id, stage_ids: ['stage-1'] })), /todos sus destinos vigentes/)
+  assert.throws(() => indicate(grouped.data, admin, input({ source_group_id: 'inexistente' })), /grupo activo/)
+  grouped.data.stages.find(stage => stage.id === 'stage-2')!.status = 'closed'
+  const current = indicate(grouped.data, admin, input({ source_group_id: grouped.group.id, stage_ids: ['stage-1'] }))
+  assert.equal(current.targets.length, 1)
+  assert.equal(current.order.selection_origin, 'group')
+})
+
+test('lectura del adaptador distingue historia desconocida, pertenencia vacía y grupo confirmado', () => {
+  assert.deepEqual(readOrderGroupHistory({}), { selection_origin: 'unknown', source_group_id: null, source_group_name: null })
+  assert.deepEqual(readTargetGroupHistory({}), { group_memberships_snapshot: null })
+  assert.deepEqual(readTargetGroupHistory({ group_memberships_snapshot: [] }), { group_memberships_snapshot: [] })
+  const history = { selection_origin: 'group', source_group_id: 'grupo', source_group_name: 'Nombre histórico' }
+  assert.deepEqual(readOrderGroupHistory(history), history)
+  assert.throws(() => readOrderGroupHistory({ selection_origin: 'group' }), /referencia histórica/)
+  assert.throws(() => readTargetGroupHistory({ group_memberships_snapshot: [{ id: 1 }] }), /pertenencia histórica/)
+})
 
 test('indicar crea destinos completos con snapshots y una sola aplicación por etapa', () => {
   const { data, admin } = fixture()
