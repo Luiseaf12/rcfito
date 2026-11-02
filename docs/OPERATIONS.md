@@ -636,6 +636,20 @@ Despliegue: `appgdep_6ae776da2ce881919574998505cbe9d2`.
 
 2026-11-01: la pregunta «Qué productos hemos usado en malla 5» conserva la
 resolución del lote y devuelve productos/cantidades. Si no hay realizadas,
+explica la ausencia y permite consultar indicadas explícitamente con los mismos
+filtros. Verificación en backend aislado con Auth/REST/RLS reales y navegador
+ficticio a375 px.286 pruebas,132 comprobaciones acumuladas de integración,
+tipos/build y checker aprobados; revisión independiente sin pendientes.
+
+Fuente publicada: `8aea36e3b921f483ee1ffaa78f5e5d7632a5edc1` en GitHub y Sites
+versión28, con frontend Docker de la misma revisión limpia. Doce comprobaciones
+posteriores confirmaron bundle, tabla de productos, acción de indicados, CSS y
+rechazo de consultas anónimas. Audiencia pública y entorno revisión1 conservados.
+Sin migraciones ni escrituras operativas; no se usó inferencia real.
+
+Versión nativa:
+`appgprj_6ae67ae019e88191a7012093bb19c505~appgver_f1b6bc4b085c8191afe717275ebb4838`.
+Despliegue: `appgdep_6ae78587b00081919508803493dfb9a9`.
 
 ## Origen de grupo en aplicaciones
 
@@ -665,17 +679,3 @@ despliegue `appgdep_6ae8b4cccd0481918b1e0865ab714f1e`, en
 entorno 1 conservados. Las nueve comprobaciones HTTPS posteriores aprobaron
 sin crear datos ni cuentas. [Contrato](flows/application-group-origin.md).
 Los cambios ajenos preexistentes del workspace quedaron fuera de esta fuente.
-explica la ausencia y permite consultar indicadas explícitamente con los mismos
-filtros. Verificación en backend aislado con Auth/REST/RLS reales y navegador
-ficticio a375 px.286 pruebas,132 comprobaciones acumuladas de integración,
-tipos/build y checker aprobados; revisión independiente sin pendientes.
-
-Fuente publicada: `8aea36e3b921f483ee1ffaa78f5e5d7632a5edc1` en GitHub y Sites
-versión28, con frontend Docker de la misma revisión limpia. Doce comprobaciones
-posteriores confirmaron bundle, tabla de productos, acción de indicados, CSS y
-rechazo de consultas anónimas. Audiencia pública y entorno revisión1 conservados.
-Sin migraciones ni escrituras operativas; no se usó inferencia real.
-
-Versión nativa:
-`appgprj_6ae67ae019e88191a7012093bb19c505~appgver_f1b6bc4b085c8191afe717275ebb4838`.
-Despliegue: `appgdep_6ae78587b00081919508803493dfb9a9`.

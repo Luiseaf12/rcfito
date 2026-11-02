@@ -511,6 +511,13 @@ SQL:124 comprobaciones de consultas (75 anteriores y49 de contexto). Integració
 completa:129 comprobaciones HTTP/Auth/REST/Edge/RLS, con30 del módulo consultas.
 El pipeline CLI→handler→Auth/REST→resolver→consulta se ejerció sin simulación de
 base/Auth: última Ensenada ficticia, Malla5 y Malla15, temporadas anteriores,
+realización corregida80g/40ml, indicadas999 y canceladas888 excluidas. La pregunta
+mostró dos productos, filtros last_used/active_season/unique_match y cero tokens.
+Advisors sin WARN/ERROR; stack aislado detenido y fixtures retirados.
+
+Los resultados y nombres de esa prueba son ficticios, sin inferencia real ni
+escrituras de aplicaciones en operación. QA de tablas/despliegue se registra en
+[la ficha](flows/application-chat.md#contexto-implícito-y-tabla-de-consumo-por-malla).
 
 ## Origen de grupo en aplicaciones
 
@@ -531,13 +538,6 @@ recarga y origen/pertenencia correctos. Captura conservada al corregir dosis y
 contexto visible al aparecer destinos. Detalle a 1440/375 px, sin overflow de
 página a 375 px. Teclado completo, zoom y contraste medido siguen en RCF-006.
 [Detalle, autorrevisión y límites](flows/application-group-origin.md).
-realización corregida80g/40ml, indicadas999 y canceladas888 excluidas. La pregunta
-mostró dos productos, filtros last_used/active_season/unique_match y cero tokens.
-Advisors sin WARN/ERROR; stack aislado detenido y fixtures retirados.
-
-Los resultados y nombres de esa prueba son ficticios, sin inferencia real ni
-escrituras de aplicaciones en operación. QA de tablas/despliegue se registra en
-[la ficha](flows/application-chat.md#contexto-implícito-y-tabla-de-consumo-por-malla).
 
 Tras publicar RCF-029: cinco controles locales del frontend Docker sano y nueve
 HTTPS del Site aprobados. Se confirmó el código nuevo en el bundle servido,

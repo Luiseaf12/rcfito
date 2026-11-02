@@ -456,13 +456,6 @@ RCF-032, solicitado el 2026-11-01. Pendiente de desarrollar una exportación a P
 que muestre todos los productos registrados que correspondan a los resultados
 filtrados y los filtros aplicados para obtenerlos. La exportación debe incluir
 el conjunto completo de resultados, aunque la pantalla esté paginada.
-
-## Origen histórico de aplicaciones
-
-RCF-029: conservación del grupo utilizado al emitir una aplicación y de las
-pertenencias activas de sus destinos en ese momento. La captura individual y la
-emisión para todo el grupo mantienen orígenes distintos. Contrato, autorización,
-recorrido y límites en [la ficha](flows/application-group-origin.md).
 El diseño y las aclaraciones necesarias se revisarán con el Propietario antes
 de desarrollar, conforme a AGENTS.
 
@@ -474,3 +467,10 @@ preferencia de apariencia del equipo o sistema; el usuario podrá elegir una
 configuración explícita. Antes de desarrollar se plantearán las dudas sobre
 las opciones disponibles y el alcance de la preferencia conforme a AGENTS.
 Este registro no modifica el tema actualmente implementado.
+
+## Origen histórico de aplicaciones
+
+RCF-029: conservación del grupo utilizado al emitir una aplicación y de las
+pertenencias activas de sus destinos en ese momento. La captura individual y la
+emisión para todo el grupo mantienen orígenes distintos. Contrato, autorización,
+recorrido y límites en [la ficha](flows/application-group-origin.md).
