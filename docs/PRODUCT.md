@@ -437,3 +437,12 @@ filtrados y los filtros aplicados para obtenerlos. La exportación debe incluir
 el conjunto completo de resultados, aunque la pantalla esté paginada.
 El diseño y las aclaraciones necesarias se revisarán con el Propietario antes
 de desarrollar, conforme a AGENTS.
+
+## Combinación de colores configurable
+
+RCF-034, solicitado el 2026-11-02. Pendiente de permitir configurar la
+combinación de colores o tema de la aplicación. Por defecto debe seguir la
+preferencia de apariencia del equipo o sistema; el usuario podrá elegir una
+configuración explícita. Antes de desarrollar se plantearán las dudas sobre
+las opciones disponibles y el alcance de la preferencia conforme a AGENTS.
+Este registro no modifica el tema actualmente implementado.
