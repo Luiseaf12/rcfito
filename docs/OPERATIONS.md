@@ -767,3 +767,31 @@ despliegue `appgdep_6ae8dcb73e60819187a068ca1b16fb9d`, en
 entorno 1 conservados. Nueve controles HTTPS de conexión y tres de código
 publicado aprobados sin crear datos ni cuentas. Fuente trabajada en checkout
 limpio; cambios ajenos preexistentes fuera del commit.
+
+## PDF del borrador de receta — RCF-035
+
+2026-11-02: fuente `16522f0795375b085bbe1143f4dfee41d708f188` publicada en
+GitHub, frontend Docker y Sites versión **32**. La captura unificada y la revisión
+de IA ofrecen **Exportar borrador PDF** antes de guardar. Incluye destinos,
+productos, dosis y agua por hectárea; fecha programada vacía se presenta como
+«Fecha programada por confirmar». Guardar conserva su validación original.
+[Contrato y evidencia](flows/recipe-draft-pdf.md).
+
+306 pruebas, tipos, build y checker documental aprobados. PDF ficticios de una
+y cuatro páginas renderizados/revisados, más descargas reales de la demo desde
+base anterior y revisión IA. Dosis precisas, cambios de referencia, bloqueo de
+guardar sin fecha y móvil 375 px comprobados. Autorrevisión de React y fronteras;
+no se atribuye revisión independiente. Cero vulnerabilidades de producción;
+advertencias anteriores de herramientas/chunk principal conservadas.
+
+No hay nuevas migraciones, cambios de backend, datos operativos escritos ni
+servicios externos al exportar. Tipografías locales con licencia redistribuida;
+las copias ficticias de QA quedan fuera de Git y del build público. Docker
+`healthy`; bundle exacto, módulo PDF, dos fuentes TTF, licencia, Auth y rechazo
+anónimo comprobados en local y Sites. Nueve controles HTTPS de conexión pasaron.
+
+Sites confirmó `succeeded`, versión
+`appgprj_6ae67ae019e88191a7012093bb19c505~appgver_e37bb3e285c88191b4779cb97f04987f`,
+despliegue `appgdep_6ae8f304dac4819190c5691154dfc8bc`, en
+[RCFito](https://rcfito.paxxa.chatgpt.site). Audiencia pública, R2 y revisión de
+entorno 1 conservados. Cambios ajenos del workspace fuera de los commits propios.

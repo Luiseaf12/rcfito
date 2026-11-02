@@ -65,4 +65,8 @@ reales del navegador en demo verificadas desde receta anterior, tras editar
 programada. Guardar sin fecha sigue bloqueado. Móvil 375 px sin desbordamiento.
 No se usa proveedor de IA ni se crean datos operativos en estas pruebas.
 
-Publicación pendiente al registrar esta evidencia; cierre en [OPERATIONS](../OPERATIONS.md).
+Fuente `16522f0` publicada en GitHub, Docker healthy y Sites versión 32 con
+resultado `succeeded`. Nueve controles HTTPS de conexión y verificación de bundle
+exacto, módulo PDF, fuentes, licencia, Auth y rechazo anónimo tanto en Docker como
+en Sites aprobados. Audiencia conservada, sin nuevas migraciones ni escrituras
+operativas. [Registro](../OPERATIONS.md#pdf-del-borrador-de-receta--rcf-035).
