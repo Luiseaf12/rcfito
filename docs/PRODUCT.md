@@ -435,11 +435,10 @@ Confirmadas por el Propietario el 2026-11-02:
 7. Ante recetas distintas por subdivisión, permitir elegir una base.
 8. Copiar la última versión de la indicación corregida.
 
-Revisión preparatoria del código, sin pruebas de persistencia: la captura actual
-ya muestra el siguiente número por etapa y permite editar mezcla, agua, fechas
-y nota. El grupo seleccionado se usa para elegir destinos y su identidad no se
-envía en el comando de creación. Esto informa el diseño del grupo sugerido;
-no sustituye ni cierra la revisión RCF-029.
+La captura ya muestra el siguiente número por etapa y permite editar mezcla,
+agua, fechas y nota. RCF-029 incorporó la conservación del grupo elegido y las
+pertenencias históricas de cada destino; ver [su ficha](flows/application-group-origin.md).
+La nueva pantalla de recetas sigue siendo una propuesta pendiente de implementar.
 
 el pendiente, sin convertirlas en reglas implícitas.
 

@@ -538,3 +538,8 @@ Advisors sin WARN/ERROR; stack aislado detenido y fixtures retirados.
 Los resultados y nombres de esa prueba son ficticios, sin inferencia real ni
 escrituras de aplicaciones en operación. QA de tablas/despliegue se registra en
 [la ficha](flows/application-chat.md#contexto-implícito-y-tabla-de-consumo-por-malla).
+
+Tras publicar RCF-029: cinco controles locales del frontend Docker sano y nueve
+HTTPS del Site aprobados. Se confirmó el código nuevo en el bundle servido,
+Auth y rechazo de datos sin sesión. Ninguno crea fixtures en operación.
+[Fuente y despliegue](OPERATIONS.md#origen-de-grupo-en-aplicaciones).

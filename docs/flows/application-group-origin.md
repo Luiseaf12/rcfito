@@ -77,5 +77,10 @@ seleccionar cultivo/grupo. Revisión de detalle a 1440/375 px y sin desbordamien
 horizontal general a 375 px. Teclado completo, zoom 200 % y contraste medido
 permanecen en RCF-006. Hubo autorrevisión, sin revisión independiente.
 
-Aplicación operativa y publicación: pendientes de registrar en
-[OPERATIONS](../OPERATIONS.md#origen-de-grupo-en-aplicaciones).
+Migración operativa aplicada con respaldo privado validado y comparación de
+valores originales antes/después; nueve registradas, cero pendientes. Frontend
+Docker sano, GitHub y Sites versión 29 publicados. Cinco controles locales y
+nueve HTTPS posteriores aprobados sin crear datos reales de prueba. El origen
+nuevo se ejerció con escrituras solo en QA aislado/demo; en operación se verificó
+migración, conservación y lectura anónima rechazada.
+[Registro de publicación](../OPERATIONS.md#origen-de-grupo-en-aplicaciones).

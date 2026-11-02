@@ -652,8 +652,19 @@ vigente se conservan. La reversión del frontend no elimina estas columnas ni
 reescribe historia. Validación previa: 290 pruebas, 351 SQL, 153 HTTP, advisors
 sin WARN/ERROR y QA demo de origen/recarga/móvil. Hubo autorrevisión.
 
-Frontend Docker, commit/push y Sites: en publicación. El cierre se registra aquí
-tras confirmar sus resultados. [Contrato](flows/application-group-origin.md).
+Fuente `0ac5ad41ba204c920105832601e7ccd434f37665` integrada con la documentación
+remota reciente y subida a GitHub y al repositorio de Sites. Checkout limpio:
+290 pruebas, docs y build aprobados. Docker reconstruido desde esa fuente,
+contenedor healthy y cinco comprobaciones locales aprobadas: frontend, código
+de origen, Auth, REST anónimo rechazado y límite del proxy.
+
+Sites confirmó `succeeded`, versión 29
+`appgprj_6ae67ae019e88191a7012093bb19c505~appgver_1a8e501d3c048191bc9d1ad9431cef0c`,
+despliegue `appgdep_6ae8b4cccd0481918b1e0865ab714f1e`, en
+[RCFito](https://rcfito.paxxa.chatgpt.site). Audiencia pública, R2 y revisión de
+entorno 1 conservados. Las nueve comprobaciones HTTPS posteriores aprobaron
+sin crear datos ni cuentas. [Contrato](flows/application-group-origin.md).
+Los cambios ajenos preexistentes del workspace quedaron fuera de esta fuente.
 explica la ausencia y permite consultar indicadas explícitamente con los mismos
 filtros. Verificación en backend aislado con Auth/REST/RLS reales y navegador
 ficticio a375 px.286 pruebas,132 comprobaciones acumuladas de integración,
