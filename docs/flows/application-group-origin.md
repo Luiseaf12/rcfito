@@ -84,3 +84,24 @@ nueve HTTPS posteriores aprobados sin crear datos reales de prueba. El origen
 nuevo se ejerció con escrituras solo en QA aislado/demo; en operación se verificó
 migración, conservación y lectura anónima rechazada.
 [Registro de publicación](../OPERATIONS.md#origen-de-grupo-en-aplicaciones).
+
+## Corrección histórica confirmada por el Propietario
+
+El 2026-11-02 el Propietario solicitó corregir por única vez el historial del
+único grupo existente y confirmó expresamente: «Todas se emitieron para el
+grupo completo». Esta confirmación aporta la evidencia que faltaba; no se
+generaliza la atribución automática por coincidencia de integrantes.
+
+Se revisaron 23 aplicaciones de origen desconocido y sus 92 destinos. Todas
+coincidieron con los cuatro miembros del grupo y con su proyecto/campo/cultivo.
+El plan privado congeló sus identidades y huellas; solo se completaron el origen,
+el ID/nombre del grupo y las pertenencias históricas de esos registros. La
+autoridad, el plan y los valores anteriores/posteriores quedaron auditados en
+`rcfito_meta.data_corrections`, sin acceso del cliente.
+
+El mantenimiento no incorpora RPC ni permisos de edición histórica. Las cuatro
+guardas específicas se suspendieron únicamente dentro de una transacción con
+bloqueos exclusivos y se restauraron antes de confirmar; RLS, claves foráneas y
+las otras guardas permanecieron habilitadas. Los reintentos de esta corrección
+se rechazan. Fechas, mezclas, dosis, números, estados, firmas y demás valores
+originales permanecieron intactos. [Respaldo y evidencia](../OPERATIONS.md#corrección-histórica-excepcional-del-grupo).

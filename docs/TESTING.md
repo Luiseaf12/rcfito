@@ -536,6 +536,21 @@ se evitó que `npm exec` buscara el entorno en un proyecto padre. Nunca usar el
 Navegador demo: grupo guardado, indicación grupal e individual del mismo lote,
 recarga y origen/pertenencia correctos. Captura conservada al corregir dosis y
 contexto visible al aparecer destinos. Detalle a 1440/375 px, sin overflow de
+
+## Corrección histórica excepcional del grupo
+
+2026-11-02: `node scripts/backend-group-backfill-test.mjs` aprobó 11
+comprobaciones en un contenedor PostgreSQL efímero sin puertos, después retirado.
+Cubre historia ficticia, plan desactualizado, simulación con rollback, aplicación
+con auditoría, valores originales intactos, rechazo de repetición, guardas
+restauradas y ausencia de permisos del cliente sobre la auditoría.
+
+En operación se verificó un plan privado de 23 aplicaciones y 92 destinos,
+simulación revertida, respaldo validado y aplicación única. Una conexión nueva
+contrastó las huellas de órdenes y destinos, origen/pertenencias nuevos, una sola
+entrada de auditoría y cuatro guardas habilitadas. Registro 9/0. No se crean
+fixtures reales ni se modifican productos, fechas, estados o números.
+[Registro](OPERATIONS.md#corrección-histórica-excepcional-del-grupo).
 página a 375 px. Teclado completo, zoom y contraste medido siguen en RCF-006.
 [Detalle, autorrevisión y límites](flows/application-group-origin.md).
 

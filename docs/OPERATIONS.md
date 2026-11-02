@@ -666,6 +666,31 @@ vigente se conservan. La reversión del frontend no elimina estas columnas ni
 reescribe historia. Validación previa: 290 pruebas, 351 SQL, 153 HTTP, advisors
 sin WARN/ERROR y QA demo de origen/recarga/móvil. Hubo autorrevisión.
 
+## Corrección histórica excepcional del grupo
+
+2026-11-02: el Propietario solicitó corregir el historial una sola vez y confirmó
+que todas las aplicaciones se emitieron para el grupo completo. Revisión de
+solo lectura: 23 órdenes de origen desconocido, 92 destinos y un único grupo de
+cuatro integrantes; mismo contexto y coincidencia completa en las 23 órdenes.
+
+`scripts/backfill-application-group.mjs` congeló un plan privado de esos IDs y
+huellas. Pasaron 11 comprobaciones aisladas con fixtures, incluida reversión,
+auditoría, reintento rechazado y guardas habilitadas. La simulación operativa se
+revirtió; después se creó y validó un respaldo custom nuevo de 522,936 bytes y
+se aplicó la corrección limitada al plan en una sola transacción.
+
+Plan, respaldo e informes quedan fuera de Git en el directorio privado de
+mantenimiento de `.artifacts/production-supabase`. Auditoría única en
+`rcfito_meta.data_corrections`: autoridad del Propietario, huella del plan,
+identidades y metadatos antes/después. Una conexión nueva confirmó las 23/92
+referencias corregidas, valores originales intactos, las cuatro guardas
+habilitadas y ausencia de acceso del cliente a la auditoría. Registro de
+migraciones: nueve aplicadas, cero pendientes; no se modificaron migraciones.
+
+La interfaz publicada en Sites 29 y Docker recupera esos datos al recargar.
+Esta operación modifica únicamente datos del backend, sin nueva publicación del
+frontend. [Alcance autorizado](flows/application-group-origin.md#corrección-histórica-confirmada-por-el-propietario).
+
 Fuente `0ac5ad41ba204c920105832601e7ccd434f37665` integrada con la documentación
 remota reciente y subida a GitHub y al repositorio de Sites. Checkout limpio:
 290 pruebas, docs y build aprobados. Docker reconstruido desde esa fuente,
