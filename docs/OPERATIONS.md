@@ -704,3 +704,34 @@ despliegue `appgdep_6ae8b4cccd0481918b1e0865ab714f1e`, en
 entorno 1 conservados. Las nueve comprobaciones HTTPS posteriores aprobaron
 sin crear datos ni cuentas. [Contrato](flows/application-group-origin.md).
 Los cambios ajenos preexistentes del workspace quedaron fuera de esta fuente.
+
+
+## Nuevas recetas por lote o grupo — RCF-030
+
+2026-11-02: fuente `7bf313769deb5b99db019c28382024896ec01e47` publicada en
+GitHub, Docker y Sites versión **30**. Pantalla en Aplicaciones → Nueva receta.
+Crea una indicación desde la última base activa por etapa o emisión explícita de
+grupo, con elección entre empates, copia de última revisión y referencia de la
+base conservada. [Contrato y evidencia](flows/recipe-creation.md).
+
+Migración `20261102171500_application_recipe_source` aplicada mediante el migrador
+registrado: 10 aplicadas/0 pendientes. Respaldo privado previo de 531,292 bytes
+validado con pg_restore. Hashes de las 23 órdenes, 92 destinos, productos e
+historial conservaron los valores originales; las nuevas referencias quedaron
+nulas en las órdenes anteriores. Sin nuevas capturas ni fixtures en operación.
+
+297 pruebas de dominio, 372 SQL, 167 HTTP y advisors sin WARN/ERROR aprobados;
+typecheck, build, docs y diff correctos. Navegador demo: individual/grupo,
+base de última revisión, empates, grupo sugerido explícito, confirmaciones,
+recarga, lector y móvil 375 px/escritorio 1440 px. No se atribuye una captura
+real de la nueva pantalla a la verificación demo. Autorrevisión, sin revisor
+independiente; se conserva la advertencia previa de bundle mayor de 500 kB.
+
+Docker reconstruido desde esa fuente y healthy: frontend/pantalla/Auth HTTP 200,
+consulta anónima 401. Sites confirmó `succeeded`, versión
+`appgprj_6ae67ae019e88191a7012093bb19c505~appgver_a67893d2d0b4819180b5fee841816010`,
+despliegue `appgdep_6ae8c8c4a1ec81918c8a41707e175895`, en
+[RCFito](https://rcfito.paxxa.chatgpt.site). Audiencia pública, R2 y revisión de
+entorno 1 conservados. Nueve comprobaciones HTTPS de conexión y tres del código
+publicado aprobaron sin escrituras. Los cambios ajenos del workspace quedaron
+fuera del commit de implementación.

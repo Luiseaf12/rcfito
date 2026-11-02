@@ -1,8 +1,8 @@
 # Nueva receta desde la última indicación
 
 RCF-030. Diseño presentado y desarrollo autorizado por el Propietario el
-2026-11-02. Pantalla implementada en `/aplicaciones/nueva-receta`; verificación y
-publicación en curso. Conserva las ocho decisiones confirmadas.
+2026-11-02. Pantalla implementada en `/aplicaciones/nueva-receta`, verificada y
+publicada en Sites 30, GitHub y Docker. Conserva las ocho decisiones confirmadas.
 
 ## Decisiones confirmadas
 
@@ -252,4 +252,6 @@ conserva el perfil de marca del proyecto. Recorrido exhaustivo de teclado, zoom
   idénticos antes/después, excluyendo únicamente las tres columnas nuevas nulas;
   23 órdenes/92 destinos conservados. Sin capturas ficticias en operación.
 
-Publicación del frontend: pendiente hasta confirmar Sites y Docker.
+Fuente `7bf3137` publicada en GitHub, Docker healthy y Sites versión 30 con
+resultado `succeeded`. Nueve comprobaciones HTTPS de conexión y tres de código
+aprobadas; audiencia conservada. [Registro operativo](../OPERATIONS.md#nuevas-recetas-por-lote-o-grupo--rcf-030).
