@@ -404,7 +404,7 @@ el chat. Recorrido, alternativas y criterios en [la ficha](flows/application-cha
 
 RCF-030, solicitado el 2026-11-01. Diseño y desarrollo autorizados por el
 Propietario el 2026-11-02 con ocho aclaraciones resueltas. La pantalla
-**Nueva receta** dentro de Aplicaciones implementa el [flujo de recetas](flows/recipe-creation.md),
+**Nueva indicación** dentro de Aplicaciones implementa el [flujo de recetas](flows/recipe-creation.md),
 sus alternativas y criterios de aceptación. Guardar crea una nueva aplicación
 indicada, conservando la anterior.
 
@@ -444,6 +444,15 @@ pertenencias históricas de cada destino; ver [su ficha](flows/application-group
 La nueva pantalla de recetas sigue siendo una propuesta pendiente de implementar.
 
 el pendiente, sin convertirlas en reglas implícitas.
+
+
+Ampliación de RCF-030 autorizada el 2026-11-02 tras revisión de diseño: una sola
+entrada **Nueva indicación** con última activa por defecto, búsqueda de anteriores
+activas de las etapas vigentes y opción **Empezar desde cero**. Elegir una base
+anterior trae su última revisión indicada, conservando la receta original.
+Ambos modos comparten editor y guardado; permanecen selección manual, numeración
+automática por defecto y captura opcional de número con revisión del historial.
+[Contrato unificado](flows/recipe-creation.md#ampliación-autorizada-una-sola-entrada).
 
 ## Orden descendente de productos de una malla
 

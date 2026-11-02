@@ -191,7 +191,7 @@ body { min-width: 320px; font-size: 16px; line-height: 1.5; }
 button,a,input,select,textarea { -webkit-tap-highlight-color: transparent; }
 button:not(:disabled),[role=button] { cursor: pointer; }
 button:disabled { cursor: not-allowed; }
-[data-slot=button],[data-slot=input],[data-slot=input-group],[data-slot=select-trigger],[data-slot=sidebar-menu-button] { min-height: 44px; }
+[data-slot=button],[data-slot=input],[data-slot=input-group],[data-slot=input-group-control],[data-slot=select-trigger],[data-slot=sidebar-menu-button] { min-height: 44px; }
 [data-slot=button][data-size^=icon] { min-width: 44px; }
 [data-slot=select-trigger] { width: 100%; }
 [data-slot=dialog-content] { max-height: calc(100dvh - 36px); overflow-y: auto; padding: 28px; }

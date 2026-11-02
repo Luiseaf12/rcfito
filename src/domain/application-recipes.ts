@@ -3,23 +3,47 @@ import type { ApplicationOrderInput, ApplicationRecipeSource, WorkspaceData } fr
 
 export type RecipeCandidate = { order_id: string; stage_ids: string[]; revision: number; indicated_date: string }
 
-/** Latest active indication per current stage; group history requires explicit origin. */
-export function recipeCandidates(data: WorkspaceData, stageIds: string[], groupId?: string): RecipeCandidate[] {
-  const candidates = new Map<string, RecipeCandidate>()
-  const orders = data.applicationOrders.filter(order => !groupId || order.selection_origin === 'group' && order.source_group_id === groupId)
-  const latest = (ids: string[]) => {
-    const active = orders.filter(order => data.applicationTargets.some(target => target.order_id === order.id && ids.includes(target.stage_id) && target.status !== 'cancelled'))
-      .map(order => ({ order, indication: currentOrderIndication(data, order) }))
-    const date = active.reduce((max, item) => item.indication.indicated_date > max ? item.indication.indicated_date : max, '')
-    for (const { order, indication } of active.filter(item => item.indication.indicated_date === date)) {
-      const stages = ids.filter(id => data.applicationTargets.some(target => target.order_id === order.id && target.stage_id === id && target.status !== 'cancelled'))
-      const previous = candidates.get(order.id)
-      candidates.set(order.id, { order_id: order.id, revision: order.revision ?? 0, indicated_date: indication.indicated_date, stage_ids: [...new Set([...(previous?.stage_ids ?? []), ...stages])].sort() })
-    }
+/** All active bases for the selected current stages; group history requires explicit origin. */
+export function recipeHistory(data: WorkspaceData, stageIds: string[], groupId?: string): RecipeCandidate[] {
+  const selected = new Set(stageIds)
+  const stagesByOrder = new Map<string, Set<string>>()
+  for (const target of data.applicationTargets) {
+    if (target.status === 'cancelled' || !selected.has(target.stage_id)) continue
+    const stages = stagesByOrder.get(target.order_id) ?? new Set<string>()
+    stages.add(target.stage_id)
+    stagesByOrder.set(target.order_id, stages)
   }
-  if (groupId) latest(stageIds)
-  else stageIds.forEach(id => latest([id]))
-  return [...candidates.values()].sort((a, b) => b.indicated_date.localeCompare(a.indicated_date) || a.order_id.localeCompare(b.order_id))
+  return data.applicationOrders.filter(order => stagesByOrder.has(order.id) && (!groupId || order.selection_origin === 'group' && order.source_group_id === groupId))
+    .map(order => ({ order_id: order.id, revision: order.revision ?? 0, indicated_date: currentOrderIndication(data, order).indicated_date, stage_ids: [...stagesByOrder.get(order.id)!].sort() }))
+    .sort((a, b) => b.indicated_date.localeCompare(a.indicated_date) || a.order_id.localeCompare(b.order_id))
+}
+
+/** The automatic suggestion preserves ties and separate subdivision histories. */
+export function recipeCandidates(data: WorkspaceData, stageIds: string[], groupId?: string): RecipeCandidate[] {
+  const history = recipeHistory(data, stageIds, groupId)
+  if (groupId) return history.filter(candidate => candidate.indicated_date === history[0]?.indicated_date)
+  const dates = new Map<string, string>()
+  for (const candidate of history) for (const id of candidate.stage_ids) if (!dates.has(id)) dates.set(id, candidate.indicated_date)
+  return history.map(candidate => ({ ...candidate, stage_ids: candidate.stage_ids.filter(id => dates.get(id) === candidate.indicated_date) })).filter(candidate => candidate.stage_ids.length)
+}
+
+const searchText = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('es-MX').replace(/\s+/g, ' ').trim()
+
+/** Search only the authorized, scoped history, using the latest indicated version. */
+export function searchRecipes(data: WorkspaceData, history: RecipeCandidate[], query: string): RecipeCandidate[] {
+  const terms = searchText(query).split(' ').filter(Boolean)
+  if (!terms.length) return history
+  const orders = new Map(data.applicationOrders.map(order => [order.id, order]))
+  return history.filter(candidate => {
+    const order = orders.get(candidate.order_id)
+    if (!order) return false
+    const indication = currentOrderIndication(data, order)
+    const [year, month, day] = indication.indicated_date.split('-')
+    const date = new Intl.DateTimeFormat('es-MX', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${indication.indicated_date}T12:00:00Z`))
+    const text = searchText([order.folio, indication.indicated_date, `${Number(day)}/${Number(month)}/${year}`, date, indication.method_name || data.catalogs.application_methods.find(item => item.id === indication.method_id)?.name || '', indication.observations, order.source_group_name ?? '', ...indication.products.map(product => product.product_name)].join(' '))
+    const words = text.split(/[^a-z0-9]+/)
+    return terms.every(term => term.length === 1 ? words.includes(term) : text.includes(term))
+  })
 }
 
 /** A chosen base can be edited, but must still be the same active revision at save time. */

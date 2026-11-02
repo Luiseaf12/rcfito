@@ -570,3 +570,14 @@ compatibilidad aditiva sobre órdenes anteriores. Advisors sin WARN/ERROR.
 Navegador con datos ficticios y recorridos individual/grupo, empates, confirmación
 al cambiar mezcla o salir, persistencia demo tras recarga y móvil. No se crean
 fixtures en operación. [Evidencia y límites](flows/recipe-creation.md#verificación-de-la-pantalla-real--2026-11-02).
+
+
+### Captura unificada y búsqueda de recetas anteriores
+
+2026-11-02: 301 pruebas de dominio y 167 controles HTTP/Auth/REST/Edge/RLS
+aprobados; advisors sin WARN/ERROR. El escenario HTTP copia una base anterior
+tras crear otra con fecha posterior. La ampliación no cambia SQL ni añade
+migraciones; las 372 comprobaciones SQL anteriores permanecen evidencia de la
+primera entrega. QA demo del botón único, búsqueda/empates, guardado desde anterior
+y desde cero, selección manual/numeración, recarga, grupo, descarte y móvil 375 px.
+[Detalle y límites](flows/recipe-creation.md#ampliación-autorizada-una-sola-entrada).

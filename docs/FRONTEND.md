@@ -201,8 +201,11 @@ la informa. Fuentes parciales se identifican como muestra; detalle accesible
 expone agua/equipo/aplicador/notas y cambios. [Ficha](flows/application-chat.md).
 
 
-RCF-030 incorpora **Nueva receta** desde Aplicaciones, en
-`/aplicaciones/nueva-receta`, con ToggleGroup de shadcn y editores compartidos.
+RCF-030 incorpora una sola entrada **Nueva indicación** desde Aplicaciones, en
+`/aplicaciones/nueva` (enlace anterior compatible), con ToggleGroup de shadcn y
+editores compartidos. Última activa por defecto, buscador de anteriores y captura
+desde cero usan el mismo formulario; el buscador reutiliza RecordDialog/SearchField
+y pagina diez resultados después de filtrar el conjunto autorizado.
 Base histórica y copia editable permanecen separadas. Cambiar base o destinos
 confirma el reemplazo de una mezcla editada; menú, Cancelar y Atrás protegen el
 borrador. [Flujo, estados y evidencia](flows/recipe-creation.md).

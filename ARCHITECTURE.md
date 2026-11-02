@@ -227,7 +227,8 @@ completa acompaña cada respuesta y se conserva al seleccionar coincidencias.
 
 
 RCF-030: `domain/application-recipes.ts` resuelve bases por fecha y etapa/origen;
-`features/application-recipes.tsx` coordina el borrador con editores compartidos;
+`features/application-recipes.tsx` coordina la captura unificada desde cero o
+receta previa y `application-recipe-picker.tsx` su buscador de historia activa;
 el adaptador recupera `recipe_source` y la RPC valida su versión/estado antes de
 crear una orden independiente. La navegación hash usa `createHashRouter` para
 proteger cambios también con Atrás. [Contrato](docs/flows/recipe-creation.md).

@@ -1,8 +1,11 @@
-# Nueva receta desde la última indicación
+# Nueva indicación desde cero o una receta anterior
 
 RCF-030. Diseño presentado y desarrollo autorizado por el Propietario el
-2026-11-02. Pantalla implementada en `/aplicaciones/nueva-receta`, verificada y
-publicada en Sites 30, GitHub y Docker. Conserva las ocho decisiones confirmadas.
+2026-11-02. Primera entrega publicada en Sites 30. La ampliación de captura unificada fue
+autorizada el mismo día tras revisar la propuesta interactiva: una entrada
+**Nueva indicación**, última receta activa por defecto, búsqueda de anteriores
+y captura desde cero. Implementada en `/aplicaciones/nueva`, en verificación
+para publicación; `/aplicaciones/nueva-receta` conserva compatibilidad.
 
 ## Decisiones confirmadas
 
@@ -12,9 +15,9 @@ El Propietario respondió las cuatro aclaraciones el 2026-11-02:
    actual. No se define una entidad independiente de recetas.
 2. La base es la **mezcla indicada** de la receta anterior, incluso cuando hubo
    diferencias en su realización. Los valores realizados no sustituyen la base.
-3. Para un lote se elige la **fecha de indicación más reciente dentro de su etapa
+3. Para un lote se propone la **fecha de indicación más reciente dentro de su etapa
    vigente**. No se usa el mayor número ni la fecha de realización como criterio.
-4. Para un grupo se usa la **última receta emitida para ese grupo**, aunque alguno
+4. Para un grupo se propone la **última receta emitida para ese grupo**, aunque alguno
    de sus lotes tenga una indicación individual posterior.
 
 El mismo día confirmó los cuatro casos límite posteriores:
@@ -28,6 +31,12 @@ El mismo día confirmó los cuatro casos límite posteriores:
 8. Si la indicación se corrigió, copiar su **última versión**, conservando la
    consulta de su historial.
 
+La aclaración posterior del Propietario permite **buscar y elegir una receta
+activa anterior**, conservando la última activa como valor propuesto. Buscar no
+amplía el contexto: lote/selección manual, solo sus etapas vigentes; grupo,
+solo emisiones explícitas para ese grupo con destinos vigentes. Las canceladas
+siguen excluidas y siempre se copia la última revisión indicada de la elegida.
+
 Se conservan los requisitos de [PRODUCT](../PRODUCT.md#propuesta-de-pantalla-de-recetas):
 editar la copia sin sobrescribir la receta anterior, sugerir el grupo de origen
 y mostrar el siguiente número por lote-etapa. Los destinos reales pertenecen a
@@ -37,25 +46,27 @@ etapas concretas de subdivisiones; el nombre de lote no sustituye su identidad.
 
 - Usuario y objetivo: administrador que necesita indicar una nueva aplicación
   sin recapturar una mezcla anterior. El lector conserva su consulta actual.
-- Entrada: acción **Nueva receta** dentro de Aplicaciones, junto a la captura
-  manual existente. Abrir la pantalla conserva el proyecto/campo/cultivo elegido
-  cuando sea compatible. Ruta: `/aplicaciones/nueva-receta`.
+- Entrada: un solo botón **Nueva indicación** dentro de Aplicaciones. Abrir la pantalla conserva el proyecto/campo/cultivo elegido
+  cuando sea compatible. Ruta: `/aplicaciones/nueva`; el enlace anterior continúa funcionando.
 - Precondiciones: sesión administradora, proyecto activo y etapas sembradas
   vigentes del mismo proyecto, campo y cultivo. La autorización efectiva seguirá
   en el servidor, conforme al [contrato existente](applications.md).
 - Recorrido:
   1. Confirmar el contexto y elegir **Un lote** o **Un grupo**. Ver sus destinos
      completos, etapa, variedad, superficie y siguiente número individual.
-  2. Revisar el folio, fecha y origen de la receta base. **Ver receta anterior**
+  2. Elegir **Usar receta anterior** (por defecto) o **Empezar desde cero**.
+     La sugerencia es la última activa; **Buscar otra receta** permite buscar
+     por folio, fecha, producto, medio o nota y elegir una anterior. Revisar su
+     folio, fecha, origen y versión. **Ver receta anterior**
      despliega su indicación de solo lectura. Si provino de un grupo, **Usar grupo**
      ofrece cambiar explícitamente los destinos y cargar la última receta de ese
      grupo; mientras no se acepte, se conserva únicamente el lote elegido.
   3. Editar productos, dosis, agua, medio y nota. Capturar las fechas de la nueva
      indicación; no copiar automáticamente la programación antigua.
-  4. Revisar destinos y números y pulsar **Guardar nueva indicación**. Tras la
+  4. Revisar destinos y números y pulsar **Guardar indicación**. Tras la
      persistencia confirmada, ir al detalle de la nueva orden con su folio y los
      números efectivamente asignados por destino.
-- Alternativas: sin historia se ofrece primera captura; un error de consulta
+- Alternativas: sin historia se ofrece **Continuar desde cero**; un error de consulta
   permite reintentar; un grupo sin destinos vigentes no permite guardar; un grupo
   no identificable no se infiere por coincidencia de integrantes.
 - Recuperación: conservar la captura ante errores, confirmar reemplazos de una
@@ -75,13 +86,14 @@ Conserva tipografía, paleta y componentes de
 
 | Bloque | Información y acciones |
 | --- | --- |
-| Encabezado | Nueva receta; contexto de agrícola, temporada, campo y cultivo. Selectores de contexto cuando sea necesario, sin recapturar selecciones válidas. |
-| Destino de la receta | Selector Un lote / Un grupo y búsqueda del destino dentro del contexto autorizado; nunca ampliar a otros campos o cultivos. |
+| Encabezado | Nueva indicación; contexto de agrícola, temporada, campo y cultivo. Selectores de contexto cuando sea necesario, sin recapturar selecciones válidas. |
+| Destino de la indicación | Selector Un lote / Un grupo / Manual y búsqueda del destino dentro del contexto autorizado; nunca ampliar a otros campos o cultivos. |
 | Grupo sugerido | Nombre del grupo asociado a la receta base y acción Usar grupo. No extender silenciosamente una captura individual. |
 | Destinos y numeración | Lote, subdivisión cuando corresponda, etapa, variedad, superficie y Siguiente #n. Cada destino conserva su secuencia; no se impone un número común al grupo. |
-| Receta base | Folio, fecha de indicación, origen lote/grupo y consulta desplegable de mezcla, agua, medio y nota. Siempre separada de la copia editable. |
-| Editar nueva receta | Editor de productos existente, dosis con unidad fija, agua L/ha, medio, fechas y nota opcional. |
-| Guardado | Pendientes junto a los campos, una acción principal Guardar nueva indicación, progreso y resultado verificable. |
+| Forma de comenzar | Usar receta anterior o Empezar desde cero, sobre un único editor. |
+| Receta base | Última activa propuesta, búsqueda paginada de anteriores activas y referencia de folio/fecha/versión elegida; consulta desplegable. Siempre separada de la copia editable. |
+| Datos de la nueva indicación | Editor de productos existente, dosis con unidad fija, agua L/ha, medio, fechas y nota opcional. |
+| Guardado | Pendientes junto a los campos, una acción principal Guardar indicación, progreso y resultado verificable. |
 
 En móvil los bloques conservan este orden. Productos y campos se apilan sin
 encoger controles; la fila de cada destino conserva etapa y número visibles.
@@ -132,8 +144,10 @@ Estos comportamientos completan las ocho decisiones confirmadas.
   No sustituir productos ni unidades automáticamente.
 - **Asignación de números:** previsualizar el siguiente de cada etapa usando la
   regla existente, que incluye números ocupados por aplicaciones canceladas.
-  Guardar sin imponer un número común, y mostrar los números confirmados por el
-  servidor. No reservar numeración por abrir la pantalla.
+  El valor predeterminado es automático por etapa. Se conserva la captura
+  opcional de número del flujo manual; duplicados se bloquean y un número
+  distinto del siguiente exige revisión explícita. Mostrar números confirmados
+  por el servidor. No reservar numeración por abrir la pantalla.
 - **Cambios concurrentes:** si cambian etapas, grupo o receta base mientras se
   edita, conservar el borrador y pedir revisión del cambio detectado. El servidor
   vuelve a validar destinos y números; un éxito confirmado no se convierte en
@@ -146,12 +160,15 @@ usado para emitir la orden por su ID y nombre histórico. Las pertenencias actua
 no sustituyen ese origen. La corrección única confirmada por el Propietario ya
 vinculó las 23 órdenes anteriores al grupo completo; esta pantalla no la repite.
 
-`application-recipes.ts` resuelve candidatas por etapa vigente y grupo explícito.
+`application-recipes.ts` resuelve historia activa y sugerencias por etapa vigente
+y grupo explícito; `searchRecipes` filtra esa historia autorizada por la versión
+indicada vigente. `ApplicationRecipePicker` reutiliza RecordDialog, SearchField,
+Card y paginación de diez resultados, con foco y cierre compartidos.
 Activa significa que el destino de la base está **indicado o realizado**, nunca
 cancelado. La fecha se toma de la última versión de la indicación. No se copian
 realizaciones, programación, número ni texto de captura con IA.
 
-`ApplicationRecipesPage` coordina selección, confirmaciones y borrador con los
+`ApplicationCreationPage` coordina selección, confirmaciones y borrador con los
 editores compartidos. Conserva fechas nuevas al cambiar la base y muestra los
 valores históricos inactivos hasta que se sustituyan. La navegación por menú,
 Cancelar o Atrás usa el bloqueo de React Router; cerrar/recargar usa el aviso
@@ -255,3 +272,35 @@ conserva el perfil de marca del proyecto. Recorrido exhaustivo de teclado, zoom
 Fuente `7bf3137` publicada en GitHub, Docker healthy y Sites versión 30 con
 resultado `succeeded`. Nueve comprobaciones HTTPS de conexión y tres de código
 aprobadas; audiencia conservada. [Registro operativo](../OPERATIONS.md#nuevas-recetas-por-lote-o-grupo--rcf-030).
+
+
+## Ampliación autorizada: una sola entrada
+
+La solicitud «adelante» posterior a la propuesta autoriza integrar ambos recorridos.
+La última activa se propone si es única; los empates o historias diferentes por
+subdivisión conservan la elección explícita. Buscar otra no modifica los destinos.
+Elegir una anterior carga mezcla, agua, medio y nota de su última revisión.
+Cambiar de receta, modo o destino confirma el reemplazo si se editó la mezcla.
+Las fechas nuevas y el número capturado se conservan y se vuelven a validar.
+Desde cero retira `recipe_source`; la captura con IA mantiene su revisión propia.
+Los filtros compatibles de agrícola/campo/cultivo se llevan a la entrada única.
+
+Se conservan selección manual de varios destinos, numeración opcional con revisión,
+UUID estable, protección al salir, rechazo de referencias inactivas y control de
+versión en servidor. El contrato RPC existente ya acepta una base anterior activa;
+esta ampliación no añade migraciones, permisos ni escrituras operativas.
+
+Evidencia nueva: 301 pruebas de dominio y 167 controles HTTP/Auth/REST/Edge/RLS,
+con advisors sin WARN/ERROR. El caso HTTP ahora crea una indicación posterior y
+comprueba que una anterior sigue siendo una base válida. Stack aislado retirado.
+QA demo: una sola entrada, última única precargada, empates, búsqueda anterior,
+reemplazo cancelado, copia individual con vínculo tras recarga, captura desde cero
+manual con dos destinos y número 9 confirmado, grupo sin recetas individuales,
+cambio de modo con fechas conservadas y descarte protegido. Móvil 375 px sin
+desbordamiento horizontal; control de búsqueda corregido a 44 px en la primitiva compartida.
+Contexto agrícola/campo/cultivo heredado cuando es compatible y lector directo
+sin creación comprobados. `typecheck`, `build`, `docs:check` y diff aprobados;
+se conserva la advertencia previa de chunk mayor de 500 kB.
+Autorrevisión de React y permisos; no se atribuye revisión independiente.
+
+Publicación de la ampliación: pendiente de confirmar.

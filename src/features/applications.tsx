@@ -117,7 +117,6 @@ export function ApplicationsPage() {
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
   const [page, setPage] = useState(1)
-  const [creating, setCreating] = useState(false)
   const orders = useMemo(() => (data.applicationOrders ?? []).map(order => ({ ...order, ...currentOrderIndication(data, order) })), [data])
   const targets = data.applicationTargets ?? []
   const badRange = !!from && !!to && from > to
@@ -147,7 +146,7 @@ export function ApplicationsPage() {
     <section className="workspace-page">
       <header className="page-header">
         <div><p className="eyebrow">Del campo a su historial</p><h1 className="page-title">Aplicaciones</h1><p className="muted">Indica una mezcla y da seguimiento a su realización por lote y etapa.</p></div>
-        <div className="section-actions"><Button variant="outline" asChild><Link to="/grupos-siembra"><Layers3 data-icon="inline-start" />Grupos de siembra</Link></Button>{isAdmin && <Button variant="outline" asChild><Link to={`/aplicaciones/nueva-receta?field=${fieldId === 'all' ? '' : fieldId}&crop=${cropId === 'all' ? '' : cropId}`}>Nueva receta</Link></Button>}{isAdmin && <Button onClick={() => setCreating(true)}><Plus data-icon="inline-start" />Nueva indicación</Button>}</div>
+        <div className="section-actions"><Button variant="outline" asChild><Link to="/grupos-siembra"><Layers3 data-icon="inline-start" />Grupos de siembra</Link></Button>{isAdmin && <Button asChild><Link to={`/aplicaciones/nueva?unit=${unitId === 'all' ? '' : unitId}&field=${fieldId === 'all' ? '' : fieldId}&crop=${cropId === 'all' ? '' : cropId}`}><Plus data-icon="inline-start" />Nueva indicación</Link></Button>}</div>
       </header>
       <div className="stat-grid" aria-label="Destinos de las órdenes filtradas">
         <article className="metric-card"><span>Aplicaciones indicadas</span><strong>{filteredTargets.filter(target => target.status === 'indicated').length}</strong><small>Destinos pendientes en el filtro actual</small></article>
@@ -180,13 +179,12 @@ export function ApplicationsPage() {
               <TableCell><Button asChild variant="outline"><Link to={`/aplicaciones/${order.id}`} aria-label={`Ver orden ${order.folio}`}><Eye data-icon="inline-start" />Ver</Link></Button></TableCell>
             </TableRow>
           })}</TableBody>
-        </Table></div> : <EmptyState title={orders.length ? 'No encontramos órdenes con esos filtros' : 'La primera indicación comienza aquí'} description={orders.length ? 'Prueba otro folio, cambia el rango de fechas o limpia los filtros.' : 'Selecciona etapas sembradas del mismo campo y cultivo para indicar productos, dosis y gasto de agua.'} action={isAdmin && !orders.length ? <Button onClick={() => setCreating(true)}><Plus data-icon="inline-start" />Nueva indicación</Button> : undefined} />}
+        </Table></div> : <EmptyState title={orders.length ? 'No encontramos órdenes con esos filtros' : 'La primera indicación comienza aquí'} description={orders.length ? 'Prueba otro folio, cambia el rango de fechas o limpia los filtros.' : 'Selecciona etapas sembradas del mismo campo y cultivo para indicar productos, dosis y gasto de agua.'} />}
         <div className="table-pagination">
           <p className="muted" aria-live="polite">{filtered.length} {filtered.length === 1 ? 'orden encontrada' : 'órdenes encontradas'}</p>
           <nav aria-label="Paginación de órdenes" className="flex items-center gap-2"><Button variant="outline" disabled={currentPage <= 1} onClick={() => setPage(currentPage - 1)}>Anterior</Button><span>{currentPage} / {pageCount}</span><Button variant="outline" disabled={currentPage >= pageCount} onClick={() => setPage(currentPage + 1)}>Siguiente</Button></nav>
         </div>
       </div>
-      {creating && isAdmin && <NewApplicationDialog close={() => setCreating(false)} />}
     </section>
   )
 }

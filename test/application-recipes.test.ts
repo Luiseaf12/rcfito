@@ -3,7 +3,7 @@ import test from 'node:test'
 import { createDemoData, DEMO_ADMIN_ID } from '../src/domain/demo.ts'
 import { applyCommand } from '../src/domain/rules.ts'
 import { currentOrderIndication } from '../src/domain/application-editing.ts'
-import { recipeCandidates, recipeSource, validateRecipeSource } from '../src/domain/application-recipes.ts'
+import { recipeCandidates, recipeHistory, searchRecipes, recipeSource, validateRecipeSource } from '../src/domain/application-recipes.ts'
 import { readRecipeSource } from '../src/data/application-group-history.ts'
 import type { ApplicationOrderInput } from '../src/domain/model.ts'
 
@@ -90,4 +90,56 @@ test('adaptador recupera referencia persistida y rechaza versión corrupta', () 
   assert.deepEqual(readRecipeSource({}), { recipe_source: null })
   assert.deepEqual(readRecipeSource({ recipe_source_order_id: 'base', recipe_source_revision: 2, recipe_source_stage_id: 'stage' }), { recipe_source: { order_id: 'base', revision: 2, stage_id: 'stage' } })
   assert.throws(() => readRecipeSource({ recipe_source_order_id: 'base', recipe_source_revision: '2' }), /verificar/)
+})
+
+test('historia ofrece anteriores activas por fecha y deja la última como sugerencia', () => {
+  const f = fixture()
+  const old = f.create(f.record({ indicated_date: '2026-10-08' })), recent = f.create()
+  const cancelled = f.create(f.record({ indicated_date: '2026-10-11' }))
+  f.set(applyCommand(f.data, { type: 'cancel_application_targets', order_id: cancelled.id, target_ids: f.data.applicationTargets.filter(item => item.order_id === cancelled.id).map(item => item.id), reason: 'Prueba ficticia' }, f.admin))
+  assert.deepEqual(recipeHistory(f.data, ['stage-1']).map(item => item.order_id), [recent.id, old.id])
+  assert.equal(recipeCandidates(f.data, ['stage-1'])[0].order_id, recent.id)
+  assert.deepEqual(recipeHistory(f.data, ['etapa-siguiente']), [])
+})
+
+test('búsqueda filtra solo su historia y usa folio, fecha, producto, medio y nota de la última versión', () => {
+  const f = fixture(), order = f.create()
+  f.set(applyCommand(f.data, { type: 'revise_application_order', record: { ...f.record(), id: crypto.randomUUID(), order_id: order.id, expected_revision: 0, target_ids: f.data.applicationTargets.map(item => item.id), observations: 'Ácido: revisar follaje', reason: 'Ajuste ficticio', products: [{ product_id: 'product-b', dose: 45 }] } }, f.admin))
+  const history = recipeHistory(f.data, ['stage-1'])
+  for (const query of [order.folio, '2026-10-10', '10/10/2026', 'acido follaje', 'DRON', 'Producto de ejemplo B']) assert.equal(searchRecipes(f.data, history, query)[0]?.order_id, order.id, query)
+  assert.equal(searchRecipes(f.data, history, 'Nota ficticia').length, 0)
+  assert.equal(searchRecipes(f.data, history, 'Producto de ejemplo A').length, 0)
+  assert.equal(searchRecipes(f.data, history, 'sin coincidencias').length, 0)
+  assert.equal(searchRecipes(f.data, [], order.folio).length, 0)
+  assert.equal(searchRecipes(f.data, history, '  '), history)
+  assert.equal(history[0].revision, 1)
+})
+
+test('grupo ofrece todas sus emisiones activas, sin mezclar una individual posterior', () => {
+  const f = fixture()
+  f.set(applyCommand(f.data, { type: 'save_sowing_group', record: { id: 'group-test', project_id: 'project-ensenada', field_id: 'field-norte', crop_id: 'crop-pepino', name: 'Grupo ficticio', active: true, stage_ids: ['stage-1'] } }, f.admin))
+  const old = f.create(f.record({ source_group_id: 'group-test', indicated_date: '2026-10-08' }))
+  const recent = f.create(f.record({ source_group_id: 'group-test' }))
+  f.create(f.record({ indicated_date: '2026-10-11' }))
+  assert.deepEqual(recipeHistory(f.data, ['stage-1'], 'group-test').map(item => item.order_id), [recent.id, old.id])
+  assert.equal(recipeCandidates(f.data, ['stage-1'], 'group-test')[0].order_id, recent.id)
+  assert.deepEqual(recipeHistory(f.data, ['stage-1'], 'otro-grupo'), [])
+})
+
+test('elegir una anterior crea otra indicación con referencia correcta y preserva fechas, números e historia previos', () => {
+  const f = fixture()
+  const old = f.create(f.record({ indicated_date: '2026-10-08', water_l_ha: 80 }))
+  f.create(f.record({ water_l_ha: 200 }))
+  const history = recipeHistory(f.data, ['stage-1'])
+  const candidate = history.find(item => item.order_id === old.id)!
+  const before = structuredClone(f.data.applicationOrders)
+  const copy = f.create(f.record({ recipe_source: recipeSource(candidate), indicated_date: '2026-10-12', scheduled_date: '2026-10-13', water_l_ha: currentOrderIndication(f.data, old).water_l_ha }))
+  assert.equal(copy.water_l_ha, 80)
+  assert.equal(copy.indicated_date, '2026-10-12')
+  assert.equal(copy.scheduled_date, '2026-10-13')
+  assert.equal(copy.recipe_source?.order_id, old.id)
+  assert.equal(f.data.applicationTargets.find(item => item.order_id === copy.id)?.application_number, 3)
+  assert.deepEqual(f.data.applicationOrders.slice(0, before.length), before)
+  const empty = f.create(f.record({ recipe_source: undefined }))
+  assert.equal(empty.recipe_source, undefined)
 })
