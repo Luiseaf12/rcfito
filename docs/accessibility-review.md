@@ -1,5 +1,8 @@
 # Revisión de accesibilidad — RCF-006
 
+Estado: **descartada por el Propietario el 2026-11-03**. Se conserva la evidencia
+parcial y las mejoras publicadas; no queda una verificación activa en esta tarea.
+
 Alcance autorizado: teclado completo, zoom/texto al 200 %, ventanas de poca
 altura y contraste medido. Se conserva el tema claro vigente y las reglas de
 negocio. No constituye una certificación completa de WCAG ni inicia RCF-034.
@@ -72,10 +75,21 @@ auditoría automática de todas las pantallas. El recorrido en navegador comprue
 los estilos renderizados y el comportamiento. No se detectaron errores ni avisos
 de consola durante los casos revisados.
 
-## Verificación pendiente
+## Verificación no realizada
 
 La herramienta de control nativo necesita reconocer una URL web visible en
 Edge; con la ventana en «Nueva pestaña» no permite iniciar el control. Se solicitó
-abrir `http://127.0.0.1:5195/#/` para completar el zoom real al 200 %.
+abrir la demostración local para completar el zoom real al 200 %.
 Los tamaños reducidos anteriores no se presentan como sustituto de esa prueba.
-RCF-006 permanece en curso hasta contar con esa evidencia y su publicación.
+La comprobación no se realizó antes del descarte y no se acredita como aprobada.
+
+## Descarte por el Propietario
+
+2026-11-03: instrucción expresa «descarta la 006». Se cancela el trabajo restante,
+incluida la prueba de zoom real al 200 %, y se retira RCF-006 de los pendientes
+activos. Esto no certifica el alcance completo de accesibilidad.
+
+Se conservan las correcciones publicadas desde la fuente `22a2fe2` en GitHub,
+frontend Docker y Sites versión 36, así como las 311 pruebas y 20 pares de
+contraste documentados. La decisión no solicita revertir esos cambios.
+[Registro de publicación y decisión](OPERATIONS.md#accesibilidad-y-descarte--rcf-006).

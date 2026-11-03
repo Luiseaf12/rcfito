@@ -690,9 +690,11 @@ flechas desplazadas 80 px y adaptación de su parada de Tab al redimensionar.
 Sin errores ni avisos de consola en los casos revisados.
 
 375/1440 px y alturas de 812/900, 450 y 200 px comprobadas según la
-[matriz](accessibility-review.md). Zoom real al 200 % pendiente de habilitar
-el control de Edge con una URL web reconocible. No se acredita esa prueba con
-un viewport reducido. No hay nuevas pruebas ni escrituras de backend/operación.
+[matriz](accessibility-review.md). El zoom real al 200 % no se realizó por el
+bloqueo de control de Edge. El Propietario descartó RCF-006 el 2026-11-03;
+esa comprobación se cancela sin acreditarla mediante un viewport reducido.
+Se conservan las correcciones publicadas en Sites 36. No hay nuevas pruebas
+ni escrituras de backend/operación.
 
 ## Eliminación excepcional de captura — RCF-037
 

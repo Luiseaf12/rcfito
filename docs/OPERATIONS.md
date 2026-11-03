@@ -875,3 +875,19 @@ No cambian frontend, Worker, endpoints ni configuración: no requiere nuevo
 despliegue de Docker/Sites. No se creó una recaptura ficticia en operación ni
 se consumió IA. Cierre de la corrección de datos, sin afirmar validación de una
 nueva captura real del Propietario.
+
+## Accesibilidad y descarte — RCF-006
+
+Las correcciones de teclado, foco, contraste, botones y ventanas bajas quedaron
+publicadas el 2026-11-02 desde la fuente `22a2fe21884fbbf034ce0e491d9d568e48bdafa2`
+en GitHub, frontend Docker y Sites versión **36**. Sites confirmó `succeeded`,
+despliegue `appgdep_6ae947eed92c81919c38dac4f8f85373`, en
+[RCFito](https://rcfito.paxxa.chatgpt.site). Audiencia pública, R2 y revisión de
+entorno 1 conservados. Recursos publicados, PDF/fuentes, Auth y rechazo anónimo
+comprobados en Docker y Sites sin escrituras de operación.
+
+2026-11-03: el Propietario solicitó «descarta la 006». Se cancela la verificación
+restante al 200 % y la tarea pasa a descartada; las mejoras publicadas se
+conservan. El descarte no acredita esa prueba ni la revisión completa de
+accesibilidad. No requiere modificar o volver a desplegar la aplicación.
+[Decisión y evidencia parcial](accessibility-review.md#descarte-por-el-propietario).
