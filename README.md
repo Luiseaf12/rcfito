@@ -29,7 +29,7 @@ Node.js 24 y npm. Docker se necesita para ejecutar el backend o sus pruebas.
 
 Los componentes shadcn/Radix son código versionado. La CLI `shadcn` no forma
 parte de la instalación base; desarrollo, pruebas y build usan los componentes
-ya instalados. [Revisión de dependencias](docs/SECURITY.md#dependencias-de-desarrollo--rcf-005).
+y estilos conservados en el repositorio. [Revisión de dependencias](docs/SECURITY.md#dependencias-de-desarrollo--rcf-005).
 
 ```sh
 npm ci

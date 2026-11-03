@@ -632,7 +632,8 @@ operación; no se repiten ni se atribuyen como nuevas las pruebas SQL/HTTP de RC
 
 2026-11-02: auditoría inicial de npm confirmó seis alertas de desarrollo
 (dos bajas y cuatro moderadas); producción permanecía en cero. Las seis
-procedían de la CLI `shadcn`, sin imports ni comandos del proyecto que la usen.
+procedían de la CLI `shadcn`, sin imports JavaScript ni comandos que la ejecuten.
+Su hoja CSS se conserva localmente con licencia y contenido idéntico al original.
 [Cadenas, avisos y decisión](SECURITY.md#dependencias-de-desarrollo--rcf-005).
 
 Se retiró `shadcn@4.23.0` de devDependencies mediante npm, con 214 entradas
@@ -648,10 +649,17 @@ Comprobaciones en checkout aislado, sin leer el `.env` de la raíz:
 - `npm audit --json` y `npm audit --omit=dev --json`: cero alertas en todas
   las severidades. Los informes originales quedan en `.artifacts/`, fuera de Git.
 - `npm test`: 311 pruebas aprobadas, sin añadir pruebas que repliquen el lockfile.
-- `npm run build`: tipos y build de producción aprobados, 37 recursos públicos.
-  SHA-256 del Worker idéntico antes/después:
-  `2f7a7c5bfa6d1a3c927b4bb4a5de4cedd03d7efba4201f29702e95c4be456f09`.
-  Se conserva la advertencia previa del chunk principal mayor de 500 kB.
+- `npm run build`: tipos y build de producción aprobados, 38 recursos públicos.
+  Comparación del manifiesto completo contra el archivo publicado de Sites 33:
+  los 37 recursos existentes son idénticos, sin retirados ni modificados;
+  se añade únicamente `/licenses/shadcn-ui.txt`. CSS y JS principales conservan
+  `index-B3wg8rA1.css` e `index-6uOcXiaP.js`. Se conserva la advertencia previa
+  del chunk principal mayor de 500 kB.
+- Docker Linux aislado detectó que el build local inicial resolvía la hoja CSS
+  desde el `node_modules` del checkout padre. Se corrigió el import para usar
+  la copia local de shadcn, SHA-256
+  `4c371f7a1ff5d219ae2f7ff28bd256b4346fd546fe46fbae22092e57db2f0fae`.
+  La compilación aislada posterior aprobó sin depender del checkout padre.
 
 El resultado de auditoría describe el árbol y la base de avisos de esta fecha,
 no garantiza ausencia de hallazgos futuros. Al ser idéntico el código servido,

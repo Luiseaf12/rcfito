@@ -11,14 +11,17 @@ moderadas, derivadas exclusivamente de la CLI `shadcn@4.23.0`.
 | `shadcn → deepmerge@4.3.1`, también mediante `@shadcn/registry@0.2.1` | [GHSA-gcqx-w48m-w2h4](https://github.com/advisories/GHSA-gcqx-w48m-w2h4): aviso aún presente en npm. Su validez está disputada en el [hilo del proveedor](https://github.com/TehShrike/deepmerge/issues/273); no se presenta como una vulnerabilidad confirmada de RCFito. |
 
 La consulta al registro npm confirmó que 4.23.0 seguía siendo la última CLI.
-Ningún import de la aplicación, prueba, script o comando de build utiliza ese
-paquete: los componentes shadcn/Radix están versionados en `src/components/ui`
+Los componentes shadcn/Radix están versionados en `src/components/ui`
 y `@shadcn/react` es una dependencia de ejecución distinta que se conserva.
+No hay imports JavaScript ni comandos que ejecuten la CLI. Sí existía un import
+CSS de `shadcn/tailwind.css`: se conserva su contenido exacto de 4.23.0 en
+`src/styles/vendor/shadcn-4.23.0.css`, con procedencia/huella y licencia MIT
+distribuida en `/licenses/shadcn-ui.txt`. El import ahora apunta a esa copia local.
 Se retira la CLI de la instalación base y se eliminan sus 214 entradas exclusivas
 del lockfile. Todas las entradas que permanecen conservan versión y metadatos.
 
 La [CLI oficial](https://ui.shadcn.com/docs/cli) sirve para incorporar componentes;
-no es requisito para ejecutar los componentes ya instalados. Cuando se necesite
+no es requisito para ejecutar los componentes y estilos ya conservados. Cuando se necesite
 otra herramienta de generación, revisar su versión y dependencias al incorporarla.
 El cierre elimina del árbol instalado la cadena que npm señalaba; no silencia
 avisos, modifica el nivel de auditoría ni fuerza overrides de versiones mayores.

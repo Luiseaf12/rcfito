@@ -6,6 +6,11 @@ React + TypeScript + Vite 8, HashRouter, Tailwind 4 y shadcn/Radix nova.
 [components.json](../components.json) registra instalación y aliases.
 Geist Variable se sirve como dependencia local; los iconos son Lucide.
 
+La hoja base de shadcn 4.23.0 se conserva sin cambios en
+[styles/vendor](../src/styles/vendor/README.md), con licencia MIT distribuida
+en el frontend. `index.css` importa esa copia local y no requiere instalar
+la CLI. [Revisión y evidencia](SECURITY.md#dependencias-de-desarrollo--rcf-005).
+
 El tema canónico está en [index.css](../src/index.css): fondo cálido `#f6f7f2`,
 texto `#233a30`, superficies blancas, sidebar `#173e33` y acción principal lima
 `#d2e9a0` con texto oscuro. Los tokens semánticos comparten superficie, borde,
