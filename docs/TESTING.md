@@ -627,3 +627,33 @@ continúa descargando con fecha pendiente. Archivos descargados extraídos y cop
 revisada renderizada, no solo clics. No hay nuevas escrituras ni fixtures en
 operación; no se repiten ni se atribuyen como nuevas las pruebas SQL/HTTP de RCF-030.
 [Flujo](flows/saved-recipe-pdf.md).
+
+## Dependencias de desarrollo — RCF-005
+
+2026-11-02: auditoría inicial de npm confirmó seis alertas de desarrollo
+(dos bajas y cuatro moderadas); producción permanecía en cero. Las seis
+procedían de la CLI `shadcn`, sin imports ni comandos del proyecto que la usen.
+[Cadenas, avisos y decisión](SECURITY.md#dependencias-de-desarrollo--rcf-005).
+
+Se retiró `shadcn@4.23.0` de devDependencies mediante npm, con 214 entradas
+exclusivas menos en el lockfile. Comparación estructural contra el lock anterior:
+ninguna ruta nueva, ninguna versión ni metadato cambiado entre los paquetes
+restantes. Los controles versionados, `@shadcn/react`, Radix y los comandos
+vigentes se conservan. No hay overrides ni excepciones para ocultar alertas.
+
+Comprobaciones en checkout aislado, sin leer el `.env` de la raíz:
+
+- `npm ci --ignore-scripts`: instalación reproducible de 163 paquetes,
+  164 auditados, cero alertas; sin ejecutar scripts de instalación.
+- `npm audit --json` y `npm audit --omit=dev --json`: cero alertas en todas
+  las severidades. Los informes originales quedan en `.artifacts/`, fuera de Git.
+- `npm test`: 311 pruebas aprobadas, sin añadir pruebas que repliquen el lockfile.
+- `npm run build`: tipos y build de producción aprobados, 37 recursos públicos.
+  SHA-256 del Worker idéntico antes/después:
+  `2f7a7c5bfa6d1a3c927b4bb4a5de4cedd03d7efba4201f29702e95c4be456f09`.
+  Se conserva la advertencia previa del chunk principal mayor de 500 kB.
+
+El resultado de auditoría describe el árbol y la base de avisos de esta fecha,
+no garantiza ausencia de hallazgos futuros. Al ser idéntico el código servido,
+no se repiten recorridos de UI ni pruebas de backend como evidencia nueva.
+No hay migraciones ni escrituras de operación.
