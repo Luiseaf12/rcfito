@@ -854,3 +854,24 @@ Sites confirmó `succeeded`, versión
 despliegue `appgdep_6ae92e9a887481919a55425921d3cb82`, en
 [RCFito](https://rcfito.paxxa.chatgpt.site). Audiencia pública, R2 y revisión de
 entorno 1 conservados. Cambios ajenos del workspace fuera de los commits propios.
+
+
+## Eliminación excepcional de captura — RCF-037
+
+2026-11-02: aplicada la eliminación puntual solicitada por el Propietario para
+liberar folio y números de aplicación. Quince controles PostgreSQL aislados y
+simulación operativa aprobados antes de ejecutar. Respaldo privado custom de
+537,230 bytes validado; una orden pendiente, cuatro destinos y cinco líneas
+retirados. Sin realizaciones, revisiones ni recetas dependientes.
+
+Comparación antes/después confirma grupos, integrantes, demás aplicaciones e
+historial idénticos. Guardas restauradas, FK/RLS/permisos conservados y ledger
+10/0 intacto. Se comprobó sin consumir la secuencia que el folio retirado y el
+siguiente número de las cuatro etapas quedaron disponibles. Plan/resultados y
+respaldo solo en mantenimiento privado; ningún dato identificable en Git.
+[Procedimiento, límites y recaptura](flows/application-removal.md).
+
+No cambian frontend, Worker, endpoints ni configuración: no requiere nuevo
+despliegue de Docker/Sites. No se creó una recaptura ficticia en operación ni
+se consumió IA. Cierre de la corrección de datos, sin afirmar validación de una
+nueva captura real del Propietario.

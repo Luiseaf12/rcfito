@@ -693,3 +693,13 @@ Sin errores ni avisos de consola en los casos revisados.
 [matriz](accessibility-review.md). Zoom real al 200 % pendiente de habilitar
 el control de Edge con una URL web reconocible. No se acredita esa prueba con
 un viewport reducido. No hay nuevas pruebas ni escrituras de backend/operación.
+
+## Eliminación excepcional de captura — RCF-037
+
+2026-11-02: `node scripts/backend-application-removal-test.mjs` aprobó quince
+comprobaciones PostgreSQL con fixtures ficticios en contenedor aislado que se
+retiró al terminar. Cubren rechazo de dependencias/realizaciones/plan cambiado,
+rollback de borrado y secuencia, guardas, permisos, reutilización de folio y
+número mediante creación grupal real y protección frente a repetir el borrado.
+Simulación operativa y consulta posterior aprobadas sin crear datos de prueba
+en operación. [Evidencia y límites](flows/application-removal.md#resultado-y-verificación).
