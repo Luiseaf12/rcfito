@@ -823,3 +823,34 @@ Sites confirmó `succeeded`, versión
 despliegue `appgdep_6ae8f79ea7a48191b7436c6e5e81f135`, en
 [RCFito](https://rcfito.paxxa.chatgpt.site). Audiencia pública, R2 y revisión de
 entorno 1 conservados. Los PDF de QA ficticios quedan fuera de Git y builds.
+
+## Dependencias de desarrollo — RCF-005
+
+2026-11-02: fuente final `87964bf84b5c614f7e83bfce03b84a608b8c6d3a` publicada
+en GitHub, frontend Docker y Sites versión **35**. Se retiró la CLI de shadcn
+no ejecutada por los comandos del proyecto y sus 214 dependencias exclusivas.
+La hoja CSS que aportaba se conserva localmente, sin modificaciones y con su
+licencia MIT distribuida. `@shadcn/react`, Radix y los componentes permanecen.
+[Revisión de cadenas y avisos](SECURITY.md#dependencias-de-desarrollo--rcf-005).
+
+Instalación reproducible de 163 paquetes, 164 auditados; auditorías completa y
+producción en cero. Los paquetes restantes conservan versión y metadatos; sin
+overrides ni avisos ignorados. 311 pruebas, tipos, build/checker y compilación
+Docker Linux aprobados. Esta última detectó y permitió corregir una resolución
+CSS desde el checkout padre que ocultaba el fallo en el primer build local.
+El manifiesto final conserva idénticos los 37 recursos existentes de Sites 33
+y añade solo la licencia de shadcn. La advertencia previa del chunk permanece.
+[Evidencia](TESTING.md#dependencias-de-desarrollo--rcf-005).
+
+La versión 34 se guardó sin desplegar; el despliegue se realizó sobre la versión
+35, que incluye el import CSS local comprobado. Docker `healthy`; recursos
+exactos, estilos y licencia MIT, PDF/fuentes, Auth y rechazo anónimo comprobados
+en local y Sites. Nueve controles HTTPS de conexión aprobados. Sin migraciones,
+nuevos datos ni cambios de configuración del backend. Los informes privados
+de npm se conservan fuera de Git; no se leyó el `.env` de la raíz.
+
+Sites confirmó `succeeded`, versión
+`appgprj_6ae67ae019e88191a7012093bb19c505~appgver_143dc8bcd8fc8191851b875938ef778c`,
+despliegue `appgdep_6ae92e9a887481919a55425921d3cb82`, en
+[RCFito](https://rcfito.paxxa.chatgpt.site). Audiencia pública, R2 y revisión de
+entorno 1 conservados. Cambios ajenos del workspace fuera de los commits propios.

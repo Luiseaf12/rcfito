@@ -665,3 +665,9 @@ El resultado de auditoría describe el árbol y la base de avisos de esta fecha,
 no garantiza ausencia de hallazgos futuros. Al ser idéntico el código servido,
 no se repiten recorridos de UI ni pruebas de backend como evidencia nueva.
 No hay migraciones ni escrituras de operación.
+
+Fuente `87964bf` publicada en GitHub, Docker healthy y Sites 35. Nueve controles
+HTTPS de conexión y comprobación de código/CSS, módulo PDF, fuentes, licencias,
+Auth y rechazo anónimo en Docker/Sites aprobados. La versión 34 se guardó sin
+desplegar; la versión 35 contiene la corrección del import CSS comprobada en Linux.
+[Registro](OPERATIONS.md#dependencias-de-desarrollo--rcf-005).
