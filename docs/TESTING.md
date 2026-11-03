@@ -8,6 +8,7 @@ Node.js 24 y npm. Ejecutar `npm ci` antes de checks de aplicación.
 | --- | --- |
 | `npm test` | Reglas puras y conexión: permisos demo, relaciones, historial, transiciones y conservación del prefijo API. |
 | `npm run typecheck` | Tipos de la aplicación TypeScript. |
+| `npm run a11y:contrast` | 20 pares de colores del tema claro; complementar con navegador y la matriz de RCF-006. |
 | `npm run build` | Tipos y build Vite de producción a `dist/`. |
 | `npm run docs:check` | Versión, hashes, mapa, enlaces de entradas y excepciones del estándar. |
 | `node scripts/backend-test.mjs` | SQL, RLS y transacciones en PostgreSQL efímero, sin puertos. |
@@ -671,3 +672,24 @@ HTTPS de conexión y comprobación de código/CSS, módulo PDF, fuentes, licenci
 Auth y rechazo anónimo en Docker/Sites aprobados. La versión 34 se guardó sin
 desplegar; la versión 35 contiene la corrección del import CSS comprobada en Linux.
 [Registro](OPERATIONS.md#dependencias-de-desarrollo--rcf-005).
+
+## Revisión de accesibilidad — RCF-006
+
+2026-11-02: 311 pruebas, tipos, build de 38 recursos y checker documental
+aprobados. `npm run a11y:contrast`: 20 pares aprobados sin redondear el umbral.
+Revisión de React: efectos con limpieza, callbacks previos conservados, foco
+administrado con referencias y sin nuevos permisos, dependencias o llamadas de
+red. Se conserva la advertencia anterior del chunk principal mayor de 500 kB.
+
+Navegador con datos ficticios: alta/búsqueda/detalle de catálogo por teclado,
+selectores y errores asociados; edición larga; etapa y protección de borrador;
+receta grupal con buscador anterior y error de fecha; realización/cancelación
+abiertas sin confirmar; grupo, revisión de IA, chat ficticio y asignaciones.
+Menú móvil con Escape y cambio de ruta verificados por separado. Tablas con
+flechas desplazadas 80 px y adaptación de su parada de Tab al redimensionar.
+Sin errores ni avisos de consola en los casos revisados.
+
+375/1440 px y alturas de 812/900, 450 y 200 px comprobadas según la
+[matriz](accessibility-review.md). Zoom real al 200 % pendiente de habilitar
+el control de Edge con una URL web reconocible. No se acredita esa prueba con
+un viewport reducido. No hay nuevas pruebas ni escrituras de backend/operación.

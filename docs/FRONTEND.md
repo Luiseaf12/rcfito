@@ -224,3 +224,13 @@ y pagina diez resultados después de filtrar el conjunto autorizado.
 Base histórica y copia editable permanecen separadas. Cambiar base o destinos
 confirma el reemplazo de una mezcla editada; menú, Cancelar y Atrás protegen el
 borrador. [Flujo, estados y evidencia](flows/recipe-creation.md).
+
+## Accesibilidad — RCF-006
+
+El foco de teclado usa contorno opaco, con color propio en la navegación oscura.
+Los botones compuestos conservan un área mínima de 44×44 px. Confirmaciones y
+editores largos desplazan su contenido dentro de la altura visible. El descarte
+cancelado devuelve al campo anterior; cerrar el menú devuelve a su botón, mientras
+que navegar conserva el foco en el contenido nuevo. Las tablas que desbordan
+ofrecen una región enfocada con Tab y desplazamiento con flechas; las que caben
+no agregan esa parada. [Matriz, contraste y límites](accessibility-review.md).
