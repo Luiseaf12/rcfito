@@ -456,11 +456,11 @@ automática por defecto y captura opcional de número con revisión del historia
 
 ## Orden descendente de productos de una malla
 
-RCF-031, solicitado el 2026-11-01. Pendiente de desarrollar: cuando el usuario
+RCF-031, solicitado el 2026-11-01 y autorizado para desarrollo el 2026-11-03: cuando el usuario
 elige una malla en el resumen y pulsa **Ver productos**, los productos de esa
-selección deben aparecer de mayor a menor por la cantidad calculada. Este
-registro conserva el alcance solicitado; no cambia todavía el orden implementado.
-Antes de desarrollar se plantearán las dudas conforme a AGENTS.
+selección aparecen de mayor a menor por la cantidad calculada. Se conserva la
+identidad de lote de temporada usada por el resumen. La tabla general conserva
+su orden inicial ascendente. [Reglas y evidencia](flows/product-dashboard.md#orden-descendente-por-lote--rcf-031).
 
 ## Exportación de productos a PDF
 

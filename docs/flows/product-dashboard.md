@@ -117,11 +117,11 @@ cuenta una sola vez por destino. La superficie configurada no se multiplica por
 aplicaciones ni por productos. Se conservan subdivisiones retiradas y etapas
 cerradas; faltantes de relación no se agrupan por un nombre ambiguo.
 
-Por solicitud explícita, las tablas de productos (global y por lote) inician por
-cantidad ascendente sin separar líquidos/sólidos: comparar el número de L/kg
-mostrado, conservando la unidad en cada fila. No sumar masas y volúmenes entre sí.
-Esto sustituye el orden inicial por conteo y la agrupación por unidad al ordenar
-cantidad. El ranking conserva aplicaciones descendentes y el historial sus fechas.
+La tabla general de productos inicia por cantidad ascendente; **Ver productos**
+del lote inicia por cantidad descendente conforme a RCF-031. Ambas comparan el
+número de L/kg sin agrupar líquidos/sólidos y conservan la unidad en cada fila.
+El cálculo y ordenamiento usan su precisión original; no se suman masas y
+volúmenes entre sí. El ranking conserva aplicaciones descendentes y el historial sus fechas.
 El historial de un producto abierto desde un lote contiene únicamente ese lote.
 Sin datos se muestra vacío explicativo; errores de carga conservan recuperación
 del shell y las validaciones de historial existentes. No hay migraciones ni
@@ -135,6 +135,27 @@ consola. Revisión independiente integrada. Cierre: revisión limpia ce7ed07 con
 aprobados. Commit/push a GitHub y repositorio de Sites; publicación versión 20
 confirmada con tres comprobaciones HTTP posteriores.
 [Publicación](../OPERATIONS.md#publicación-del-resumen-por-lote).
+
+### Orden descendente por lote — RCF-031
+
+Autorizado el 2026-11-03, sin dudas adicionales: abrir **Ver productos** conserva
+los filtros y la identidad del lote de temporada. Sus filas se ordenan de mayor
+a menor cantidad calculada antes de paginar. Los empates conservan nombre
+ascendente en español y clave estable. La cabecera muestra ↓ y
+`aria-sort="descending"`; la nota describe el mismo orden.
+
+Se conserva el comparador ascendente predeterminado de la tabla general,
+el ranking por aplicaciones y las fechas descendentes del historial. Las unidades,
+fórmulas, cantidades y permisos mantienen su contrato vigente. No hay migraciones,
+nuevos endpoints ni escrituras de datos de operación.
+
+2026-11-03: 312 pruebas, tipos, build de 38 recursos y checker aprobados.
+Regresiones de orden mixto L/kg, desempates, cantidades distintas que redondean
+al mismo valor y orden global/ranking conservados. QA demo: trece productos en
+dos páginas, cabecera descendente, filtro Realizadas, historial exclusivo con
+retorno de foco y móvil 375 px sin overflow de página. Sin avisos ni errores de
+consola. Autorrevisión del diff; no se atribuye revisión independiente. Publicación
+pendiente.
 
 La primera revisión pasó 206 pruebas desde checkout limpio y QA de filtros,
 paginación, dosis ponderada, lector demo y 375/1440 px. La rectificación a Todas

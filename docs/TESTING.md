@@ -705,3 +705,18 @@ rollback de borrado y secuencia, guardas, permisos, reutilización de folio y
 número mediante creación grupal real y protección frente a repetir el borrado.
 Simulación operativa y consulta posterior aprobadas sin crear datos de prueba
 en operación. [Evidencia y límites](flows/application-removal.md#resultado-y-verificación).
+
+## Orden descendente por lote — RCF-031
+
+2026-11-03: 312 pruebas aprobadas. Se actualizan los casos del orden por lote y
+se añade una regresión de cantidades diferentes que redondean al mismo valor.
+Se conserva el orden global ascendente, el ranking, los desempates estables,
+las unidades y los límites de consulta. Tipos, build de 38 recursos y checker
+aprobados; advertencia previa del chunk principal conservada.
+
+QA demo con trece productos: primera y segunda página descendentes, cabecera
+con `aria-sort="descending"`, filtro Realizadas, historial exclusivo del lote y
+retorno de foco. Tabla general conserva `aria-sort="ascending"` en cantidad.
+375/1440 px sin overflow general y sin avisos/errores de consola. Autorrevisión;
+sin nueva prueba de backend, migración o escritura en operación.
+[Reglas y recorrido](flows/product-dashboard.md#orden-descendente-por-lote--rcf-031).

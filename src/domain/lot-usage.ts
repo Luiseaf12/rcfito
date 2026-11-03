@@ -81,7 +81,7 @@ export function buildLotUsage(data: WorkspaceData, filters: ProductUsageFilters 
     group.summary.applicationCount = group.targetIds.size
     group.summary.products = [...group.products.values()]
       .map(({ product, history }) => summarizeProductUsage(product, history))
-      .sort(compareProductQuantity)
+      .sort((a, b) => compareProductQuantity(a, b, 'descending'))
     group.summary.productCount = new Set(group.summary.products.map(product => product.productId)).size
     return group.summary
   }).sort((a, b) => a.agriculturalUnitName.localeCompare(b.agriculturalUnitName, 'es-MX')

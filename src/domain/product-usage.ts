@@ -58,8 +58,9 @@ const positive = (value: number) => Number.isFinite(value) && value > 0
 const productKey = (product: ProductLine) => JSON.stringify([product.product_id, product.unit])
 
 /** Quantity order follows the displayed L/kg number without combining units. */
-export function compareProductQuantity(a: ProductUsageSummary, b: ProductUsageSummary): number {
-  return a.totalQuantity / 1000 - b.totalQuantity / 1000
+export function compareProductQuantity(a: ProductUsageSummary, b: ProductUsageSummary, direction: 'ascending' | 'descending' = 'ascending'): number {
+  const difference = a.totalQuantity / 1000 - b.totalQuantity / 1000
+  return (direction === 'descending' ? -difference : difference)
     || a.name.localeCompare(b.name, 'es-MX') || a.key.localeCompare(b.key)
 }
 

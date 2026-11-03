@@ -84,7 +84,7 @@ test('resume mezclas y subdivisiones con aplicaciones únicas y superficie confi
   assert.equal(lot.applicationCount, 3, 'la mezcla de dos productos sigue siendo un solo destino')
   assert.equal(lot.productCount, 2)
   assert.equal(lot.lastRecordedDate, '2026-10-21')
-  assert.deepEqual(lot.products.map(product => product.productId), ['product-b', 'product-a'], 'cantidad ascendente con unidades mezcladas')
+  assert.deepEqual(lot.products.map(product => product.productId), ['product-a', 'product-b'], 'cantidad descendente con unidades mezcladas')
   const a = lot.products.find(product => product.productId === 'product-a')!
   assert.equal(a.applicationCount, 2)
   assert.equal(a.destinationCount, 1)
@@ -174,7 +174,7 @@ test('un lote con referencia perdida o un campo de otra agrícola no recibe iden
   assert.deepEqual(buildLotUsage(other), { lots: [], incompleteCount: 1 })
 })
 
-test('ordena cantidades ascendentes entre L y kg con desempates estables y mantiene el ranking global por aplicaciones', () => {
+test('ordena el lote descendente entre L y kg con desempates estables, conserva el global ascendente y el ranking por aplicaciones', () => {
   const data = fixture()
   addRecord(data, 'first', { products: [liquid(125, 'Zeta'), solid(62.5, 'Beta')] })
   addRecord(data, 'second', { products: [liquid(125, 'Zeta')] })
@@ -185,7 +185,9 @@ test('ordena cantidades ascendentes entre L y kg con desempates estables y manti
   const sorted = [...global.products].sort(compareProductQuantity)
   assert.deepEqual(sorted.map(product => product.productId), ['product-c', 'product-d', 'product-b', 'product-a'])
   assert.deepEqual(sorted.map(product => product.totalQuantity / 1000), [0.5, 0.5, 0.5, 2])
-  assert.deepEqual(buildLotUsage(data).lots[0].products.map(product => product.productId), sorted.map(product => product.productId))
+  const lotProducts = buildLotUsage(data).lots[0].products
+  assert.deepEqual(lotProducts.map(product => product.productId), ['product-a', 'product-c', 'product-d', 'product-b'])
+  assert.deepEqual(lotProducts.map(product => product.totalQuantity / 1000), [2, 0.5, 0.5, 0.5])
   data.applicationTargets.reverse()
   assert.deepEqual(buildLotUsage(data).lots[0].products, buildLotUsage({ ...data, applicationTargets: [...data.applicationTargets].reverse() }).lots[0].products)
 })
@@ -208,7 +210,19 @@ test('productos distintos cuenta identidades aunque una unidad histórica requie
   assert.equal(lot.productCount, 1)
   assert.equal(lot.products.length, 2)
   assert.equal(lot.applicationCount, 2)
-  assert.deepEqual(lot.products.map(product => [product.unit, product.totalQuantity]), [['g', 400], ['ml', 800]])
+  assert.deepEqual(lot.products.map(product => [product.unit, product.totalQuantity]), [['ml', 800], ['g', 400]])
+})
+
+test('el lote ordena por cantidad sin redondear aunque las filas muestren el mismo valor a dos decimales', () => {
+  const data = fixture()
+  addRecord(data, 'almost-equal', { products: [
+    liquid(125.001, 'Alfa'),
+    solid(125.002, 'Zeta'),
+  ] })
+  const products = buildLotUsage(data).lots[0].products
+  assert.deepEqual(products.map(product => product.productId), ['product-b', 'product-a'])
+  assert.ok(products[0].totalQuantity > products[1].totalQuantity)
+  assert.deepEqual(products.map(product => (product.totalQuantity / 1000).toFixed(2)), ['1.00', '1.00'])
 })
 
 

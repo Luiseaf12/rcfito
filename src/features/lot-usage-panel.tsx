@@ -27,10 +27,10 @@ function LotProducts({ lot, id, onClose }: { lot: LotUsageSummary; id: string; o
       <CardDescription>{lot.agriculturalUnitName} · {lot.fieldName} · {lot.projectName} · {lot.season}</CardDescription>
     </div><Button variant="outline" onClick={onClose}><X data-icon="inline-start" />Cerrar productos del lote</Button></div></CardHeader>
     <CardContent>
-      <p className="usage-lot-note">{lot.applicationCount} aplicaciones por destino · Productos de menor a mayor cantidad, sin separar líquidos y sólidos.</p>
+      <p className="usage-lot-note">{lot.applicationCount} aplicaciones por destino · Productos de mayor a menor cantidad, sin separar líquidos y sólidos.</p>
       <Table className="usage-lot-products-table">
         <TableCaption>Cantidad registrada calculada con dosis × superficie. Cada fila conserva su unidad. El historial se limita a este lote y a los filtros seleccionados.</TableCaption>
-        <TableHeader><TableRow><TableHead>Producto</TableHead><TableHead>Aplicaciones</TableHead><TableHead aria-sort="ascending">Cantidad calculada ↑</TableHead><TableHead>Dosis promedio</TableHead><TableHead>Última fecha</TableHead><TableHead><span className="sr-only">Historial</span></TableHead></TableRow></TableHeader>
+        <TableHeader><TableRow><TableHead>Producto</TableHead><TableHead>Aplicaciones</TableHead><TableHead aria-sort="descending">Cantidad calculada ↓</TableHead><TableHead>Dosis promedio</TableHead><TableHead>Última fecha</TableHead><TableHead><span className="sr-only">Historial</span></TableHead></TableRow></TableHeader>
         <TableBody>{products.map(product => <TableRow key={product.key}>
           <TableCell><span className="record-name">{product.name}</span><div className="record-secondary muted">{product.unit} · {product.destinationCount} {product.destinationCount === 1 ? 'etapa distinta' : 'etapas distintas'}</div></TableCell>
           <TableCell className="usage-numeric">{product.applicationCount}</TableCell>
