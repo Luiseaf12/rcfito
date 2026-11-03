@@ -41,6 +41,8 @@ Fecha de revisión: 2026-11-02.
 | RCF-035 | Exportar un borrador PDF de la receta antes de guardar. | cerrada | Agente principal | Fuente 16522f0 en GitHub, Docker healthy y Sites 32. 306 pruebas, PDF de una/cuatro páginas y descargas demo verificadas; nueve checks HTTPS y recursos publicados aprobados. Exportar admite fecha pendiente, sin crear órdenes ni reservar números. | [Flujo y contrato](flows/recipe-draft-pdf.md) y [publicación](OPERATIONS.md#pdf-del-borrador-de-receta--rcf-035) |
 | RCF-036 | Exportar recetas guardadas a PDF con el formato de los borradores. | cerrada | Agente principal | Fuente cd165f8 publicada en GitHub, Docker healthy y Sites 33. 311 pruebas y QA de revisión/lector/móvil; PDF de una/seis páginas y regresión del borrador verificados. Nueve checks HTTPS y recursos publicados aprobados, sin escrituras operativas. | [Flujo y alcance](flows/saved-recipe-pdf.md) y [publicación](OPERATIONS.md#pdf-de-recetas-guardadas--rcf-036) |
 
+| RCF-037 | Eliminar una captura errónea y liberar folio/números para recaptura IA. | cerrada | Agente principal | Corrección puntual autorizada y aplicada con respaldo validado; quince controles aislados y comprobación posterior aprobados. Grupos y demás aplicaciones intactos; ledger 10/0. Sin nuevo botón ni permisos cliente. | [Alcance y evidencia](flows/application-removal.md) |
+
 Estados y cierre: [DOCUMENTATION](../.project-standards/DOCUMENTATION.md#planes-decisiones-y-deuda).
 Una tarea registrada no autoriza implementarla. Conservar su ID y actualizar su
 fuente e índice juntos. Cerrar con evidencia, distinguiendo código, pruebas,

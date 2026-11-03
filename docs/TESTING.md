@@ -671,3 +671,14 @@ HTTPS de conexión y comprobación de código/CSS, módulo PDF, fuentes, licenci
 Auth y rechazo anónimo en Docker/Sites aprobados. La versión 34 se guardó sin
 desplegar; la versión 35 contiene la corrección del import CSS comprobada en Linux.
 [Registro](OPERATIONS.md#dependencias-de-desarrollo--rcf-005).
+
+
+## Eliminación excepcional de captura — RCF-037
+
+2026-11-02: `node scripts/backend-application-removal-test.mjs` aprobó quince
+comprobaciones PostgreSQL con fixtures ficticios en contenedor aislado que se
+retiró al terminar. Cubren rechazo de dependencias/realizaciones/plan cambiado,
+rollback de borrado y secuencia, guardas, permisos, reutilización de folio y
+número mediante creación grupal real y protección frente a repetir el borrado.
+Simulación operativa y consulta posterior aprobadas sin crear datos de prueba
+en operación. [Evidencia y límites](flows/application-removal.md#resultado-y-verificación).

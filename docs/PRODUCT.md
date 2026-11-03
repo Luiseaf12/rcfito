@@ -497,3 +497,14 @@ RCF-029: conservación del grupo utilizado al emitir una aplicación y de las
 pertenencias activas de sus destinos en ese momento. La captura individual y la
 emisión para todo el grupo mantienen orígenes distintos. Contrato, autorización,
 recorrido y límites en [la ficha](flows/application-group-origin.md).
+
+
+## Eliminación excepcional de una captura errónea
+
+2026-11-02: el Propietario solicitó y aclaró la eliminación completa de una
+captura errónea, liberando su folio y sus números por etapa para registrar de
+nuevo desde IA. Se autoriza esa corrección puntual de la última orden pendiente,
+sin realizaciones, revisiones ni dependencias. Los grupos y demás registros se
+conservan. El mantenimiento privado exige plan, simulación y respaldo validados;
+no habilita borrado general ni sustituye las reglas ordinarias de historial.
+[Alcance y resultado](flows/application-removal.md).
