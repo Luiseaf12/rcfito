@@ -891,3 +891,23 @@ restante al 200 % y la tarea pasa a descartada; las mejoras publicadas se
 conservan. El descarte no acredita esa prueba ni la revisión completa de
 accesibilidad. No requiere modificar o volver a desplegar la aplicación.
 [Decisión y evidencia parcial](accessibility-review.md#descarte-por-el-propietario).
+
+## Orden descendente por lote — RCF-031
+
+2026-11-03: fuente `71256caaf1288daa120c1a575c579893d0807c43` publicada en
+GitHub, frontend Docker y Sites versión **37**. **Ver productos** del lote ordena
+por cantidad calculada descendente antes de paginar; tabla general ascendente,
+ranking, historial, unidades y filtros conservados.
+
+312 pruebas, tipos, build Linux/Windows y checker aprobados. QA con trece
+productos/dos páginas, filtro Realizadas, historial exclusivo con retorno de foco
+y móvil 375 px aprobado. Entrada, CSS, JS principal y módulos reporte/compartido
+exactos, Auth y rechazo anónimo verificados en Docker/Sites. Nueve controles
+HTTPS de conexión aprobados; Docker `healthy`. Sin migraciones ni escrituras
+de operación. [Reglas y evidencia](flows/product-dashboard.md#orden-descendente-por-lote--rcf-031).
+
+Sites confirmó `succeeded`, versión
+`appgprj_6ae67ae019e88191a7012093bb19c505~appgver_24b5678623388191a42b7ef0a4044eb1`,
+despliegue `appgdep_6aea56c2ab648191b01eadc1784d7930`, en
+[RCFito](https://rcfito.paxxa.chatgpt.site). Audiencia pública, R2 y revisión de
+entorno 1 conservados. Cambios ajenos del workspace fuera de los commits propios.

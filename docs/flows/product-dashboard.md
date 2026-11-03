@@ -154,8 +154,12 @@ Regresiones de orden mixto L/kg, desempates, cantidades distintas que redondean
 al mismo valor y orden global/ranking conservados. QA demo: trece productos en
 dos páginas, cabecera descendente, filtro Realizadas, historial exclusivo con
 retorno de foco y móvil 375 px sin overflow de página. Sin avisos ni errores de
-consola. Autorrevisión del diff; no se atribuye revisión independiente. Publicación
-pendiente.
+consola. Autorrevisión del diff; no se atribuye revisión independiente.
+
+Fuente `71256ca` publicada en GitHub, Docker healthy y Sites versión 37.
+Entrada, CSS y módulos de reporte/compartido exactos comprobados en Docker y
+Sites; Auth, rechazo anónimo y nueve controles HTTPS aprobados, sin escrituras.
+RCF-031 cerrada. [Registro](../OPERATIONS.md#orden-descendente-por-lote--rcf-031).
 
 La primera revisión pasó 206 pruebas desde checkout limpio y QA de filtros,
 paginación, dosis ponderada, lector demo y 375/1440 px. La rectificación a Todas

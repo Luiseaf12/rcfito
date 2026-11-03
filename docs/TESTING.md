@@ -720,3 +720,8 @@ retorno de foco. Tabla general conserva `aria-sort="ascending"` en cantidad.
 375/1440 px sin overflow general y sin avisos/errores de consola. Autorrevisión;
 sin nueva prueba de backend, migración o escritura en operación.
 [Reglas y recorrido](flows/product-dashboard.md#orden-descendente-por-lote--rcf-031).
+
+Fuente `71256ca` publicada en GitHub, Docker healthy y Sites 37. Comprobación
+posterior de entrada y cuatro recursos exactos (JS principal, CSS, reporte y
+módulo compartido), Auth y rechazo anónimo en ambos destinos aprobada. Nueve
+controles HTTPS de conexión aprobados sin escrituras de operación.
