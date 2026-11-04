@@ -925,4 +925,15 @@ y RPC anónima comprobados; caché de esquema REST renovada.
 
 Verificación previa: 320 pruebas puras, 417 SQL, 210 HTTP/Auth y advisors sin
 WARN/ERROR en entornos aislados. [Alcance y evidencia](flows/lot-corrections.md).
-Publicación del frontend en curso; el cierre registrará fuente y despliegue.
+Fuente 61c248318fcd45e7c70951e8c5167a2de18d1fa6 publicada en GitHub, frontend
+Docker healthy y Sites versión **38**. Entrada y seis recursos exactos, incluidos
+editor/historial/PDF, Auth y rechazo anónimo de REST/RPC verificados en ambos
+destinos; nueve controles HTTPS de conexión aprobados sin escrituras. Build
+Linux/Windows y checker aprobados; advertencia previa del chunk conservada.
+
+Sites confirmó succeeded, versión
+appgprj_6ae67ae019e88191a7012093bb19c505~appgver_4dc7629840888191816fa12b7bfc6025,
+despliegue appgdep_6aeb363a965881919d9963220c1227fe en
+[RCFito](https://rcfito.paxxa.chatgpt.site). Audiencia pública, R2 y revisión de
+entorno 1 conservados. Los cambios ajenos de la carpeta no forman parte de esta
+entrega. Los respaldos y los PDF/capturas ficticios permanecen fuera de Git/builds.

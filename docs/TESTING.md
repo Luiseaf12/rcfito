@@ -746,3 +746,10 @@ error de fecha/campos, cancelación de descarte, foco y lector sin edición. Mó
 una/ocho páginas renderizado y revisado; descarga real de una página inspeccionada.
 PDF sin correcciones de una/seis páginas conservado. Autorrevisión de React y
 seguridad; sin revisión independiente. [Flujo](flows/lot-corrections.md).
+
+Fuente 61c2483 publicada en GitHub, Docker healthy y Sites 38. Build Linux y
+checker aprobados. Entrada y seis recursos exactos (editor/historial/PDF incluidos),
+Auth y rechazo anónimo de la nueva tabla/RPC comprobados en Docker/Sites. Nueve
+controles HTTPS aprobados. Instalación con respaldo custom validado de 446,125
+bytes, ledger 11/0 y auditoría inicialmente vacía; conservación transaccional de
+once tablas comprobada sin ejecutar correcciones ni fixtures en operación.

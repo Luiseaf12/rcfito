@@ -1,8 +1,7 @@
 # Correcciones de malla y siembra vigente — RCF-038
 
-Estado: verificación terminada; instalación y publicación en curso. Solicitud del
-Propietario del 2026-11-04.
-No se ha aplicado ninguna corrección a datos de operación.
+Estado: cerrada el 2026-11-04, con implementación, verificación y publicación.
+La instalación no aplicó correcciones a los datos de operación.
 
 ## Decisiones confirmadas
 

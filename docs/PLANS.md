@@ -46,7 +46,7 @@ verificaciones sin realizar ni revierte mejoras ya publicadas.
 
 | RCF-037 | Eliminar una captura errónea y liberar folio/números para recaptura IA. | cerrada | Agente principal | Corrección puntual autorizada y aplicada con respaldo validado; quince controles aislados y comprobación posterior aprobados. Grupos y demás aplicaciones intactos; ledger 10/0. Sin nuevo botón ni permisos cliente. | [Alcance y evidencia](flows/application-removal.md) |
 
-| RCF-038 | Corregir nombre/superficie de malla y fechas de la siembra vigente conservando historial. | en curso | Agente principal | 320 pruebas, 417 SQL y 210 HTTP aprobados; ampliación instalada con respaldo y ledger 11/0, sin corregir datos reales. Publicación del frontend en curso. | [Decisiones y recorrido](flows/lot-corrections.md) |
+| RCF-038 | Corregir nombre/superficie de malla y fechas de la siembra vigente conservando historial. | cerrada | Agente principal | Fuente 61c2483 en GitHub, Docker healthy y Sites 38; 320 pruebas, 417 SQL, 210 HTTP, QA demo/móvil/PDF y nueve checks HTTPS aprobados. Migración instalada con respaldo y ledger 11/0, sin corregir datos reales. | [Decisiones y recorrido](flows/lot-corrections.md) |
 
 Estados y cierre: [DOCUMENTATION](../.project-standards/DOCUMENTATION.md#planes-decisiones-y-deuda).
 Una tarea registrada no autoriza implementarla. Conservar su ID y actualizar su
