@@ -963,7 +963,24 @@ entorno 1 conservados. Cambios ajenos de la carpeta excluidos de esta entrega.
 
 ## Captura desde imagen — RCF-040
 
-2026-11-04: ampliación autorizada con la configuración de IA existente.
-Implementación y pruebas aisladas completas; migración aditiva con respaldo,
-frontend Docker y publicación en Sites pendientes de registrar aquí.
-[Alcance y evidencia](flows/image-capture.md). No se altera la audiencia.
+2026-11-04: fuente b61d3362448eb37e48a047e852c214052cac1555 en GitHub.
+Migración 20261104171758 instalada con respaldo privado validado de 570,619
+bytes; ledger 12/0, conteos y hashes de órdenes/destinos/productos/historial
+conservados. Sin fixtures ni inferencias reales en operación.
+
+Docker healthy y Sites versión **40**, construidos desde la misma copia limpia.
+367 pruebas, tipos, checker y build Linux/Windows aprobados; regresión SQL/HTTP
+aislada aprobada. Entrada y 38 recursos exactos por destino, interfaz compilada
+de imagen, Auth y rechazo anónimo de datos/IA comprobados: nueve controles
+por destino. La entrada del Site admite solo la inyección conocida de Cloudflare.
+
+Sites confirmó succeeded, versión
+appgprj_6ae67ae019e88191a7012093bb19c505~appgver_515f3e12426c81919cc581379839d355,
+despliegue appgdep_6aeb9d4f82e88191aeb9ce173e4e0eb3 en
+[RCFito](https://rcfito.paxxa.chatgpt.site). Audiencia pública, R2, revisión de
+entorno 1 y configuración IA conservados. Cambios ajenos excluidos.
+Advertencia previa de tamaño del chunk conservada.
+
+La herramienta visual agotó el acceso a la ventana; el recorrido de carga/pegado,
+aprobación y móvil no se verificó en navegador. Se acredita código y pruebas
+automatizadas, con ese límite explícito en [la ficha](flows/image-capture.md).

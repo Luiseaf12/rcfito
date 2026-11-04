@@ -213,4 +213,4 @@ La evidencia de publicación está en OPERATIONS.
 
 | ID | Trabajo | Estado | Responsable | Próxima acción | Fuente |
 | --- | --- | --- | --- | --- | --- |
-| RCF-040 | Interpretar imagen con cantidades totales y repartir por hectáreas seleccionadas. | en curso | Agente principal y subagentes | Implementación y pruebas aisladas aprobadas. Aplicar migración con respaldo y publicar la misma fuente; registrar límite de QA visual. | [Flujo, contrato y evidencia](flows/image-capture.md) |
+| RCF-040 | Interpretar imagen con cantidades totales y repartir por hectáreas seleccionadas. | cerrada | Agente principal y subagentes | Fuente b61d336 en GitHub, Docker healthy y Sites 40. 367 pruebas, tipos/build/checker y controles SQL/HTTP aislados aprobados; ledger 12/0 con respaldo. Entrada y 38 recursos exactos por destino y nueve controles publicados aprobados. QA visual en navegador no comprobada; límite registrado en la ficha. | [Flujo, contrato y evidencia](flows/image-capture.md) |

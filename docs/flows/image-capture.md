@@ -3,8 +3,8 @@
 Autorización del Propietario: implementar, verificar, commit/push y publicar en
 Sites. Aclaración confirmada: las cantidades de la imagen son totales a aplicar,
 repartidas proporcionalmente a las hectáreas seleccionadas. No hay dudas de
-alcance pendientes. Estado: implementada y verificada en pruebas aisladas;
-publicación en curso.
+alcance pendientes. Estado: cerrada, código y publicación verificados; límite
+de QA visual consignado abajo.
 
 ## Recorrido
 
@@ -71,4 +71,10 @@ No se atribuye esa cobertura a las pruebas automatizadas.
 Operación: respaldo privado validado de 570,619 bytes antes de la migración
 20261104171758. Ledger 12/0; conteos y hashes de órdenes, destinos, productos
 e historial existentes conservados. Sin fixtures ni llamadas de IA reales.
-GitHub, Docker y Sites pendientes de registrar al terminar la publicación.
+Fuente b61d3362448eb37e48a047e852c214052cac1555 en GitHub, Docker healthy
+y Sites **40** con resultado nativo succeeded. Tipos, 367 pruebas, checker y
+build aprobados desde la misma copia limpia. Entrada y 38 recursos exactos por
+destino y nueve controles de configuración/Auth/rechazo anónimo aprobados en
+Docker y Sites. [Registro del despliegue](../OPERATIONS.md#captura-desde-imagen--rcf-040).
+Audiencia pública y configuración IA existentes conservadas. No se publicaron
+imágenes ni datos operativos; las modificaciones ajenas quedaron fuera del commit.

@@ -781,7 +781,10 @@ migraciones 11/0 conservado. No se crearon datos ni cuentas en operación.
 Verificación aislada de extracción, validación binaria, Auth/lector, división
 decimal exacta, unidades, redondeo, límites y reintentos. SQL añade 47 controles
 y cuatro de actualización; HTTP añade 33, con regresión completa de los runners.
-Pruebas de cliente cubren rechazo de archivo, píxeles, petición autenticada y
+367 pruebas, tipos, build y checker aprobados también en copia limpia de la
+fuente publicada. Entrada y 38 recursos exactos y nueve controles por destino
+aprobados en Docker y Sites. Pruebas de cliente cubren rechazo de archivo,
+píxeles, petición autenticada y
 conservación de la imagen ante errores. No se llama al proveedor real ni se
 insertan fixtures en operación. Evidencia y límite de revisión visual en
 [la ficha](flows/image-capture.md#verificación).
