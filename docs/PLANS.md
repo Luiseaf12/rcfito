@@ -48,7 +48,7 @@ verificaciones sin realizar ni revierte mejoras ya publicadas.
 
 | RCF-038 | Corregir nombre/superficie de malla y fechas de la siembra vigente conservando historial. | cerrada | Agente principal | Fuente 61c2483 en GitHub, Docker healthy y Sites 38; 320 pruebas, 417 SQL, 210 HTTP, QA demo/móvil/PDF y nueve checks HTTPS aprobados. Migración instalada con respaldo y ledger 11/0, sin corregir datos reales. | [Decisiones y recorrido](flows/lot-corrections.md) |
 
-| RCF-039 | Orden alfabético general en listados y selectores, conservando órdenes especiales. | en curso | Agente principal | Regla autorizada y documentada; criterio compartido aplicado. Completar regresiones, QA y publicación. | [Regla](FRONTEND.md#orden-general-de-listados--rcf-039) e [inventario](flows/list-order.md) |
+| RCF-039 | Orden alfabético general en listados y selectores, conservando órdenes especiales. | cerrada | Agente principal | Fuente 621f02e en GitHub, Docker healthy y Sites 39. 325 pruebas, tipos/build/checker, QA demo/móvil, 37 recursos exactos y nueve checks HTTPS aprobados; ledger 11/0 conservado, sin escrituras operativas. | [Regla](FRONTEND.md#orden-general-de-listados--rcf-039) e [inventario](flows/list-order.md) |
 
 Estados y cierre: [DOCUMENTATION](../.project-standards/DOCUMENTATION.md#planes-decisiones-y-deuda).
 Una tarea registrada no autoriza implementarla. Conservar su ID y actualizar su

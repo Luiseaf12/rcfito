@@ -1,6 +1,6 @@
 # Orden de listados y selectores — RCF-039
 
-Estado: verificación terminada; publicación en curso. Autorizado por el Propietario el
+Estado: cerrada el 2026-11-04, con verificación y publicación. Autorizado por el Propietario el
 2026-11-04 mediante «documéntalo y aplícalo a todos los listados y selectores,
 respetando los órdenes especiales que ya acordamos».
 

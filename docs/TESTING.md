@@ -769,3 +769,8 @@ anteriores por indicación y reporte por cantidades comprobados. Móvil 375×812
 sin overflow general; sin errores/avisos de consola. Nombres ficticios restaurados
 tras la prueba. Autorrevisión de React; sin revisión independiente ni pruebas
 nuevas SQL/HTTP/PDF. [Inventario y detalles](flows/list-order.md).
+
+Fuente 621f02e publicada en GitHub, Docker healthy y Sites 39. Build Linux y
+checker aprobados. Entrada y los 37 recursos estáticos exactos, Auth y rechazo
+anónimo comprobados en ambos destinos; nueve checks HTTPS aprobados. Registro de
+migraciones 11/0 conservado. No se crearon datos ni cuentas en operación.

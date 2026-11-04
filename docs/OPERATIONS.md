@@ -947,4 +947,15 @@ captura/estados. Regla normativa en [FRONTEND](FRONTEND.md#orden-general-de-list
 e [inventario de cobertura](flows/list-order.md). 325 pruebas, tipos y QA demo
 escritorio/móvil aprobados. No hay migraciones ni cambios de permisos, fórmulas,
 dependencias o configuración de backend. Ninguna escritura de datos en operación.
-Publicación y comprobaciones posteriores en curso.
+Fuente 621f02e4662045e88072d19902c56a082e241144 publicada en GitHub, frontend
+Docker healthy y Sites versión **39**. Build Linux/Windows y checker aprobados;
+advertencia previa de tamaño del chunk conservada. Entrada y los 37 recursos
+estáticos exactos, incluido el orden compartido, comprobados en Docker y Sites.
+Auth y rechazo anónimo de datos y nueve controles HTTPS aprobados. Ledger 11/0
+conservado, sin nuevas migraciones ni escrituras de datos operativos.
+
+Sites confirmó succeeded, versión
+appgprj_6ae67ae019e88191a7012093bb19c505~appgver_58d6f068dbb0819187210d43acfd1947,
+despliegue appgdep_6aeb5048fe1c8191a89300c59f458db8 en
+[RCFito](https://rcfito.paxxa.chatgpt.site). Audiencia pública, R2 y revisión de
+entorno 1 conservados. Cambios ajenos de la carpeta excluidos de esta entrega.
