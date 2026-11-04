@@ -1,3 +1,4 @@
+import { sortNamed } from './list-order.ts'
 import type { CatalogKind, CatalogRecord, WorkspaceData } from './model'
 import { compactProductTerm, validateProductSynonyms } from './product-synonyms.ts'
 
@@ -30,7 +31,7 @@ export function catalogEditLocks(data: CatalogEditContext, kind: CatalogKind, re
 
 // Existing inactive references remain valid; only new relationships require active records.
 export function catalogRelationOptions(records: CatalogRecord[], existingIds: readonly string[] = []) {
-  return records.filter(record => record.active || existingIds.includes(record.id)).map(record => ({
+  return sortNamed(records.filter(record => record.active || existingIds.includes(record.id))).map(record => ({
     value: record.id,
     label: `${record.name}${record.active ? '' : ' (inactivo)'}`,
   }))

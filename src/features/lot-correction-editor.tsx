@@ -1,3 +1,4 @@
+import { sortDisplay } from '@/domain/list-order'
 import { useId, useMemo, useState, type FormEvent } from 'react'
 import { ChevronDown, History } from 'lucide-react'
 import { useWorkspace } from '@/data/workspace-context'
@@ -81,7 +82,7 @@ function CorrectedTargets({ change }: { change: LotCorrection }) {
   const orders = useMemo(() => new Map(data.applicationOrders.map(row => [row.id, row])), [data.applicationOrders])
   const corrected = useMemo(() => new Map(change.after.targets.map(row => [row.id, row])), [change.after.targets])
   return <><Table><TableHeader><TableRow><TableHead>Folio / etapa</TableHead><TableHead>Estado al corregir</TableHead><TableHead>Antes</TableHead><TableHead>Después</TableHead></TableRow></TableHeader><TableBody>
-    {change.before.targets.slice(0, count).map(before => {
+    {sortDisplay(change.before.targets, before => { const target = targets.get(before.id); return `${target ? orders.get(target.order_id)?.folio ?? '' : ''} / Etapa ${target?.stage_number ?? ''}` }, before => before.id).slice(0, count).map(before => {
       const target = targets.get(before.id)
       const order = target ? orders.get(target.order_id) : undefined
       const after = corrected.get(before.id)

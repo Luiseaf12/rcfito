@@ -753,3 +753,19 @@ Auth y rechazo anónimo de la nueva tabla/RPC comprobados en Docker/Sites. Nueve
 controles HTTPS aprobados. Instalación con respaldo custom validado de 446,125
 bytes, ledger 11/0 y auditoría inicialmente vacía; conservación transaccional de
 once tablas comprobada sin ejecutar correcciones ni fixtures en operación.
+
+
+## Orden alfabético general — RCF-039
+
+2026-11-04: 325 pruebas, tipos y build aprobados. Cinco regresiones nuevas cubren
+español, eñe, mayúsculas/acentos, orden natural, desempates, opciones fijadas,
+inactivos retenidos, paginación y conservación de datos. Regresiones anteriores
+de cantidades, ranking, historial y recetas conservadas.
+
+QA demo de catálogos y selector anidado con datos capturados fuera de orden,
+proyectos/mallas/campos, usuarios/asignaciones, grupos y consultas aprobado.
+Resumen de trece mallas en dos páginas A-Z, aplicaciones por fecha, recetas
+anteriores por indicación y reporte por cantidades comprobados. Móvil 375×812 px
+sin overflow general; sin errores/avisos de consola. Nombres ficticios restaurados
+tras la prueba. Autorrevisión de React; sin revisión independiente ni pruebas
+nuevas SQL/HTTP/PDF. [Inventario y detalles](flows/list-order.md).

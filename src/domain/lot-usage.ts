@@ -1,3 +1,4 @@
+import { compareDisplayText, compareIdentity } from './list-order.ts'
 import { createUsageLotResolver } from './usage-lot'
 import type { ProjectLot, WorkspaceData } from './model'
 import {
@@ -84,9 +85,8 @@ export function buildLotUsage(data: WorkspaceData, filters: ProductUsageFilters 
       .sort((a, b) => compareProductQuantity(a, b, 'descending'))
     group.summary.productCount = new Set(group.summary.products.map(product => product.productId)).size
     return group.summary
-  }).sort((a, b) => a.agriculturalUnitName.localeCompare(b.agriculturalUnitName, 'es-MX')
-    || a.fieldName.localeCompare(b.fieldName, 'es-MX') || a.name.localeCompare(b.name, 'es-MX', { numeric: true })
-    || a.key.localeCompare(b.key))
+  }).sort((a, b) => compareDisplayText(a.name, b.name) || compareDisplayText(a.agriculturalUnitName, b.agriculturalUnitName)
+    || compareDisplayText(a.fieldName, b.fieldName) || compareIdentity(a.key, b.key))
 
   return { lots: summaries, incompleteCount: usage.incompleteCount + invalidTargets.size }
 }

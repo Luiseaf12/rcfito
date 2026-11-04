@@ -1,3 +1,4 @@
+import { compareDisplayText, compareIdentity } from './list-order.ts'
 import type { ApplicationTarget, CatalogRecord, LotSubdivision, ProjectLot, SowingStage, WorkspaceData } from './model'
 import { compactProductTerm, compareProductsByName, similarProductTerms } from './product-synonyms.ts'
 
@@ -153,7 +154,7 @@ export function currentApplicationDestinations(data: WorkspaceData, projectId?: 
   return data.stages.filter(stage => stage.status === 'planted' && Boolean(stage.actual_sowing_date) && subdivisions.has(stage.subdivision_id) && (!cropId || stage.crop_id === cropId) && data.catalogs.crops.some(crop => crop.id === stage.crop_id && crop.active)).map(stage => {
     const subdivision = subdivisions.get(stage.subdivision_id)!
     return { stage, subdivision, lot: lots.get(subdivision.lot_id)! }
-  })
+  }).sort((a, b) => compareDisplayText(a.lot.name, b.lot.name) || compareDisplayText(a.subdivision.name, b.subdivision.name) || a.stage.stage_number - b.stage.stage_number || compareIdentity(a.stage.id, b.stage.id))
 }
 
 /** Resolve only unambiguous references from the already authorized workspace. */

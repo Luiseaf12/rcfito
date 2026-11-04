@@ -1,3 +1,4 @@
+import { sortDisplay } from '@/domain/list-order'
 import { useMemo, useState } from 'react'
 import { Check } from 'lucide-react'
 import { currentOrderIndication } from '@/domain/application-editing'
@@ -31,7 +32,7 @@ export function ApplicationRecipePicker({ data, history, latest, selectedId, clo
         const indication = currentOrderIndication(data, order)
         return <Card key={order.id}>
           <CardHeader><div className="section-header"><CardTitle>{order.folio} · {formatDate(candidate.indicated_date)}</CardTitle><div className="section-actions">{latest.some(item => item.order_id === order.id) && <Badge variant="secondary">Última activa</Badge>}{selectedId === order.id && <Badge variant="outline"><Check aria-hidden="true" />Base actual</Badge>}</div></div></CardHeader>
-          <CardContent className="flex flex-col gap-2"><p>{indication.products.map(product => `${product.product_name} · ${dosage(product.dose)} ${product.unit}/ha`).join('; ')}</p><p className="muted">Versión {candidate.revision} · {indication.method_name || recordName(data.catalogs.application_methods, indication.method_id)} · {dosage(indication.water_l_ha)} L/ha</p>{indication.observations && <p className="whitespace-pre-wrap">{indication.observations}</p>}</CardContent>
+          <CardContent className="flex flex-col gap-2"><p>{sortDisplay(indication.products, product => product.product_name ?? '', product => product.product_id).map(product => `${product.product_name} · ${dosage(product.dose)} ${product.unit}/ha`).join('; ')}</p><p className="muted">Versión {candidate.revision} · {indication.method_name || recordName(data.catalogs.application_methods, indication.method_id)} · {dosage(indication.water_l_ha)} L/ha</p>{indication.observations && <p className="whitespace-pre-wrap">{indication.observations}</p>}</CardContent>
           <CardFooter><Button type="button" variant="outline" aria-label={`Usar ${order.folio}`} onClick={() => choose(candidate)}>Usar esta receta</Button></CardFooter>
         </Card>
       })}

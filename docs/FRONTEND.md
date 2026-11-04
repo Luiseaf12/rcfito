@@ -247,3 +247,41 @@ existentes. Error conserva captura; useFormClose protege descarte y foco.
 LotCorrectionHistory permite a lectores autorizados consultar versiones y destinos
 por folio/etapa, estado y hectáreas anteriores/nuevas. Aplicaciones enlaza a ese
 historial y el PDF guardado identifica superficies corregidas. [Reglas y QA](flows/lot-corrections.md).
+
+
+## Orden general de listados — RCF-039
+
+Regla obligatoria para todos los listados de registros de RCFito, existentes y
+nuevos, autorizada por el Propietario el 2026-11-04: mostrar por defecto nombres
+visibles en orden alfabético ascendente. Incluye tablas, tarjetas, selectores,
+listas de casillas, relaciones en detalles y resultados de búsqueda.
+
+- Comparación en español de México, sin distinguir mayúsculas ni acentos y con
+  números naturales: Malla 2 precede a Malla 10. La eñe conserva su lugar español.
+- Ordenar el conjunto autorizado completo después de filtrar y antes de paginar
+  o limitar su presentación. Desempatar nombres equivalentes por identidad
+  estable, conservando nombres, valores seleccionados y etiquetas originales.
+- Aplicar el mismo criterio al cargar, buscar, filtrar, guardar y actualizar.
+  Ordenar copias para presentación; no reescribir registros, snapshots ni firmas.
+- Opciones de alcance o ausencia (Todos, Sin asignar y selección manual) pueden
+  fijarse al principio; los registros siguientes mantienen A-Z. Las referencias
+  inactivas que deban conservarse siguen disponibles y ordenadas.
+- Las excepciones deben constar en la ficha del recorrido. Se conservan fechas
+  de aplicaciones/recetas e historiales, numeración de etapas, cantidades y ranking
+  del reporte, y la ordenación elegida explícitamente por el usuario. También se
+  conserva la secuencia funcional de estados, navegación, campos y acciones.
+- Los renglones de una captura editable conservan su posición durante la edición;
+  sus selectores sí usan A-Z. Así se mantienen foco, dosis, errores y vínculos por
+  fila. Las listas de lectura de sus registros usan el orden general. Los PDF
+  siguen su contrato de copia de receta y no se modifican por esta entrega.
+
+Implementación compartida en [list-order](../src/domain/list-order.ts):
+FormSelect ordena por etiqueta de forma predeterminada, admite opciones fijadas
+y exige order="provided" para las excepciones del inventario. Las vistas que
+usan Select directamente aplican las mismas utilidades. Los datos paginados en
+servidor conservan el orden especial definido por su consulta completa.
+
+Criterio de aceptación: **todos los listados de la pantalla, incluidos los
+selectores dentro de formularios, cumplen el orden general o su excepción
+expresa; una recarga o un cambio de página no altera ese criterio**.
+[Inventario, excepciones y evidencia](flows/list-order.md).

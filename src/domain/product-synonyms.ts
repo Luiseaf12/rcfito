@@ -1,3 +1,4 @@
+import { compareDisplayText, compareNamed } from './list-order.ts'
 import type { CatalogRecord } from './model'
 
 /** Keep this comparison identical to the product-synonym SQL functions. */
@@ -57,9 +58,9 @@ export function validateProductSynonyms(products: readonly CatalogRecord[], row:
   return errors
 }
 
-const productCollator = new Intl.Collator('es-MX', { numeric: true, sensitivity: 'base' })
+const productCollator = { compare: compareDisplayText }
 export function compareProductsByName(left: CatalogRecord, right: CatalogRecord): number {
-  return productCollator.compare(left.name, right.name) || (left.id < right.id ? -1 : left.id > right.id ? 1 : 0)
+  return compareNamed(left, right)
 }
 const ingredientNameKey = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('es-MX').trim().replace(/\s+/g, ' ')
 

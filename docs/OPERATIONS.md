@@ -937,3 +937,14 @@ despliegue appgdep_6aeb363a965881919d9963220c1227fe en
 [RCFito](https://rcfito.paxxa.chatgpt.site). Audiencia pública, R2 y revisión de
 entorno 1 conservados. Los cambios ajenos de la carpeta no forman parte de esta
 entrega. Los respaldos y los PDF/capturas ficticios permanecen fuera de Git/builds.
+
+
+## Orden alfabético general — RCF-039
+
+2026-11-04: criterio compartido aplicado a listados y selectores de registros,
+con excepciones expresas de fechas, etapas, cantidades, ranking y secuencias de
+captura/estados. Regla normativa en [FRONTEND](FRONTEND.md#orden-general-de-listados--rcf-039)
+e [inventario de cobertura](flows/list-order.md). 325 pruebas, tipos y QA demo
+escritorio/móvil aprobados. No hay migraciones ni cambios de permisos, fórmulas,
+dependencias o configuración de backend. Ninguna escritura de datos en operación.
+Publicación y comprobaciones posteriores en curso.

@@ -1,3 +1,4 @@
+import { compareDisplayText, compareIdentity } from './list-order.ts'
 import { createUsageLotResolver } from './usage-lot'
 import { indicationForTarget } from './application-editing'
 import type { ApplicationTarget, ProductLine, WorkspaceData } from './model'
@@ -61,7 +62,7 @@ const productKey = (product: ProductLine) => JSON.stringify([product.product_id,
 export function compareProductQuantity(a: ProductUsageSummary, b: ProductUsageSummary, direction: 'ascending' | 'descending' = 'ascending'): number {
   const difference = a.totalQuantity / 1000 - b.totalQuantity / 1000
   return (direction === 'descending' ? -difference : difference)
-    || a.name.localeCompare(b.name, 'es-MX') || a.key.localeCompare(b.key)
+    || compareDisplayText(a.name, b.name) || compareIdentity(a.key, b.key)
 }
 
 /** Recomputes a product from a validated subset without changing its snapshots. */
@@ -174,7 +175,7 @@ export function buildProductUsage(data: WorkspaceData, filters: ProductUsageFilt
   }
 
   const products = [...groups.values()].map(group => summarizeProductUsage(group, group.history))
-    .sort((a, b) => b.applicationCount - a.applicationCount || a.name.localeCompare(b.name, 'es-MX') || a.key.localeCompare(b.key))
+    .sort((a, b) => b.applicationCount - a.applicationCount || compareDisplayText(a.name, b.name) || compareIdentity(a.key, b.key))
 
   return {
     products, applicationCount: countedTargets.size, incompleteCount,

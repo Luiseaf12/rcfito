@@ -1,3 +1,4 @@
+import { compareDisplayText, compareIdentity } from '@/domain/list-order'
 import { useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { ArrowDown, ArrowUp, ArrowUpDown, ClipboardList, History } from 'lucide-react'
@@ -46,7 +47,7 @@ export function ProductDashboardPage() {
     return data.lots.filter(lot => projects.has(lot.project_id)).map(lot => {
       const project = projects.get(lot.project_id)!
       return { value: lot.id, label: [lot.name, lot.field_name_snapshot || fields.get(lot.field_id) || 'Campo', project.season, agriculturalUnits.get(project.agricultural_unit_id) || 'Agrícola'].join(' · ') }
-    }).sort((a, b) => a.label.localeCompare(b.label, 'es-MX', { numeric: true }))
+    })
   }, [data, agriculturalUnitId])
   const [sort, setSort] = useState<Sort>({ key: 'totalQuantity', direction: 'asc' })
   const [requestedPage, setPage] = useState(1)
@@ -56,7 +57,7 @@ export function ProductDashboardPage() {
   const contextOrders = data.applicationOrders.filter(order => projectIds.has(order.project_id))
   const cropNames = new Map<string, string>()
   contextOrders.forEach(order => cropNames.set(order.crop_id, order.crop_name || data.catalogs.crops.find(crop => crop.id === order.crop_id)?.name || 'Cultivo registrado'))
-  const cropOptions = [...cropNames].map(([value, label]) => ({ value, label })).sort((a, b) => a.label.localeCompare(b.label, 'es'))
+  const cropOptions = [...cropNames].map(([value, label]) => ({ value, label }))
   const orderIds = new Set(contextOrders.filter(order => !cropId || order.crop_id === cropId).map(order => order.id))
   const stageNumbers = [...new Set(data.applicationTargets.filter(target => orderIds.has(target.order_id) && (status === ALL || target.status === status)).map(target => target.stage_number))].sort((a, b) => a - b)
   const result = useMemo(() => buildProductUsage(data, { agriculturalUnitId, lotId, cropId, stageNumber, status }), [data, agriculturalUnitId, lotId, cropId, stageNumber, status])
@@ -64,8 +65,8 @@ export function ProductDashboardPage() {
     if (sort.key === 'totalQuantity') return compareProductQuantity(a, b) * (sort.direction === 'asc' ? 1 : -1)
     if (sort.key === 'averageDose' && a.unit !== b.unit) return a.unit.localeCompare(b.unit)
     const av = a[sort.key], bv = b[sort.key]
-    const comparison = typeof av === 'string' && typeof bv === 'string' ? av.localeCompare(bv, 'es') : Number(av) - Number(bv)
-    return comparison * (sort.direction === 'asc' ? 1 : -1) || a.name.localeCompare(b.name, 'es') || a.key.localeCompare(b.key)
+    const comparison = typeof av === 'string' && typeof bv === 'string' ? compareDisplayText(av, bv) : Number(av) - Number(bv)
+    return comparison * (sort.direction === 'asc' ? 1 : -1) || compareDisplayText(a.name, b.name) || compareIdentity(a.key, b.key)
   }), [result.products, sort])
   const page = Math.min(requestedPage, Math.max(1, Math.ceil(products.length / PAGE_SIZE)))
   const visibleProducts = products.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
@@ -85,17 +86,17 @@ export function ProductDashboardPage() {
   function withUnavailable(options: SelectOption[], value: string | undefined, name: string) {
     return value && !options.some(option => option.value === value) ? [{ value, label: `${name} no disponible`, disabled: true }, ...options] : options
   }
-  const agriculturalOptions = data.catalogs.agricultural_units.map(unit => ({ value: unit.id, label: unit.name })).sort((a, b) => a.label.localeCompare(b.label, 'es'))
+  const agriculturalOptions = data.catalogs.agricultural_units.map(unit => ({ value: unit.id, label: unit.name }))
   const scopeText = lotId ? lotOptions.find(option => option.value === lotId)?.label || 'Lote no disponible en este ámbito' : 'Todas las temporadas · ' + (scopedProjects.length ? [...new Set(scopedProjects.map(project => project.season))].join(' / ') : 'Sin proyectos en este ámbito')
   return <div className="workspace-page usage-dashboard">
     <div className="page-header"><div><p className="eyebrow">ANÁLISIS DE APLICACIONES</p><h1 className="page-title">Uso de productos</h1><p className="muted">Productos, cantidades y dosis registrados en tus aplicaciones.</p></div><Button variant="outline" asChild><Link to="/aplicaciones"><ClipboardList data-icon="inline-start" />Ver aplicaciones</Link></Button></div>
     <Card><CardHeader><CardTitle><h2>Selecciona tu ámbito</h2></CardTitle><CardDescription>Todas las aplicaciones guardadas, incluidas las temporadas anteriores. Filtra por estado cuando lo necesites. Etapa es el número de siembra de cada subdivisión.</CardDescription></CardHeader><CardContent>
       <FieldGroup className="usage-filters">
-        <FormSelect label="Agrícola" value={agriculturalUnitId || ALL} onChange={value => updateFilter('agricola', value)} options={[{ value: ALL, label: 'Todas las agrícolas' }, ...withUnavailable(agriculturalOptions, agriculturalUnitId, 'Agrícola')]} />
-        <div className="usage-lot-filter"><FormSelect label="Lote" value={lotId || ALL} onChange={value => updateFilter('lote', value)} options={[{ value: ALL, label: 'Todos los lotes' }, ...withUnavailable(lotOptions, lotId, 'Lote')]} wrapOptions /></div>
-        <FormSelect label="Cultivo" value={cropId || ALL} onChange={value => updateFilter('cultivo', value)} options={[{ value: ALL, label: 'Todos los cultivos' }, ...withUnavailable(cropOptions, cropId, 'Cultivo')]} />
-        <FormSelect label="Etapa" value={stageValue || ALL} onChange={value => updateFilter('etapa', value)} options={[{ value: ALL, label: 'Todas las etapas' }, ...withUnavailable(stageNumbers.map(stage => ({ value: String(stage), label: `Etapa ${stage}` })), stageValue, 'Etapa')]} />
-        <FormSelect label="Estado" value={status} onChange={value => updateFilter('estado', value)} options={withUnavailable(Object.entries(statusLabels).map(([value, label]) => ({ value, label })), status, 'Estado')} />
+        <FormSelect label="Agrícola" value={agriculturalUnitId || ALL} onChange={value => updateFilter('agricola', value)} options={[{ pinned: true, value: ALL, label: 'Todas las agrícolas' }, ...withUnavailable(agriculturalOptions, agriculturalUnitId, 'Agrícola')]} />
+        <div className="usage-lot-filter"><FormSelect label="Lote" value={lotId || ALL} onChange={value => updateFilter('lote', value)} options={[{ pinned: true, value: ALL, label: 'Todos los lotes' }, ...withUnavailable(lotOptions, lotId, 'Lote')]} wrapOptions /></div>
+        <FormSelect label="Cultivo" value={cropId || ALL} onChange={value => updateFilter('cultivo', value)} options={[{ pinned: true, value: ALL, label: 'Todos los cultivos' }, ...withUnavailable(cropOptions, cropId, 'Cultivo')]} />
+        <FormSelect label="Etapa" value={stageValue || ALL} onChange={value => updateFilter('etapa', value)} options={[{ pinned: true, value: ALL, label: 'Todas las etapas' }, ...withUnavailable(stageNumbers.map(stage => ({ value: String(stage), label: `Etapa ${stage}` })), stageValue, 'Etapa')]} />
+        <FormSelect order="provided" label="Estado" value={status} onChange={value => updateFilter('estado', value)} options={withUnavailable(Object.entries(statusLabels).map(([value, label]) => ({ value, label })), status, 'Estado')} />
       </FieldGroup>
       <div className="usage-scope" aria-live="polite"><Badge variant="secondary">{statusLabel}</Badge><span>{scopeText}</span>{(agriculturalUnitId || lotId || cropId || stageValue || status !== ALL) && <Button variant="ghost" onClick={() => { const next = new URLSearchParams(params); ['agricola', 'lote', 'cultivo', 'etapa', 'estado'].forEach(key => next.delete(key)); setParams(next, { replace: true }); setPage(1); setSelectedKey(null) }}>Limpiar filtros</Button>}</div>
     </CardContent></Card>

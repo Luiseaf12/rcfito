@@ -1,3 +1,4 @@
+import { sortNamed } from './list-order.ts'
 import type { ApplicationGroupSnapshot, ApplicationOrder, ApplicationOrderInput, ApplicationTarget, SowingGroup, WorkspaceData } from './model'
 
 function sameContext(group: SowingGroup, order: Pick<ApplicationOrder, 'project_id' | 'field_id' | 'crop_id'>) {
@@ -45,5 +46,5 @@ export function applicationOriginLabel(order: ApplicationOrder): string {
 
 export function targetGroupMembershipLabel(target: ApplicationTarget): string {
   if (target.group_memberships_snapshot == null) return 'Pertenencia al registrar: no registrada'
-  return target.group_memberships_snapshot.length ? `Pertenecía a: ${target.group_memberships_snapshot.map(group => group.name).join(', ')}` : 'Sin grupos activos al registrar'
+  return target.group_memberships_snapshot.length ? `Pertenecía a: ${sortNamed(target.group_memberships_snapshot).map(group => group.name).join(', ')}` : 'Sin grupos activos al registrar'
 }

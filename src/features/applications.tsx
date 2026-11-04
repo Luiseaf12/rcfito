@@ -1,3 +1,4 @@
+import { sortDisplay } from '@/domain/list-order'
 import { businessToday, validDate, validateProducts, newProductRow, ProductMixtureEditor, MixtureReadOnly, TextField, type ProductDraft } from './application-fields'
 import { useId, useMemo, useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
@@ -49,7 +50,6 @@ export function eligibleDestinations(data: WorkspaceData, projectId: string, fie
         varietyName: stage.variety_name_snapshot || recordName(data.catalogs.varieties, stage.variety_id),
       }
     })
-    .sort((a, b) => a.lot.name.localeCompare(b.lot.name, 'es', { numeric: true }) || a.subdivision.name.localeCompare(b.subdivision.name, 'es') || a.stage.stage_number - b.stage.stage_number)
 }
 
 export function StageDestinationPicker({ options, selected, onChange, disabled = false, error, title = 'Destinos de la indicación' }: {
@@ -160,10 +160,10 @@ export function ApplicationsPage() {
         <div className="catalog-toolbar flex flex-col gap-4">
           <SearchField value={query} onChange={value => setFilter(setQuery, value)} label="Buscar órdenes" placeholder="Folio, proyecto, campo, cultivo o lote…" />
           <div className="application-filter-grid">
-            <FormSelect label="Agrícola" value={unitId} onChange={value => { setFilter(setUnitId, value); setFieldId('all') }} options={[{ value: 'all', label: 'Todas las agrícolas' }, ...data.catalogs.agricultural_units.map(unit => ({ value: unit.id, label: unit.name }))]} />
-            <FormSelect label="Campo" value={fieldId} onChange={value => setFilter(setFieldId, value)} options={[{ value: 'all', label: 'Todos los campos' }, ...data.catalogs.fields.filter(field => unitId === 'all' || field.agricultural_unit_id === unitId).map(field => ({ value: field.id, label: field.name }))]} />
-            <FormSelect label="Cultivo" value={cropId} onChange={value => setFilter(setCropId, value)} options={[{ value: 'all', label: 'Todos los cultivos' }, ...data.catalogs.crops.map(crop => ({ value: crop.id, label: crop.name }))]} />
-            <FormSelect label="Estado de los destinos" value={status} onChange={value => setFilter(setStatus, value)} options={[{ value: 'all', label: 'Todos los estados' }, { value: 'indicated', label: 'Indicadas' }, { value: 'performed', label: 'Realizadas' }, { value: 'cancelled', label: 'Canceladas' }]} />
+            <FormSelect label="Agrícola" value={unitId} onChange={value => { setFilter(setUnitId, value); setFieldId('all') }} options={[{ pinned: true, value: 'all', label: 'Todas las agrícolas' }, ...data.catalogs.agricultural_units.map(unit => ({ value: unit.id, label: unit.name }))]} />
+            <FormSelect label="Campo" value={fieldId} onChange={value => setFilter(setFieldId, value)} options={[{ pinned: true, value: 'all', label: 'Todos los campos' }, ...data.catalogs.fields.filter(field => unitId === 'all' || field.agricultural_unit_id === unitId).map(field => ({ value: field.id, label: field.name }))]} />
+            <FormSelect label="Cultivo" value={cropId} onChange={value => setFilter(setCropId, value)} options={[{ pinned: true, value: 'all', label: 'Todos los cultivos' }, ...data.catalogs.crops.map(crop => ({ value: crop.id, label: crop.name }))]} />
+            <FormSelect order="provided" label="Estado de los destinos" value={status} onChange={value => setFilter(setStatus, value)} options={[{ pinned: true, value: 'all', label: 'Todos los estados' }, { value: 'indicated', label: 'Indicadas' }, { value: 'performed', label: 'Realizadas' }, { value: 'cancelled', label: 'Canceladas' }]} />
             <FormInput label="Programada desde" type="date" value={from} onChange={value => setFilter(setFrom, value)} />
             <FormInput label="Programada hasta" type="date" value={to} onChange={value => setFilter(setTo, value)} error={badRange ? 'La fecha final debe ser igual o posterior a la inicial.' : undefined} />
           </div>
@@ -291,7 +291,7 @@ export function NewApplicationDialog({ close, imported, onSaved }: { close: () =
               setDestinationsReviewed(false); setNumberReviewed(false)
               const group = groups.find(item => item.id === id)
               setSelected(group ? group.stage_ids.filter(stageId => options.some(option => option.stage.id === stageId)) : [])
-            }} options={[{ value: 'manual', label: 'Seleccionar destinos manualmente' }, ...groups.map(group => ({ value: group.id, label: `${group.name} · ${group.stage_ids.filter(id => options.some(option => option.stage.id === id)).length} vigentes` }))]} help="Los grupos son una selección manual guardada. Puedes ajustar los destinos para esta indicación." />
+            }} options={[{ pinned: true, value: 'manual', label: 'Seleccionar destinos manualmente' }, ...groups.map(group => ({ value: group.id, label: `${group.name} · ${group.stage_ids.filter(id => options.some(option => option.stage.id === id)).length} vigentes` }))]} help="Los grupos son una selección manual guardada. Puedes ajustar los destinos para esta indicación." />
             {staleMembers > 0 && <Alert><AlertTitle>Este grupo conserva etapas anteriores</AlertTitle><AlertDescription>{staleMembers} {staleMembers === 1 ? 'etapa ya no está disponible y quedó excluida' : 'etapas ya no están disponibles y quedaron excluidas'}. Solo se seleccionan sus siembras vigentes.</AlertDescription></Alert>}
             {currentGroup && <p className="muted" role="status">Origen: todo el grupo {currentGroup.name}. Al ajustar los destinos, la captura pasa a selección manual.</p>}
             <StageDestinationPicker options={options} selected={selected} onChange={ids => { setError(null); setSelected(ids); setGroupId('manual'); setDestinationsReviewed(false); setNumberReviewed(false) }} error={issueFor('destinations')} />
@@ -338,7 +338,7 @@ export function ApplicationDetailPage() {
   const [modal, setModal] = useState<{ kind: 'perform' | 'cancel'; ids: string[] } | { kind: 'view' | 'correct'; targetId: string } | { kind: 'edit' } | null>(null)
   const [notice, setNotice] = useState(() => typeof location.state?.notice === 'string' ? location.state.notice : '')
   const order = (data.applicationOrders ?? []).find(item => item.id === orderId)
-  const targets = (data.applicationTargets ?? []).filter(target => target.order_id === orderId)
+  const targets = sortDisplay((data.applicationTargets ?? []).filter(target => target.order_id === orderId), target => `${target.lot_name} / ${target.subdivision_name} / Etapa ${target.stage_number}`, target => target.id)
   const lotCount = new Set(targets.map(target => data.subdivisions.find(subdivision => subdivision.id === data.stages.find(stage => stage.id === target.stage_id)?.subdivision_id)?.lot_id ?? target.stage_id)).size
   const pending = targets.filter(target => target.status === 'indicated')
   const chosen = pending.filter(target => selected.includes(target.id))

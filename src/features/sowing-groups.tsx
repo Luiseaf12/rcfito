@@ -1,3 +1,4 @@
+import { compareNamed, sortDisplay } from '@/domain/list-order'
 import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { Check, Eye, Pencil, Plus } from 'lucide-react'
@@ -25,7 +26,7 @@ function membership(data: WorkspaceData, group: SowingGroup) {
   const eligible = eligibleDestinations(data, group.project_id, group.field_id, group.crop_id)
   const current = eligible.filter(option => group.stage_ids.includes(option.stage.id))
   const historical = [...new Set([...(group.historical_stage_ids ?? []), ...group.stage_ids.filter(id => !eligible.some(option => option.stage.id === id))])]
-  return { current, historical }
+  return { current, historical: sortDisplay(historical, id => groupStageLabel(data, id), id => id) }
 }
 
 export function SowingGroupsPage() {
@@ -42,7 +43,7 @@ export function SowingGroupsPage() {
     const project = data.projects.find(item => item.id === group.project_id)
     const text = [group.name, project?.name, project?.season, recordName(data.catalogs.agricultural_units, project?.agricultural_unit_id), recordName(data.catalogs.fields, group.field_id), recordName(data.catalogs.crops, group.crop_id)].join(' ')
     return (projectId === 'all' || group.project_id === projectId) && (status === 'all' || group.active === (status === 'active')) && normalizeSearch(text).includes(normalizeSearch(query))
-  }).sort((a, b) => a.name.localeCompare(b.name, 'es', { numeric: true }))
+  }).sort((a, b) => compareNamed(a, b))
   const pageCount = Math.max(1, Math.ceil(filtered.length / 8))
   const currentPage = Math.min(page, pageCount)
   const visible = filtered.slice((currentPage - 1) * 8, currentPage * 8)
@@ -56,8 +57,8 @@ export function SowingGroupsPage() {
     <div className="surface">
       <FieldGroup className="catalog-toolbar field-grid">
         <SearchField label="Buscar grupos" value={query} onChange={value => { setQuery(value); setPage(1) }} placeholder="Nombre, agrícola, campo o cultivo…" />
-        <FormSelect label="Proyecto" value={projectId} onChange={value => { setProjectId(value); setPage(1) }} options={[{ value: 'all', label: 'Todos los proyectos' }, ...data.projects.map(project => ({ value: project.id, label: `${project.name} · ${project.season}` }))]} />
-        <FormSelect label="Estado del grupo" value={status} onChange={value => { setStatus(value); setPage(1) }} options={[{ value: 'all', label: 'Todos los estados' }, { value: 'active', label: 'Activos' }, { value: 'inactive', label: 'Inactivos' }]} />
+        <FormSelect label="Proyecto" value={projectId} onChange={value => { setProjectId(value); setPage(1) }} options={[{ pinned: true, value: 'all', label: 'Todos los proyectos' }, ...data.projects.map(project => ({ value: project.id, label: `${project.name} · ${project.season}` }))]} />
+        <FormSelect order="provided" label="Estado del grupo" value={status} onChange={value => { setStatus(value); setPage(1) }} options={[{ pinned: true, value: 'all', label: 'Todos los estados' }, { value: 'active', label: 'Activos' }, { value: 'inactive', label: 'Inactivos' }]} />
       </FieldGroup>
       {visible.length ? <div className="table-wrap"><Table>
         <TableHeader><TableRow><TableHead>Grupo y proyecto</TableHead><TableHead>Campo y cultivo</TableHead><TableHead>Etapas vigentes</TableHead><TableHead>Estado</TableHead><TableHead>Acciones</TableHead></TableRow></TableHeader>
@@ -161,7 +162,7 @@ function GroupEditor({ group, close, completed }: { group?: SowingGroup; close: 
             <FormSelect label="Cultivo" value={form.crop_id} onChange={value => changeContext('crop_id', value)} required disabled={busy || !!group || !form.field_id || !crops.length} help={group ? 'El cultivo de un grupo guardado no cambia. Para otro cultivo, crea un grupo nuevo.' : !form.field_id ? 'Primero elige proyecto y campo.' : !crops.length ? 'Agrega un cultivo activo en el catálogo de Cultivos.' : 'Elige el cultivo. Después podrás seleccionar sus siembras y filtrar por variedad.'} options={crops.map(crop => ({ value: crop.id, label: `${crop.name}${crop.active ? '' : ' (inactivo)'}` }))} />
             </FieldGroup>
             {form.field_id && form.crop_id && <>
-              <FormSelect label="Variedad de las siembras" value={varietyId} onChange={setVarietyId} disabled={busy} options={[{ value: 'all', label: 'Todas las variedades' }, ...[...varieties].map(([value, label]) => ({ value, label }))]} help="La variedad se toma de cada etapa registrada en Proyectos de siembra. El grupo puede incluir varias variedades del mismo cultivo. Seleccionar todos y Limpiar afectan solo las siembras visibles." />
+              <FormSelect label="Variedad de las siembras" value={varietyId} onChange={setVarietyId} disabled={busy} options={[{ pinned: true, value: 'all', label: 'Todas las variedades' }, ...[...varieties].map(([value, label]) => ({ value, label }))]} help="La variedad se toma de cada etapa registrada en Proyectos de siembra. El grupo puede incluir varias variedades del mismo cultivo. Seleccionar todos y Limpiar afectan solo las siembras visibles." />
               <StageDestinationPicker title="Siembras para agregar al grupo" options={visibleOptions} selected={selected} disabled={busy} onChange={ids => { setError(null); setSelected(current => updateVisibleGroupMembers(current, visibleOptions.map(option => option.stage.id), ids)) }} />
               <p className="muted" aria-live="polite">Total del grupo: {selectedOptions.length} {selectedOptions.length === 1 ? 'siembra' : 'siembras'} · {formatArea(selectedOptions.reduce((sum, option) => sum + Number(option.stage.area_ha), 0))} ha. Cambiar el filtro de variedad conserva las siembras seleccionadas.</p>
               {!visibleOptions.length && <Alert><AlertTitle>{options.length ? 'No hay siembras de esta variedad disponibles' : 'No hay siembras vigentes de este cultivo en el campo'}</AlertTitle><AlertDescription>{options.length ? 'Elige otra variedad o Todas las variedades. Las siembras que ya seleccionaste permanecen en el grupo.' : 'En Proyectos de siembra, registra la variedad y la fecha real de siembra de una etapa de este cultivo. Las etapas planeadas o cerradas no se pueden agregar a un grupo activo.'} <Link to="/proyectos">Ir a proyectos de siembra</Link></AlertDescription></Alert>}

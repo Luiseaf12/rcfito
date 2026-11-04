@@ -1,3 +1,4 @@
+import { sortDisplay } from '@/domain/list-order'
 import { useState, type FormEvent } from 'react'
 import { History, Pencil } from 'lucide-react'
 import { useWorkspace } from '@/data/workspace-context'
@@ -88,7 +89,7 @@ export function EditApplicationDialog({ order, target, close, completed }: { ord
       <form onSubmit={submit} noValidate className="flex flex-col gap-6">
         <ErrorAlert message={error} />
         <Alert><Pencil aria-hidden="true" /><AlertTitle>{correcting ? targetLabel(target!) : seed.targetIds.length === 1 ? '1 destino pendiente recibirá esta indicación' : `${seed.targetIds.length} destinos pendientes recibirán esta indicación`}</AlertTitle><AlertDescription>{correcting ? 'El folio, número por etapa y estado realizado se conservan.' : 'Los destinos realizados o cancelados conservan su indicación anterior. El folio y los números por etapa no cambian.'}</AlertDescription></Alert>
-        {!correcting && <ul className="list-disc pl-5">{selectedTargets.map(item => <li key={item.id}>{targetLabel(item)}</li>)}</ul>}
+        {!correcting && <ul className="list-disc pl-5">{sortDisplay(selectedTargets, targetLabel, item => item.id).map(item => <li key={item.id}>{targetLabel(item)}</li>)}</ul>}
         <fieldset disabled={busy} className="min-w-0 flex flex-col gap-6">
           {!correcting && <FieldGroup className="field-grid">
             <FormSelect label="Medio de aplicación" value={form.method_id} onChange={value => update('method_id', value)} required error={issues.method_id} options={data.catalogs.application_methods.filter(method => method.active || method.id === seed.indication.method_id).map(method => ({ value: method.id, label: `${method.name}${!method.active ? ' (inactivo, indicado)' : ''}` }))} />
@@ -132,7 +133,7 @@ export function ApplicationChangeHistory({ order, target }: { order: Application
       <Collapsible><CollapsibleTrigger asChild><Button variant="outline">Ver indicación original</Button></CollapsibleTrigger><CollapsibleContent className="pt-4"><SnapshotDetails snapshot={original} title="Indicación original · versión 0" /></CollapsibleContent></Collapsible>
       {!changes.length && <p className="muted">Todavía no hay ediciones o correcciones registradas.</p>}
       {changes.map(change=><Collapsible key={change.id}><div className="flex flex-col gap-2"><CollapsibleTrigger asChild><Button variant="outline" className="h-auto min-h-11 whitespace-normal text-left">{change.kind==='indication'?'Revisión de indicación':'Corrección de realización'} {change.version} · {new Intl.DateTimeFormat('es-MX',{dateStyle:'medium',timeStyle:'short',timeZone:'America/Mazatlan'}).format(new Date(change.changed_at))}</Button></CollapsibleTrigger><p className="muted">Por {change.changed_by_name || 'Administración'} · {change.target_ids.length} {change.target_ids.length===1?'destino':'destinos'}</p><p className="whitespace-pre-wrap break-words">{change.reason}</p></div>
-        <CollapsibleContent className="pt-4"><ul className="mb-4 list-disc pl-5">{change.target_ids.map(id=><li key={id}>{data.applicationTargets.find(item=>item.id===id)?targetLabel(data.applicationTargets.find(item=>item.id===id)!):'Destino histórico'}</li>)}</ul><div className="application-comparison"><SnapshotDetails snapshot={change.before} title="Antes del cambio" /><SnapshotDetails snapshot={change.after} title="Después del cambio" /></div></CollapsibleContent>
+        <CollapsibleContent className="pt-4"><ul className="mb-4 list-disc pl-5">{sortDisplay(change.target_ids, id => { const item = data.applicationTargets.find(target => target.id === id); return item ? targetLabel(item) : id }, id => id).map(id=><li key={id}>{data.applicationTargets.find(item=>item.id===id)?targetLabel(data.applicationTargets.find(item=>item.id===id)!):'Destino histórico'}</li>)}</ul><div className="application-comparison"><SnapshotDetails snapshot={change.before} title="Antes del cambio" /><SnapshotDetails snapshot={change.after} title="Después del cambio" /></div></CollapsibleContent>
       </Collapsible>)}
     </CardContent>
   </Card>
