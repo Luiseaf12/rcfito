@@ -20,6 +20,12 @@ export async function createSavedRecipePdf(snapshot: SavedRecipeDocument, fonts:
   ] })
   section(`Destinos de la orden (${snapshot.targets.length})`)
   table({ head: [['Lote', 'Subdivisión', 'Etapa', 'Variedad', 'Superficie (ha)']], columnStyles: { 0: { cellWidth: 105 }, 1: { cellWidth: 144 }, 2: { cellWidth: 43, halign: 'center' }, 3: { cellWidth: 149 }, 4: { cellWidth: 91, halign: 'right' } }, body: snapshot.targets.map(target => [text(target.lot), text(target.subdivision), String(target.stage_number), text(target.variety), reportNumber.format(target.area_ha)]) })
+  const correctedTargets = snapshot.targets.filter(target => target.area_correction)
+  if (correctedTargets.length) {
+    section('Superficies corregidas')
+    table({ head: [['Destino', 'Anterior (ha)', 'Corregida (ha)', 'Corrección de malla']], columnStyles: { 0: { cellWidth: 250 }, 1: { cellWidth: 70, halign: 'right' }, 2: { cellWidth: 70, halign: 'right' }, 3: { cellWidth: 142 } }, body: correctedTargets.map(target => [`${text(target.lot)} / ${text(target.subdivision)} / Etapa ${target.stage_number}`, reportNumber.format(target.area_correction!.previous_area_ha), reportNumber.format(target.area_ha), `${target.area_correction!.version} - ${date(target.area_correction!.changed_at.slice(0, 10))}`]) })
+    note('Historial de superficies', 'Los valores anteriores se conservan en el historial del proyecto. Las dosis y el gasto de agua por hectárea mantienen sus valores indicados.')
+  }
   section(`Mezcla indicada - revisión ${snapshot.revision}`)
   table({ head: [['Producto / agua', 'Dosis / gasto', 'Unidad']], columnStyles: { 0: { cellWidth: 362 }, 1: { cellWidth: 98, halign: 'right' }, 2: { cellWidth: 72 } }, body: [
     ...snapshot.products.map(product => [text(product.product_name), dose.format(product.dose), `${product.unit}/ha`]),

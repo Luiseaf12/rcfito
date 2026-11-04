@@ -295,3 +295,25 @@ La lectura de `application_orders` añade `recipe_source_order_id`,
 anterior. FK e índices conservan las referencias; las guardas existentes impiden
 alterarlas. No hay permisos nuevos ni endpoint alternativo. El lector mantiene
 su ámbito RLS y no crea indicaciones. [Contrato y pruebas](flows/recipe-creation.md).
+
+
+## Correcciones de malla — RCF-038
+
+La migración 20261104180000 añade project_lots.correction_version (inicial 0),
+application_targets.area_correction_id y lot_corrections. El adaptador solicita
+solo id, lot_id, version, reason, changed_by, changed_by_name, changed_at, before y
+after de la auditoría; request_signature y write_set son privados, sin SELECT de
+cliente. RLS limita la lectura a las agrícolas asignadas.
+
+RPC correct_project_lot(p_data) devuelve UUID. Requiere administración activa,
+id estable, lot_id, expected_version, name y reason. area_ha es opcional y expresa
+el alcance conjunto confirmado; stage_id exige planned_sowing_date y
+actual_sowing_date. No admite campos adicionales. Las reglas de negocio viven
+en [el flujo](flows/lot-corrections.md).
+
+La transacción bloquea contexto/destinos, verifica versión y registra antes y
+después; una guarda vincula cada excepción a los valores exactos del evento.
+Un reintento idéntico devuelve el mismo UUID; reutilizarlo con otro cuerpo falla.
+Un conflicto de versión o bloqueo exige actualizar y revisar. El adaptador
+comprueba coherencia de las lecturas REST separadas y reintenta una vez si
+atravesaron una corrección. Estados, mezclas e historial previo se conservan.

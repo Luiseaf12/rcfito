@@ -725,3 +725,24 @@ Fuente `71256ca` publicada en GitHub, Docker healthy y Sites 37. Comprobación
 posterior de entrada y cuatro recursos exactos (JS principal, CSS, reporte y
 módulo compartido), Auth y rechazo anónimo en ambos destinos aprobada. Nueve
 controles HTTPS de conexión aprobados sin escrituras de operación.
+
+
+## Correcciones de malla — RCF-038
+
+2026-11-04: 320 pruebas puras, tipos y build Windows aprobados. Ocho pruebas nuevas
+en lot-corrections.test.ts cubren todos los estados, etapas históricas, cantidades,
+fechas, idempotencia, copia, ámbito y coherencia entre consultas REST.
+
+backend-applications-test.mjs aprobó 417 comprobaciones PostgreSQL con once
+migraciones. backend-integration.mjs --fresh --cleanup --advisors aprobó 210
+controles con Auth/REST/Edge/RLS reales en rcfito-local-test. Incluyen historial,
+columnas privadas, originales, lectura asignada, denegaciones, carrera de dos
+correcciones y rollback. Advisors sin WARN/ERROR; CLI existente fijada a 2.120.0,
+sin adoptar cambios incompatibles de CLI 3. Stack y fixtures aislados retirados.
+
+QA demo: corrección conjunta y otra de solo nombre, persistencia tras recargar,
+error de fecha/campos, cancelación de descarte, foco y lector sin edición. Móvil
+375×450 px sin overflow general y consola sin avisos/errores. PDF corregido de
+una/ocho páginas renderizado y revisado; descarga real de una página inspeccionada.
+PDF sin correcciones de una/seis páginas conservado. Autorrevisión de React y
+seguridad; sin revisión independiente. [Flujo](flows/lot-corrections.md).

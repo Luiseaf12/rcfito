@@ -111,7 +111,9 @@ decisiones de rcfito.
   conservando la versión histórica utilizada por las siembras anteriores.
 - Conservar la configuración histórica usada por cada siembra y temporada:
   cambios posteriores de divisiones, superficies, cultivos o fechas no deben
-  reescribir el historial anterior.
+  reescribir el historial anterior. La corrección auditada de RCF-038 permite
+  rectificar los valores vigentes conservando sus versiones originales, según
+  [correcciones de malla y siembra](flows/lot-corrections.md).
 - Puede quedar superficie del lote de esa temporada sin sembrar. Esa situación debe quedar
   identificada y visible porque es excepcional. La representación de superficies
   físicas y sembradas se concretará en la propuesta.

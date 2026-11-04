@@ -167,3 +167,15 @@ Exportar imágenes de contenedores no incluye sus volúmenes.
 - [Supabase autohospedado](https://supabase.com/docs/guides/self-hosting).
 - [Configuración oficial versionada](https://github.com/supabase/supabase/tree/self-hosted/v0.8.3/docker).
 - [RLS](https://supabase.com/docs/guides/database/postgres/row-level-security).
+
+
+## Correcciones de malla — RCF-038
+
+La migración aditiva 20261104180000_lot_correction_history.sql requiere instalarse
+antes del frontend que consulta lot_corrections. El gestor backend-local mantiene
+checksums y ejecuta la ampliación junto con su registro en una transacción. La
+migración compara las once tablas de negocio antes/después y revierte si cambian
+sus valores originales. No incluye correcciones ni fixtures de operación.
+
+Instalada el 2026-11-04 tras respaldo privado validado: once migraciones aplicadas,
+cero pendientes y auditoría vacía. [Entrega y respaldo](OPERATIONS.md#correcciones-de-malla--rcf-038).

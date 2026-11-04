@@ -1,6 +1,6 @@
 # Pendientes de RCFito
 
-Fecha de revisión: 2026-11-03.
+Fecha de revisión: 2026-11-04.
 
 El estado **descartada** indica cancelación por el Propietario; no acredita
 verificaciones sin realizar ni revierte mejoras ya publicadas.
@@ -45,6 +45,8 @@ verificaciones sin realizar ni revierte mejoras ya publicadas.
 | RCF-036 | Exportar recetas guardadas a PDF con el formato de los borradores. | cerrada | Agente principal | Fuente cd165f8 publicada en GitHub, Docker healthy y Sites 33. 311 pruebas y QA de revisión/lector/móvil; PDF de una/seis páginas y regresión del borrador verificados. Nueve checks HTTPS y recursos publicados aprobados, sin escrituras operativas. | [Flujo y alcance](flows/saved-recipe-pdf.md) y [publicación](OPERATIONS.md#pdf-de-recetas-guardadas--rcf-036) |
 
 | RCF-037 | Eliminar una captura errónea y liberar folio/números para recaptura IA. | cerrada | Agente principal | Corrección puntual autorizada y aplicada con respaldo validado; quince controles aislados y comprobación posterior aprobados. Grupos y demás aplicaciones intactos; ledger 10/0. Sin nuevo botón ni permisos cliente. | [Alcance y evidencia](flows/application-removal.md) |
+
+| RCF-038 | Corregir nombre/superficie de malla y fechas de la siembra vigente conservando historial. | en curso | Agente principal | 320 pruebas, 417 SQL y 210 HTTP aprobados; ampliación instalada con respaldo y ledger 11/0, sin corregir datos reales. Publicación del frontend en curso. | [Decisiones y recorrido](flows/lot-corrections.md) |
 
 Estados y cierre: [DOCUMENTATION](../.project-standards/DOCUMENTATION.md#planes-decisiones-y-deuda).
 Una tarea registrada no autoriza implementarla. Conservar su ID y actualizar su

@@ -1,6 +1,7 @@
 import type { CatalogKind, CatalogRecord, UserProfile, WorkspaceCommand, WorkspaceData } from './model'
 import { applyApplicationCommand } from './applications'
 import { validateCatalogEdit } from './catalogs'
+import { applyLotCorrection } from './lot-corrections'
 
 const fail = (message: string): never => { throw new Error(message) }
 const validDate = (value: string) => /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(`${value}T12:00:00Z`)) && new Date(`${value}T12:00:00Z`).toISOString().slice(0,10) === value
@@ -18,6 +19,7 @@ export function scopeWorkspace(data: WorkspaceData, profile: UserProfile): Works
   const projects = new Set(result.projects.map(p=>p.id))
   result.lots = result.lots.filter(l=>projects.has(l.project_id))
   const lots = new Set(result.lots.map(l=>l.id))
+  result.lotCorrections = (result.lotCorrections ?? []).filter(change => lots.has(change.lot_id))
   result.subdivisions = result.subdivisions.filter(s=>lots.has(s.lot_id))
   const subdivisions = new Set(result.subdivisions.map(s=>s.id))
   result.stages = result.stages.filter(s=>subdivisions.has(s.subdivision_id))
@@ -43,6 +45,7 @@ export function applyCommand(input: WorkspaceData, command: WorkspaceCommand, pr
   const subOf = (id:string) => d.subdivisions.find(s=>s.id===id) ?? fail('No se encontró la subdivisión.')
   const stageOf = (id:string) => d.stages.find(s=>s.id===id) ?? fail('No se encontró la etapa.')
   switch(command.type) {
+    case 'correct_lot': applyLotCorrection(d, command.record, profile); break
     case 'save_catalog': {
       const row={...command.record, name:command.record.name.trim()} as CatalogRecord
       const errors = validateCatalogEdit(d, command.kind, row)
@@ -98,7 +101,7 @@ export function applyCommand(input: WorkspaceData, command: WorkspaceCommand, pr
       if(!command.name.trim()||!command.season.trim()) fail('Nombre y temporada son obligatorios.')
       if(d.projects.some(x=>x.agricultural_unit_id===p.agricultural_unit_id&&normalized(x.season)===normalized(command.season))) fail('Ya existe un proyecto de esa temporada para esta agrícola.')
       const newId=uuid(); d.projects.push({...p,id:newId,name:command.name.trim(),season:command.season.trim(),start_date:command.start_date,status:'draft'})
-      for(const lot of [...d.lots].filter(l=>l.project_id===p.id&&l.active!==false)) { const lotId=uuid(); d.lots.push({...lot,id:lotId,project_id:newId}); for(const sub of [...d.subdivisions].filter(s=>s.lot_id===lot.id&&s.active)) d.subdivisions.push({...sub,id:uuid(),lot_id:lotId}) }
+      for(const lot of [...d.lots].filter(l=>l.project_id===p.id&&l.active!==false)) { const lotId=uuid(); d.lots.push({...lot,id:lotId,project_id:newId,correction_version:0}); for(const sub of [...d.subdivisions].filter(s=>s.lot_id===lot.id&&s.active)) d.subdivisions.push({...sub,id:uuid(),lot_id:lotId}) }
       break
     }
     case 'save_lot': {

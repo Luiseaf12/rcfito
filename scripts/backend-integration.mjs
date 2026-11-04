@@ -5,6 +5,7 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { verifyApplicationQueries } from './backend-query-http-checks.mjs';
 import { verifyApplicationGroups } from './backend-group-http-checks.mjs';
+import { verifyLotCorrections } from './backend-lot-http-checks.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const workdir = resolve(root, '.artifacts/supabase-integration');
@@ -502,6 +503,7 @@ try {
   check((await request(`/rest/v1/active_ingredients?id=eq.${classifiedIngredientId}`, adminToken, { classification_id: null }, 'PATCH')).status === 204, 'Clasificaciones: administrador puede retirar relación');
   check((await request(`/rest/v1/ingredient_classifications?id=eq.${classificationId}`, adminToken, undefined, 'DELETE')).status === 204, 'Clasificaciones: eliminación libre confirmada');
 
+  await verifyLotCorrections({ request, check, adminToken, readerToken, noAccessToken, readerId: reader.id });
   sql(`update public.profiles set active=false where id='${reader.id}';`);
   const revoked = await request('/rest/v1/agricultural_units?select=id', readerToken);
   assert(revoked.status === 200 && revoked.data.length === 0, 'Desactivación bloquea JWT de lector ya emitido');

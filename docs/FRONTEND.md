@@ -234,3 +234,16 @@ cancelado devuelve al campo anterior; cerrar el menú devuelve a su botón, mien
 que navegar conserva el foco en el contenido nuevo. Las tablas que desbordan
 ofrecen una región enfocada con Tab y desplazamiento con flechas; las que caben
 no agregan esa parada. [Matriz, contraste y límites](accessibility-review.md).
+
+
+## Correcciones de malla — RCF-038
+
+Editar en un lote usado abre LotCorrectionEditor. Nombre, fechas separadas y
+corrección conjunta de superficie muestran valores anteriores y exigen motivo;
+el alcance de superficie se activa explícitamente y anuncia destinos por estado.
+RecordDialog, Field, Checkbox, Alert, Table y Collapsible reutilizan los controles
+existentes. Error conserva captura; useFormClose protege descarte y foco.
+
+LotCorrectionHistory permite a lectores autorizados consultar versiones y destinos
+por folio/etapa, estado y hectáreas anteriores/nuevas. Aplicaciones enlaza a ese
+historial y el PDF guardado identifica superficies corregidas. [Reglas y QA](flows/lot-corrections.md).

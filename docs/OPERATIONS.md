@@ -911,3 +911,18 @@ Sites confirmó `succeeded`, versión
 despliegue `appgdep_6aea56c2ab648191b01eadc1784d7930`, en
 [RCFito](https://rcfito.paxxa.chatgpt.site). Audiencia pública, R2 y revisión de
 entorno 1 conservados. Cambios ajenos del workspace fuera de los commits propios.
+
+
+## Correcciones de malla — RCF-038
+
+2026-11-04: migración 20261104180000 instalada en rcfito-db después de un respaldo
+privado custom de 446,125 bytes, índice y copia SHA-256 validados. Registro de once
+migraciones coherente, cero pendientes. La comparación transaccional de conteos y
+huellas confirma que once tablas de negocio conservan sus valores originales;
+solo se añaden metadatos y la auditoría vacía. No se llamó a la RPC de corrección
+en operación ni se cargaron fixtures. RLS, columnas privadas y denegación de DML
+y RPC anónima comprobados; caché de esquema REST renovada.
+
+Verificación previa: 320 pruebas puras, 417 SQL, 210 HTTP/Auth y advisors sin
+WARN/ERROR en entornos aislados. [Alcance y evidencia](flows/lot-corrections.md).
+Publicación del frontend en curso; el cierre registrará fuente y despliegue.

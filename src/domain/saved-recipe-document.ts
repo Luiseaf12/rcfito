@@ -8,7 +8,7 @@ export type SavedRecipeDocument = {
   method: string; indicated_date: string; scheduled_date: string; water_l_ha: number; observations: string
   source: { folio: string; revision: number } | null
   products: ProductLine[]
-  targets: { id: string; lot: string; subdivision: string; stage_number: number; variety: string; area_ha: number; application_number: number | null; status: ApplicationTarget['status']; indication_revision: number }[]
+  targets: { id: string; lot: string; subdivision: string; stage_number: number; variety: string; area_ha: number; application_number: number | null; status: ApplicationTarget['status']; indication_revision: number; area_correction?: { version: number; changed_at: string; previous_area_ha: number } }[]
 }
 
 /** Read-only copy of the latest saved indication; historical targets retain their own revision. */
@@ -22,7 +22,10 @@ export function snapshotSavedRecipe(data: WorkspaceData, profile: UserProfile, o
   const targets = data.applicationTargets.filter(item => item.order_id === order.id).map(target => {
     indicationForTarget(data, order, target)
     const change = target.indication_change_id ? data.applicationChanges.find(item => item.id === target.indication_change_id) : undefined
-    return { id: target.id, lot: target.lot_name, subdivision: target.subdivision_name, stage_number: target.stage_number, variety: target.variety_name, area_ha: target.area_ha, application_number: target.application_number ?? order.application_number ?? null, status: target.status, indication_revision: change?.version ?? 0 }
+    const areaChange = target.area_correction_id ? data.lotCorrections?.find(item => item.id === target.area_correction_id) : undefined
+    const areaBefore = areaChange?.before.targets.find(item => item.id === target.id)
+    if (target.area_correction_id && (!areaChange || !areaBefore)) throw new Error('No se encontró el historial de la superficie corregida. Actualiza la consulta.')
+    return { id: target.id, lot: target.lot_name, subdivision: target.subdivision_name, stage_number: target.stage_number, variety: target.variety_name, area_ha: target.area_ha, application_number: target.application_number ?? order.application_number ?? null, status: target.status, indication_revision: change?.version ?? 0, ...(areaChange && areaBefore ? { area_correction: { version: areaChange.version, changed_at: areaChange.changed_at, previous_area_ha: areaBefore.area_ha } } : {}) }
   }).sort((a, b) => a.lot.localeCompare(b.lot, 'es', { numeric: true }) || a.subdivision.localeCompare(b.subdivision, 'es', { numeric: true }) || a.stage_number - b.stage_number || a.id.localeCompare(b.id))
   if (!targets.length) throw new Error('No se encontraron los destinos guardados. Actualiza la consulta antes de exportar.')
   const name = (kind: keyof WorkspaceData['catalogs'], id: string) => data.catalogs[kind].find(item => item.id === id)?.name ?? 'No registrado'

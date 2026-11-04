@@ -286,3 +286,18 @@ acotada; no consume proveedor. Otras preguntas mantienen el esquema validado y
 la configuración existente. Las elecciones de coincidencias conservan el modo
 de alcance del pedido original, incluso todas las temporadas. El agregado de
 páginas exige una misma revisión y se limita a300 productos con aviso visible.
+
+
+## Correcciones de malla — RCF-038
+
+correct_project_lot exige Auth y administración activa en servidor. La auditoría
+es de solo anexado; clientes y service_role carecen de DML directo, y RLS permite
+consultarla solo en agrícolas autorizadas. Firma de petición y conjunto privado
+de escrituras no se exponen por REST. Las excepciones de las guardas exigen rol
+definidor y valores exactos antes/después de un evento de la misma transacción;
+configurar una variable de sesión desde un cliente no concede esa capacidad.
+
+Validación estricta, versión esperada, bloqueos sin espera e idempotencia cubren
+conflictos y reintentos. Pruebas aisladas incluyen suplantación de variable,
+escritura directa, lector sin asignación y rollback completo ante fallo.
+Autorrevisión; no sustituye una auditoría independiente. [Alcance](flows/lot-corrections.md).

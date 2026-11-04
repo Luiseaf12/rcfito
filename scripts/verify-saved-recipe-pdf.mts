@@ -21,11 +21,15 @@ long.products = Array.from({ length: 8 }, (_, index) => ({ ...small.products[ind
 long.observations = Array.from({ length: 40 }, (_, index) => `Nota ficticia ${index + 1}: verificar esta última indicación y los destinos históricos.`).join('\n')
 const fonts = { regular: readFileSync(resolve(root, 'src/assets/fonts/Vera.ttf')).toString('base64'), bold: readFileSync(resolve(root, 'src/assets/fonts/VeraBd.ttf')).toString('base64') }
 mkdirSync(output, { recursive: true })
-for (const [name, snapshot] of [['receta-simple', small], ['receta-extensa', long]] as const) {
+const correctedData = applyCommand(data, { type: 'correct_lot', record: { id: 'pdf-correction-fictitious', lot_id: 'lot-1', expected_version: 0, name: 'Malla ficticia corregida', area_ha: 10, stage_id: 'stage-1', planned_sowing_date: '2026-10-01', actual_sowing_date: '2026-10-03', reason: 'Verificación ficticia de PDF corregido' } }, profile)
+const corrected = snapshotSavedRecipe(correctedData, profile, 'saved-pdf-fictitious', '2026-11-04T18:00:00Z')
+const correctedLong = { ...long, targets: long.targets.map(target => ({ ...target, area_correction: { version: 1, changed_at: corrected.targets[0].area_correction!.changed_at, previous_area_ha: target.area_ha + 1 } })) }
+for (const [name, snapshot] of [['receta-simple', small], ['receta-extensa', long], ['receta-corregida', corrected], ['receta-extensa-corregida', correctedLong]] as const) {
   const result = await createSavedRecipePdf(snapshot, fonts)
   const pages = result.doc.getNumberOfPages()
   if (name === 'receta-simple') assert.equal(pages, 1)
-  else assert.ok(pages >= 3)
+  else if (name.includes('extensa')) assert.ok(pages >= 3)
+  else assert.ok(pages >= 1)
   writeFileSync(resolve(output, `${name}.pdf`), new Uint8Array(result.doc.output('arraybuffer')))
   console.log(`${name}: ${pages} página(s), ${result.reference}`)
 }

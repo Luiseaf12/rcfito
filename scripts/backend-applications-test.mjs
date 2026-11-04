@@ -139,6 +139,7 @@ try {
   const editingSetupEnd = applicationTests.indexOf('-- Captura asistida:');
   if (editingSetupEnd < 0) throw new Error('Falta el límite de fixtures para pruebas de edición.');
   sql(applicationTests.slice(0, editingSetupEnd) + readFileSync(resolve(root, 'supabase/tests/application-editing.sql'), 'utf8'));
+  sql(applicationTests.slice(0, editingSetupEnd) + readFileSync(resolve(root, 'supabase/tests/lot-corrections.sql'), 'utf8'));
   sql(readFileSync(resolve(root, 'supabase/tests/product-synonyms.sql'), 'utf8'));
   console.log(`Backend aplicaciones verificado: ${migrations.length} migración(es), fixtures aislados y controles de RLS/integridad. Auth es un stub de prueba; REST/Auth reales requieren integración aparte.`);
 } finally {
