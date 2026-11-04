@@ -477,12 +477,12 @@ La copia de una receta sin guardar se define por separado en
 productos, dosis y agua por hectárea para revisión externa, con fecha programada
 opcional solo al exportar. No genera una aplicación ni reserva numeración.
 
-RCF-032, solicitado el 2026-11-01. Pendiente de desarrollar una exportación a PDF
-que muestre todos los productos registrados que correspondan a los resultados
-filtrados y los filtros aplicados para obtenerlos. La exportación debe incluir
-el conjunto completo de resultados, aunque la pantalla esté paginada.
-El diseño y las aclaraciones necesarias se revisarán con el Propietario antes
-de desarrollar, conforme a AGENTS.
+RCF-032, solicitado el 2026-11-01 y **cerrado por indicación expresa del
+Propietario el 2026-11-04** mediante «Márcalo como cerrado el 032». Su alcance
+solicitado era exportar todos los productos de los resultados filtrados y los
+filtros aplicados, incluyendo el conjunto completo aunque la pantalla estuviera
+paginada. Esta entrega registra el cierre del seguimiento, sin una nueva
+implementación, instalación, publicación o verificación técnica de esa exportación.
 
 ## Combinación de colores configurable
 
