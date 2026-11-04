@@ -448,6 +448,77 @@ async function verifyProductSynonyms(adminToken, readerToken, noAccessToken) {
   check(race.filter(succeeded).length === 1 && race.filter(result => result.status >= 400).length === 1 && raceAliases.data.length === 1 && raceProducts.every((result, index) => Number(result.data[0].default_dose) === (succeeded(race[index]) ? index === 0 ? 11 : 12 : 7)), 'Sinónimos: carrera HTTP serializa un único propietario y revierte íntegro al competidor');
   console.log(`Integración sinónimos: ${assertionCount - previousAssertions} comprobaciones HTTP/Auth/REST/RLS nuevas aprobadas.`);
 }
+async function verifyApplicationImage(adminToken,readerToken,noAccessToken,readerId) {
+  const tag=randomUUID().slice(0,8), fixture=Object.fromEntries(['unit','field','crop','variety','infra','method','mass','volume'].map(key=>[key,randomUUID()]));
+  const rpc=(name,body,token=adminToken)=>request('/rest/v1/rpc/'+name,token,body);
+  const read=(path,token=adminToken)=>request('/rest/v1/'+path,token);
+  for(const [table,body] of [
+    ['agricultural_units',{id:fixture.unit,code:`IMG-${tag}`,name:`Agrícola imagen ficticia ${tag}`}],
+    ['fields',{id:fixture.field,agricultural_unit_id:fixture.unit,code:`IMG-${tag}`,name:'Campo de imagen ficticio'}],
+    ['crops',{id:fixture.crop,code:`IMG-${tag}`,name:`Cultivo de imagen ${tag}`}],
+    ['varieties',{id:fixture.variety,crop_id:fixture.crop,code:`IMG-${tag}`,name:`Variedad de imagen ${tag}`}],
+    ['infrastructure_types',{id:fixture.infra,code:`IMG-${tag}`,name:`Infraestructura imagen ${tag}`}],
+    ['application_methods',{id:fixture.method,code:`IMG-${tag}`,name:`Medio imagen ${tag}`}],
+    ['products',{id:fixture.mass,code:`IMG-M-${tag}`,name:`Producto masa imagen ${tag}`,unit:'g',default_dose:1}],
+    ['products',{id:fixture.volume,code:`IMG-V-${tag}`,name:`Producto volumen imagen ${tag}`,unit:'ml',default_dose:1}],
+  ]) check(succeeded(await request('/rest/v1/'+table,adminToken,body)),`Imagen: fixture ${table} creado por REST solo en QA`);
+  const projectRow=await rpc('create_sowing_project',{p_data:{agricultural_unit_id:fixture.unit,name:'Temporada imagen ficticia',season:`QA-${tag}`}});
+  check(projectRow.status===200&&typeof projectRow.data==='string','Imagen: proyecto de QA creado por RPC');
+  const projectId=projectRow.data;
+  check(succeeded(await request(`/rest/v1/sowing_projects?id=eq.${projectId}`,adminToken,{status:'active'},'PATCH')),'Imagen: temporada de QA activa');
+  check(succeeded(await request('/rest/v1/user_agricultural_units',adminToken,{user_id:readerId,agricultural_unit_id:fixture.unit})),'Imagen: lector ficticio asignado a agrícola del caso');
+  const stages=[],lots=[];
+  for(const [index,area] of [12,2].entries()) {
+    const lot=await rpc('create_project_lot',{p_data:{project_id:projectId,field_id:fixture.field,code:`IMAGE-${index}`,name:`Malla imagen ficticia ${index}`,area_ha:area,infrastructure_type_id:fixture.infra}});
+    check(lot.status===200,'Imagen: malla con superficie propia creada');lots.push(lot.data);
+    const subs=await read(`lot_subdivisions?lot_id=eq.${lot.data}&select=id`), stageId=randomUUID();
+    check(subs.status===200&&subs.data?.length===1,'Imagen: subdivisión completa identificada');
+    check(succeeded(await rpc('save_sowing_stage',{p_data:{id:stageId,subdivision_id:subs.data[0].id,crop_id:fixture.crop,variety_id:fixture.variety,area_ha:area,planned_sowing_date:'2026-01-01'}}))&&succeeded(await rpc('transition_sowing_stage',{p_stage_id:stageId,p_status:'planted',p_date:'2026-01-02'})),'Imagen: etapa de doce o dos hectáreas sembrada por RPC');
+    stages.push(stageId);
+  }
+  const source={kind:'image_totals',area_ha:14,products:[
+    {product_id:fixture.mass,source_name:'  Alias OCR masa ficticio  ',presentation:'Bolsa de 1 kg',quantity:28,unit:'kg'},
+    {product_id:fixture.volume,source_name:'Alias OCR volumen ficticio',presentation:'Envase 20 L',quantity:1,unit:'L'},
+  ]};
+  const sourceText='  OCR ficticio\nContexto de dos mallas revisado  ';
+  const data={id:randomUUID(),project_id:projectId,field_id:fixture.field,crop_id:fixture.crop,method_id:fixture.method,indicated_date:'2026-01-03',scheduled_date:'2026-01-04',water_l_ha:660,observations:'Nota de imagen ficticia',source_text:sourceText,source_capture:source};
+  const products=[{product_id:fixture.mass,dose:2000},{product_id:fixture.volume,dose:71.428571}];
+  const body={p_data:data,p_stage_ids:stages,p_products:products};
+  const denied=await rpc('create_application_order',body,readerToken),anonymous=await request('/rest/v1/rpc/create_application_order',undefined,body);
+  check(denied.status===403&&[401,403].includes(anonymous.status),'Imagen: lector y anónimo no crean captura');
+  const [first,retry]=await Promise.all([rpc('create_application_order',body),rpc('create_application_order',body)]);
+  check(first.status===200&&retry.status===200&&first.data===data.id&&retry.data===data.id,'Imagen: doble envío concurrente retorna una sola orden');
+  const targetRows=await read(`application_targets?order_id=eq.${data.id}&select=id,stage_id,area_ha`);
+  const productRows=await read(`application_order_products?order_id=eq.${data.id}&select=product_id,dose,unit`);
+  check(targetRows.status===200&&targetRows.data?.length===2&&targetRows.data.reduce((sum,t)=>sum+Number(t.area_ha),0)===14,'Imagen: dos etapas completas suman catorce hectáreas sin duplicarse');
+  check(productRows.status===200&&productRows.data?.length===2&&Number(productRows.data.find(p=>p.product_id===fixture.mass)?.dose)===2000&&Number(productRows.data.find(p=>p.product_id===fixture.volume)?.dose)===71.428571,'Imagen: backend persiste conversión de totales kg/L con seis decimales');
+  const stored=await read(`application_orders?id=eq.${data.id}&select=source_capture,source_text,observations`);
+  const storedMass=stored.data?.[0]?.source_capture?.products?.find(p=>p.product_id===fixture.mass);
+  check(stored.status===200&&stored.data?.[0]?.source_text===sourceText&&stored.data[0].source_capture.area_ha===14&&storedMass?.source_name===source.products[0].source_name&&storedMass?.presentation==='Bolsa de 1 kg'&&storedMass?.quantity===28,'Imagen: relectura conserva metadatos y texto OCR literal');
+  check((await request(`/rest/v1/application_orders?id=eq.${data.id}`,adminToken,{source_capture:null},'PATCH')).status===403,'Imagen: escritura directa no altera fuente original');
+  check((await read(`application_orders?id=eq.${data.id}&select=source_capture`,readerToken)).data?.[0]?.source_capture?.kind==='image_totals'&&(await read(`application_orders?id=eq.${data.id}&select=source_capture`,noAccessToken)).data?.length===0,'Imagen: RLS permite lector asignado y oculta fuente ajena');
+  const invalid=await rpc('create_application_order',{...body,p_data:{...data,id:randomUUID()},p_products:products.map(p=>({...p,dose:p.dose+0.000001}))});
+  check(invalid.status>=400,'Imagen: servidor rechaza dosis manipuladas por cliente');
+  const changedSource=structuredClone(source);changedSource.products[0].presentation='Otro envase';
+  check((await rpc('create_application_order',{...body,p_data:{...data,source_capture:changedSource}})).status>=400,'Imagen: UUID idéntico rechaza evidencia original diferente');
+  const extra=await rpc('create_application_order',{...body,p_data:{...data,id:randomUUID(),source_capture:{...source,image_url:'https://example.invalid/image.png'}}});
+  check(extra.status>=400,'Imagen: metadatos no admiten URL de archivo ni campos extra');
+  const corrected=await rpc('correct_project_lot',{p_data:{id:randomUUID(),lot_id:lots[0],expected_version:0,name:'Malla imagen corregida',area_ha:11,stage_id:stages[0],planned_sowing_date:'2026-01-01',actual_sowing_date:'2026-01-02',reason:'Corrección ficticia de superficie'}});
+  check(corrected.status===200,'Imagen: corrección de superficie se confirma por RPC existente');
+  const afterArea=await read(`application_orders?id=eq.${data.id}&select=source_capture`);
+  check(afterArea.data?.[0]?.source_capture?.area_ha===14&&(await rpc('create_application_order',body)).status===200,'Imagen: fuente histórica y reintento se conservan tras cambio de área');
+  const staleId=randomUUID(),stale=await rpc('create_application_order',{...body,p_data:{...data,id:staleId}});
+  check(stale.status>=400&&/superficie.*cambió/i.test(stale.data?.message??'')&&(await read(`application_orders?id=eq.${staleId}&select=id`)).data?.length===0,'Imagen: área actual trece rechaza formulario previo de catorce sin fila parcial');
+  const recalculated=await rpc('create_application_order',{...body,p_data:{...data,id:staleId,source_capture:{...source,area_ha:13}},p_products:[{product_id:fixture.mass,dose:2153.846154},{product_id:fixture.volume,dose:76.923077}]});
+  check(recalculated.status===200,'Imagen: recalcular con área actual permite guardar');
+  const revised=await rpc('revise_application_order',{p_data:{id:randomUUID(),order_id:data.id,expected_revision:0,target_ids:targetRows.data.map(t=>t.id),method_id:fixture.method,indicated_date:data.indicated_date,scheduled_date:data.scheduled_date,water_l_ha:650,observations:'Nota revisada de imagen',reason:'Revisión ficticia'},p_products:[{product_id:fixture.mass,dose:1},{product_id:fixture.volume,dose:2}]});
+  const afterRevision=await read(`application_orders?id=eq.${data.id}&select=revision,source_capture`);
+  check(revised.status===200&&afterRevision.data?.[0]?.revision===1&&afterRevision.data[0].source_capture.area_ha===14,'Imagen: revisión de indicación conserva evidencia original');
+  const performed=await rpc('perform_application_targets',{p_order_id:data.id,p_target_ids:[targetRows.data[0].id],p_data:{actual_date:'2026-01-04',changed:false,expected_revision:1}});
+  const correction=await rpc('correct_application_target',{p_data:{id:randomUUID(),target_id:targetRows.data[0].id,expected_version:0,actual_date:'2026-01-05',water_l_ha:650,equipment:'Equipo ficticio',applicator:'',observations:'Nota real corregida',reason:'Corrección ficticia'},p_products:[{product_id:fixture.mass,dose:3}]});
+  const afterPerformance=await read(`application_orders?id=eq.${data.id}&select=source_capture,source_text`);
+  check(succeeded(performed)&&correction.status===200&&afterPerformance.data?.[0]?.source_capture?.area_ha===14&&afterPerformance.data[0].source_text===sourceText,'Imagen: realización y su corrección conservan origen y OCR originales');
+}
 try {
   const admin = await adminCreate(`qa-admin-${suffix}@example.invalid`, { display_name: 'QA Admin', role: 'admin' });
   const reader = await adminCreate(`qa-reader-${suffix}@example.invalid`, { display_name: 'QA Lector' });
@@ -504,6 +575,7 @@ try {
   check((await request(`/rest/v1/ingredient_classifications?id=eq.${classificationId}`, adminToken, undefined, 'DELETE')).status === 204, 'Clasificaciones: eliminación libre confirmada');
 
   await verifyLotCorrections({ request, check, adminToken, readerToken, noAccessToken, readerId: reader.id });
+  await verifyApplicationImage(adminToken,readerToken,noAccessToken,reader.id);
   sql(`update public.profiles set active=false where id='${reader.id}';`);
   const revoked = await request('/rest/v1/agricultural_units?select=id', readerToken);
   assert(revoked.status === 200 && revoked.data.length === 0, 'Desactivación bloquea JWT de lector ya emitido');

@@ -510,3 +510,12 @@ sin realizaciones, revisiones ni dependencias. Los grupos y demás registros se
 conservan. El mantenimiento privado exige plan, simulación y respaldo validados;
 no habilita borrado general ni sustituye las reglas ordinarias de historial.
 [Alcance y resultado](flows/application-removal.md).
+
+
+## Captura de cantidades totales desde imagen — RCF-040
+
+Administración puede subir o pegar una imagen en Captura con IA. Los totales se
+reparten entre las hectáreas de las etapas seleccionadas, con revisión explícita
+de productos, unidades y dosis antes de aprobar. Contrato vigente y límites en
+[el flujo de imagen](flows/image-capture.md). La imagen no se conserva; quedan
+texto, totales revisados y superficie original para consulta histórica.

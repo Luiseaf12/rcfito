@@ -285,3 +285,12 @@ Criterio de aceptación: **todos los listados de la pantalla, incluidos los
 selectores dentro de formularios, cumplen el orden general o su excepción
 expresa; una recarga o un cambio de página no altera ese criterio**.
 [Inventario, excepciones y evidencia](flows/list-order.md).
+
+
+## Captura desde imagen — RCF-040
+
+Captura con IA ofrece Texto e Imagen · cantidades totales. La revisión conserva
+la vista previa, permite aclarar cada producto y total y muestra superficie,
+dosis, total reconstruido y diferencia por redondeo. Recalcular invalida la
+confirmación del reparto. Los impedimentos comparten la validación de guardar
+y se enumeran antes del botón. Recorrido en [la ficha](flows/image-capture.md).

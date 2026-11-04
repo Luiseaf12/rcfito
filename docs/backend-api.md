@@ -317,3 +317,16 @@ Un reintento idéntico devuelve el mismo UUID; reutilizarlo con otro cuerpo fall
 Un conflicto de versión o bloqueo exige actualizar y revisar. El adaptador
 comprueba coherencia de las lecturas REST separadas y reintenta una vez si
 atravesaron una corrección. Estados, mezclas e historial previo se conservan.
+
+
+## Fuente de imagen y reparto — RCF-040
+
+POST /api/application-draft conserva `{message}` y añade
+`{message?,image:{mime_type,data}}` con base64 sin prefijo. Devuelve imageDraft
+con OCR, contexto, presentación, cantidad total y unidad por producto.
+create_application_order admite source_capture: kind image_totals, area_ha y
+products con product_id/source_name/presentation/quantity/unit (g/kg/ml/L).
+Bajo bloqueo exige área vigente y dosis g/ml por ha, división half-up a seis
+decimales. La firma idempotente incluye la fuente canónica por producto;
+fuente inmutable en modificaciones posteriores. Filas previas permanecen null.
+[Contrato completo](flows/image-capture.md).

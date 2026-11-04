@@ -774,3 +774,14 @@ Fuente 621f02e publicada en GitHub, Docker healthy y Sites 39. Build Linux y
 checker aprobados. Entrada y los 37 recursos estáticos exactos, Auth y rechazo
 anónimo comprobados en ambos destinos; nueve checks HTTPS aprobados. Registro de
 migraciones 11/0 conservado. No se crearon datos ni cuentas en operación.
+
+
+## Captura desde imagen — RCF-040
+
+Verificación aislada de extracción, validación binaria, Auth/lector, división
+decimal exacta, unidades, redondeo, límites y reintentos. SQL añade 47 controles
+y cuatro de actualización; HTTP añade 33, con regresión completa de los runners.
+Pruebas de cliente cubren rechazo de archivo, píxeles, petición autenticada y
+conservación de la imagen ante errores. No se llama al proveedor real ni se
+insertan fixtures en operación. Evidencia y límite de revisión visual en
+[la ficha](flows/image-capture.md#verificación).

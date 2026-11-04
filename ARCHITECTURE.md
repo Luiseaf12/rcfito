@@ -247,3 +247,13 @@ guardada y snapshots de destinos, sin reconstruir mezclas desde el catálogo.
 descarga y estado/error del hook. El detalle ofrece exportación de consulta;
 no hay nuevos endpoints, escrituras ni migraciones.
 [Contrato](docs/flows/saved-recipe-pdf.md).
+
+
+## Cantidades totales desde imagen — RCF-040
+
+`image-capture-page` coordina carga/pegado, contexto e interpretación;
+`image-capture-fields` presenta totales y reparto. `data/application-image`
+encapsula lectura/transporte y `domain/application-image` valida y calcula con
+enteros decimales exactos. El endpoint y Worker embeben `server/application-image`
+para validar binarios. La migración `20261104171758` incorpora source_capture
+y valida el reparto dentro de create_application_order. [Contrato](docs/flows/image-capture.md).

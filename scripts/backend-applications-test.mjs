@@ -127,6 +127,30 @@ try {
         rollback;
       `);
     }
+    if (file.endsWith('_application_image_source.sql')) {
+      // La CLI generó este timestamp antes del último archivo ya instalado.
+      // Probar también el upgrade real: receta -> corrección de lote -> imagen.
+      const lotFile=migrations.find(name=>name.endsWith('_lot_correction_history.sql'));
+      if (!lotFile) throw new Error('Falta la migración anterior de corrección de lote.');
+      const setup=applicationTests.slice(0,applicationTests.indexOf('-- Captura asistida:'));
+      sql(`${setup}
+        select public.save_sowing_group(pg_temp.group_data(),pg_temp.stages());
+        select public.create_application_order(pg_temp.order_data()||'{"source_group_id":"91000000-0000-4000-8000-000000000001"}',pg_temp.stages(),pg_temp.mixture());
+        select public.create_application_order(pg_temp.order_data('90000000-0000-4000-8000-000000000002')||'{"source_group_id":"91000000-0000-4000-8000-000000000001","recipe_source":{"order_id":"90000000-0000-4000-8000-000000000001","revision":0}}',pg_temp.stages(),pg_temp.mixture());
+        reset role;
+        ${migrationBody(readFileSync(resolve(root,'supabase/migrations',lotFile),'utf8'))}
+        create temporary table before_image_upgrade as select
+          (select jsonb_agg(to_jsonb(o) order by o.id) from public.application_orders o) orders,
+          (select jsonb_agg(to_jsonb(t) order by t.id) from public.application_targets t) targets;
+        ${migrationBody(source)}
+        select pg_temp.assert_true((select bool_and(source_capture is null) from public.application_orders),'upgrade sobre once migraciones deja fuente de imagen nula sin inventarla');
+        select pg_temp.assert_true((select jsonb_agg(to_jsonb(o)-'source_capture' order by o.id) from public.application_orders o)=(select orders from before_image_upgrade),'upgrade conserva órdenes, grupo, receta y firmas originales');
+        select pg_temp.assert_true((select jsonb_agg(to_jsonb(t) order by t.id) from public.application_targets t)=(select targets from before_image_upgrade),'upgrade conserva todos los destinos y metadatos de corrección');
+        set local role authenticated;
+        select pg_temp.assert_true(public.create_application_order(pg_temp.order_data()||'{"source_group_id":"91000000-0000-4000-8000-000000000001","source_capture":null}',pg_temp.stages(),pg_temp.mixture())='90000000-0000-4000-8000-000000000001'::uuid,'retry anterior sigue compatible con fuente de imagen nula');
+        rollback;
+      `);
+    }
     sql(source);
   }
   sql(readFileSync(resolve(root, 'supabase/tests/catalogs-and-sowing.sql'), 'utf8'));
@@ -140,6 +164,7 @@ try {
   if (editingSetupEnd < 0) throw new Error('Falta el límite de fixtures para pruebas de edición.');
   sql(applicationTests.slice(0, editingSetupEnd) + readFileSync(resolve(root, 'supabase/tests/application-editing.sql'), 'utf8'));
   sql(applicationTests.slice(0, editingSetupEnd) + readFileSync(resolve(root, 'supabase/tests/lot-corrections.sql'), 'utf8'));
+  sql(applicationTests.slice(0, editingSetupEnd) + readFileSync(resolve(root, 'supabase/tests/application-image.sql'), 'utf8'));
   sql(readFileSync(resolve(root, 'supabase/tests/product-synonyms.sql'), 'utf8'));
   console.log(`Backend aplicaciones verificado: ${migrations.length} migración(es), fixtures aislados y controles de RLS/integridad. Auth es un stub de prueba; REST/Auth reales requieren integración aparte.`);
 } finally {

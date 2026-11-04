@@ -207,3 +207,10 @@ la implementación y evidencia local; la publicación se confirma por separado.
 2026-10-31: RCF-013 cerrado tras integrar y publicar catálogos sobre la revisión
 de aplicaciones, con resultado nativo de Sites y frontend Docker actualizado.
 La evidencia de publicación está en OPERATIONS.
+
+
+## Captura desde imagen — RCF-040
+
+| ID | Trabajo | Estado | Responsable | Próxima acción | Fuente |
+| --- | --- | --- | --- | --- | --- |
+| RCF-040 | Interpretar imagen con cantidades totales y repartir por hectáreas seleccionadas. | en curso | Agente principal y subagentes | Implementación y pruebas aisladas aprobadas. Aplicar migración con respaldo y publicar la misma fuente; registrar límite de QA visual. | [Flujo, contrato y evidencia](flows/image-capture.md) |

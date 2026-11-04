@@ -30,7 +30,9 @@ const { key } = JSON.parse(readFileSync(resolve(root, 'public/rcfito-config.json
 let role;
 try { role = JSON.parse(Buffer.from(key.split('.')[1], 'base64url').toString()).role; } catch { /* Publishable key. */ }
 if (typeof key !== 'string' || key.startsWith('sb_secret_') || role === 'service_role' || !(key.startsWith('sb_publishable_') || role === 'anon')) throw new Error('El build solo admite una clave pública.');
-const aiSource = readFileSync(resolve(root, 'server/application-ai.mjs'), 'utf8');
+const imageSource = readFileSync(resolve(root, 'server/application-image.mjs'), 'utf8');
+const aiSource = readFileSync(resolve(root, 'server/application-ai.mjs'), 'utf8').replace(/^import .* from '\.\/application-image\.mjs';\r?\n/, '');
+if (/^\s*import\s/m.test(aiSource)) throw new Error('El servicio de captura contiene un import no empaquetado.');
 const aiSettingsSource = readFileSync(resolve(root, 'server/ai-settings.mjs'), 'utf8');
 const workerSource = readFileSync(resolve(root, 'server/site-worker.mjs'), 'utf8');
 const querySource = readFileSync(resolve(root, 'server/application-queries.mjs'), 'utf8');
@@ -43,7 +45,7 @@ for (const statement of aiImports) {
   embeddedWorker = embeddedWorker.replace(statement, '');
 }
 if (/^\s*import\s/m.test(embeddedWorker)) throw new Error('El Worker contiene un import que no está empaquetado.');
-const source = `${aiSettingsSource}\n${aiSource}\n${querySource}\n${chatSource}\n${embeddedWorker}`;
+const source = `${aiSettingsSource}\n${imageSource}\n${aiSource}\n${querySource}\n${chatSource}\n${embeddedWorker}`;
 if (dist !== resolve(root, 'dist') || lstatSync(dist).isSymbolicLink()) throw new Error('Destino de build no permitido.');
 rmSync(dist, { recursive: true });
 mkdirSync(resolve(dist, 'server'), { recursive: true });

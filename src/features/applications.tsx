@@ -1,3 +1,5 @@
+import { buildImageAllocation, type ImageExtraction, type ImageTotalRow } from '@/domain/application-image'
+import { ImageProductEditor, ImageSourceDetails } from './image-capture-fields'
 import { sortDisplay } from '@/domain/list-order'
 import { businessToday, validDate, validateProducts, newProductRow, ProductMixtureEditor, MixtureReadOnly, TextField, type ProductDraft } from './application-fields'
 import { useId, useMemo, useState, type FormEvent } from 'react'
@@ -192,14 +194,16 @@ export function ApplicationsPage() {
   )
 }
 
-export function NewApplicationDialog({ close, imported, onSaved }: { close: () => void; imported?: { extracted: ExtractedApplication; source_text: string }; onSaved?: () => void }) {
+export function NewApplicationDialog({ close, imported, onSaved }: { close: () => void; imported?: { extracted: ExtractedApplication; source_text: string; image?: ImageExtraction; imagePreview?: string }; onSaved?: () => void }) {
   const { data, profile, mutate } = useWorkspace()
   const navigate = useNavigate()
   const [orderId] = useState(() => crypto.randomUUID())
   const [seed] = useState(() => imported ? { context: resolveImportContext(data, imported.extracted), rows: matchImportedProducts(imported.extracted.products, data.catalogs.products) } : null)
   const [initial] = useState(() => ({ project_id: seed?.context.projectId || '', field_id: seed?.context.fieldId || '', crop_id: seed?.context.cropId || '', method_id: seed?.context.methodId || '', indicated_date: imported ? imported.extracted.indicated_date || '' : businessToday(), scheduled_date: imported ? imported.extracted.scheduled_date || '' : businessToday(), water_l_ha: imported?.extracted.water_l_ha == null ? '' : String(imported.extracted.water_l_ha), observations: imported?.extracted.note || '', application_number: imported?.extracted.application_number == null ? '' : String(imported.extracted.application_number) }))
   const [form, setForm] = useState(initial)
-  const [rows, setRows] = useState<ProductDraft[]>(() => seed?.rows.length ? seed.rows.map(row => ({ key: crypto.randomUUID(), product_id: row.productId, dose: row.dose, sourceName: row.sourceName, importUnit: row.unit })) : [newProductRow()])
+  const [textRows, setRows] = useState<ProductDraft[]>(() => seed?.rows.length ? seed.rows.map(row => ({ key: crypto.randomUUID(), product_id: row.productId, dose: row.dose, sourceName: row.sourceName, importUnit: row.unit })) : [newProductRow()])
+  const [imageRows, setImageRows] = useState<ImageTotalRow[]>(() => imported?.image?.products.map((row,index)=>({key:crypto.randomUUID(),product_id:seed?.rows[index]?.productId ?? '',sourceName:row.name,presentation:row.presentation,quantity:row.quantity == null ? '' : String(row.quantity),totalUnit:row.unit})) ?? [])
+  const [allocationReviewed, setAllocationReviewed] = useState('')
   const [selected, setSelected] = useState<string[]>(() => seed?.context.selectedStageIds || [])
   const [destinationsReviewed, setDestinationsReviewed] = useState(false)
   const [numberReviewed, setNumberReviewed] = useState(false)
@@ -211,7 +215,7 @@ export function NewApplicationDialog({ close, imported, onSaved }: { close: () =
   const [error, setError] = useState<string | null>(null)
   const [submitted, setSubmitted] = useState(false)
   const [contextChange, setContextChange] = useState<{ key: 'project_id' | 'field_id' | 'crop_id'; value: string } | null>(null)
-  const dirty = !!imported || JSON.stringify(form) !== JSON.stringify(initial) || selected.length > 0 || rows.length !== 1 || rows.some(row => row.product_id || row.dose)
+  const dirty = !!imported || JSON.stringify(form) !== JSON.stringify(initial) || selected.length > 0 || textRows.length !== 1 || textRows.some(row => row.product_id || row.dose)
   const dismissal = useFormClose(!!dirty, working, close)
   const projects = data.projects.filter(project => project.status === 'active')
   const fields = data.catalogs.fields.filter(field => field.active && data.lots.some(lot => lot.project_id === form.project_id && lot.field_id === field.id && lot.active !== false))
@@ -220,7 +224,10 @@ export function NewApplicationDialog({ close, imported, onSaved }: { close: () =
   const options = form.field_id && form.crop_id ? eligibleDestinations(data, form.project_id, form.field_id, form.crop_id) : []
   const importContext = imported ? resolveImportContext(data, imported.extracted, { agriculturalUnitId: data.projects.find(project => project.id === form.project_id)?.agricultural_unit_id, projectId: form.project_id, fieldId: form.field_id || undefined, cropId: form.crop_id || undefined }) : null
   const chosenOptions = options.filter(option => selected.includes(option.stage.id))
-  const draftIssues = applicationDraftIssues(data, form, rows, selected, { imported: !!imported, unresolvedDestinations: importContext?.unresolvedDestinations ?? [], destinationsReviewed, numberReviewed })
+  const imageAllocation = imported?.image ? buildImageAllocation(imageRows, chosenOptions.map(option=>({stage_id:option.stage.id,area_ha:option.stage.area_ha})), data.catalogs.products) : null
+  const rows: ProductDraft[] = imageAllocation ? imageAllocation.doseRows.map((row,index)=>({...row,key:imageRows[index]?.key ?? String(index)})) : textRows
+  const allocationKey = imageAllocation ? JSON.stringify({rows:imageRows,stages:chosenOptions.map(option=>[option.stage.id,option.stage.area_ha]).sort()}) : ''
+  const draftIssues = [...applicationDraftIssues(data, form, rows, selected, { imported: !!imported, unresolvedDestinations: importContext?.unresolvedDestinations ?? [], destinationsReviewed, numberReviewed }), ...(imageAllocation?.errors ?? []), ...(imageAllocation && allocationReviewed !== allocationKey ? [{field:'allocation_review',message:'Revisa y confirma las cantidades totales, superficie y dosis calculadas.'}] : [])]
   const pdfIssues = draftPdfIssues(form, draftIssues)
   const visibleIssues = imported || submitted ? lastAttempt === 'pdf' ? pdfIssues : draftIssues : []
   const issueFor = (field: string) => visibleIssues.find(issue => issue.field === field)?.message
@@ -265,7 +272,7 @@ export function NewApplicationDialog({ close, imported, onSaved }: { close: () =
     setBusy(true)
     try {
       const { application_number, ...values } = form
-      await mutate({ type: 'create_application_order', record: { ...values, id: orderId, ...(groupId !== 'manual' ? { source_group_id: groupId } : {}), ...(application_number.trim() ? { application_number: Number(application_number) } : {}), ...(imported ? { source_text: imported.source_text } : {}), water_l_ha: Number(form.water_l_ha), stage_ids: chosen.map(option => option.stage.id), products: rows.map(row => ({ product_id: row.product_id, dose: Number(row.dose) })) } })
+      await mutate({ type: 'create_application_order', record: { ...values, id: orderId, ...(groupId !== 'manual' ? { source_group_id: groupId } : {}), ...(application_number.trim() ? { application_number: Number(application_number) } : {}), ...(imported ? { source_text: imported.source_text } : {}), ...(imageAllocation?.source_capture ? {source_capture:imageAllocation.source_capture} : {}), water_l_ha: Number(form.water_l_ha), stage_ids: chosen.map(option => option.stage.id), products: rows.map(row => ({ product_id: row.product_id, dose: Number(row.dose) })) } })
       onSaved?.()
       close()
       navigate(`/aplicaciones/${orderId}`, { state: { notice: 'La indicación se guardó correctamente.' } })
@@ -277,6 +284,7 @@ export function NewApplicationDialog({ close, imported, onSaved }: { close: () =
         <ErrorAlert message={error} /><ErrorAlert message={pdf.error} />
         <fieldset disabled={working} className="min-w-0 flex flex-col gap-6">
           {imported && <Collapsible><CollapsibleTrigger asChild><Button type="button" variant="outline">Mensaje original</Button></CollapsibleTrigger><CollapsibleContent><p className="whitespace-pre-wrap break-words">{imported.source_text}</p></CollapsibleContent></Collapsible>}
+          {imported?.imagePreview && <img src={imported.imagePreview} alt="Imagen de origen para revisar los productos y cantidades" className="max-h-64 max-w-full rounded-lg object-contain" />}
           {importContext && (importContext.cropSuggestionReason || importContext.warnings.length > 0) && <Alert><AlertTitle>Revisa las referencias del mensaje</AlertTitle><AlertDescription>{importContext.cropSuggestionReason && <p>{importContext.cropSuggestionReason}</p>}{importContext.warnings.filter(warning => warning !== importContext.cropSuggestionReason).map(warning => <p key={warning}>{warning}</p>)}</AlertDescription></Alert>}
           {!projects.length && <Alert><AlertTitle>Activa un proyecto de siembra</AlertTitle><AlertDescription>Necesitas un proyecto activo con etapas sembradas para indicar aplicaciones. <Link to="/proyectos">Consultar proyectos</Link></AlertDescription></Alert>}
           <FieldGroup className="field-grid shrink-0 [container-type:normal]">
@@ -304,7 +312,10 @@ export function NewApplicationDialog({ close, imported, onSaved }: { close: () =
           </FieldGroup>
           <Separator />
           <FieldGroup>
-            <ProductMixtureEditor rows={rows} onChange={next => { setError(null); setRows(next) }} products={data.catalogs.products} activeIngredients={data.catalogs.active_ingredients} error={issueFor('products')} imported={!!imported} issues={visibleIssues} />
+            {imageAllocation ? <>
+              <ImageProductEditor rows={imageRows} onChange={next=>{setError(null);setImageRows(next)}} products={data.catalogs.products} ingredients={data.catalogs.active_ingredients} allocations={imageAllocation.allocations} area={imageAllocation.area_ha} errors={imageAllocation.errors} />
+              <Field orientation="horizontal"><Checkbox id={`${orderId}-allocation-reviewed`} checked={allocationReviewed===allocationKey} onCheckedChange={checked=>setAllocationReviewed(checked===true?allocationKey:'')} disabled={imageAllocation.errors.length>0} /><FieldLabel htmlFor={`${orderId}-allocation-reviewed`}>Revisé las cantidades totales, las hectáreas y las dosis calculadas, incluidas las diferencias por redondeo.</FieldLabel></Field>
+            </> : <ProductMixtureEditor rows={rows} onChange={next => { setError(null); setRows(next) }} products={data.catalogs.products} activeIngredients={data.catalogs.active_ingredients} error={issueFor('products')} imported={!!imported} issues={visibleIssues} />}
             <FieldGroup className="field-grid">
               <FormInput label="Gasto de agua (L/ha)" value={form.water_l_ha} onChange={value => update('water_l_ha', value)} type="number" min="0.0001" step="any" required error={issueFor('water_l_ha')} />
               <FormInput label="Fecha de indicación" type="date" value={form.indicated_date} onChange={value => update('indicated_date', value)} required error={issueFor('indicated_date')} />
@@ -376,6 +387,7 @@ export function ApplicationDetailPage() {
           { label: 'Superficie total de la orden', value: `${formatArea(targets.reduce((sum, target) => sum + Number(target.area_ha), 0))} ha` },
         ]} />
         <MixtureReadOnly products={indication.products} water={indication.water_l_ha} />
+        <ImageSourceDetails order={order} />
         <div><h3 className="section-title">Nota de la aplicación</h3><p className="whitespace-pre-wrap">{indication.observations || 'Sin nota.'}</p></div>
         {order.source_text && <Collapsible><CollapsibleTrigger asChild><Button type="button" variant="outline">Mensaje original de la captura</Button></CollapsibleTrigger><CollapsibleContent><p className="whitespace-pre-wrap break-words">{order.source_text}</p></CollapsibleContent></Collapsible>}
       </CardContent>

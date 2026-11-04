@@ -17,10 +17,12 @@ export type ApplicationProductInput = Pick<ProductLine, 'product_id' | 'dose'>
 export type ApplicationGroupSnapshot = { id: string; name: string }
 export type ApplicationSelectionOrigin = 'group' | 'individual' | 'manual' | 'unknown'
 export type ApplicationRecipeSource = { order_id: string; revision: number; stage_id?: string }
+export type ImageTotalUnit = 'g' | 'kg' | 'ml' | 'L'
+export type ApplicationSourceCapture = { kind: 'image_totals'; area_ha: number; products: { product_id: string; source_name: string; presentation: string; quantity: number; unit: ImageTotalUnit }[] }
 export type ApplicationOrder = {
   id: string; folio: string; project_id: string; field_id: string; crop_id: string; method_id: string;
   indicated_date: string; scheduled_date: string; water_l_ha: number; observations: string;
-  source_text?: string; application_number?: number; recipe_source?: ApplicationRecipeSource | null;
+  source_text?: string; source_capture?: ApplicationSourceCapture | null; application_number?: number; recipe_source?: ApplicationRecipeSource | null;
   selection_origin?: ApplicationSelectionOrigin; source_group_id?: string | null; source_group_name?: string | null;
   products: ProductLine[]; project_name?: string; field_name?: string; crop_name?: string; method_name?: string; revision?: number;
 }
@@ -42,7 +44,7 @@ export type ApplicationChange = {
   before: ApplicationIndicationSnapshot | ApplicationActualSnapshot; after: ApplicationIndicationSnapshot | ApplicationActualSnapshot;
 }
 export type SowingGroup = { id: string; project_id: string; field_id: string; crop_id: string; name: string; active: boolean; stage_ids: string[]; historical_stage_ids?: string[] }
-export type ApplicationOrderInput = Pick<ApplicationOrder, 'id' | 'project_id' | 'field_id' | 'crop_id' | 'method_id' | 'indicated_date' | 'scheduled_date' | 'water_l_ha' | 'observations' | 'source_text' | 'application_number' | 'source_group_id' | 'recipe_source'> & { stage_ids: string[]; products: ApplicationProductInput[] }
+export type ApplicationOrderInput = Pick<ApplicationOrder, 'id' | 'project_id' | 'field_id' | 'crop_id' | 'method_id' | 'indicated_date' | 'scheduled_date' | 'water_l_ha' | 'observations' | 'source_text' | 'source_capture' | 'application_number' | 'source_group_id' | 'recipe_source'> & { stage_ids: string[]; products: ApplicationProductInput[] }
 export type ApplicationPerformanceInput = { actual_date: string; equipment: string; applicator: string; observations: string; changed: boolean; water_l_ha?: number; products?: ApplicationProductInput[]; expected_revision?: number }
 export type ApplicationRevisionInput = { id: string; order_id: string; expected_revision: number; target_ids: string[]; method_id: string; indicated_date: string; scheduled_date: string; water_l_ha: number; observations: string; reason: string; products: ApplicationProductInput[] }
 export type ApplicationCorrectionInput = { id: string; target_id: string; expected_version: number; actual_date: string; water_l_ha: number; equipment: string; applicator: string; observations: string; reason: string; products: ApplicationProductInput[] }

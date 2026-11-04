@@ -301,3 +301,14 @@ Validación estricta, versión esperada, bloqueos sin espera e idempotencia cubr
 conflictos y reintentos. Pruebas aisladas incluyen suplantación de variable,
 escritura directa, lector sin asignación y rollback completo ante fallo.
 Autorrevisión; no sustituye una auditoría independiente. [Alcance](flows/lot-corrections.md).
+
+
+## Entrada de imagen — RCF-040
+
+El endpoint existente exige Auth/perfil administrador y configuración del
+servidor. La nueva rama admite PNG/JPEG/WebP estáticos de hasta 5 MiB/20 MP;
+valida firma y estructura antes del proveedor, limita cuerpo a 7 MiB y mantiene
+el límite de texto anterior. No guarda binarios, URLs ni claves en órdenes.
+El RPC valida bajo bloqueo superficie vigente, unidades y dosis de cada total;
+source_capture es metadato histórico inmutable. RLS/roles no se amplían.
+[Contrato y controles](flows/image-capture.md).

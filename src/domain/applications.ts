@@ -2,6 +2,7 @@ import type { ApplicationActualSnapshot, ApplicationOrderInput, ApplicationPerfo
 import { applyApplicationEditing, indicationForTarget } from './application-editing.ts'
 import { applicationGroupOrigin, groupMembershipsAtCreation } from './application-groups.ts'
 import { validateRecipeSource } from './application-recipes.ts'
+import { imageSourceCaptureKey, validateImageOrderSourceCapture, validateImageSourceCapture } from './application-image.ts'
 
 const fail = (message: string): never => { throw new Error(message) }
 const validDate = (value: string) => /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(`${value}T12:00:00Z`)) && new Date(`${value}T12:00:00Z`).toISOString().slice(0, 10) === value
@@ -62,7 +63,7 @@ function mixtureKey(products: ApplicationProductInput[]) {
 function requestKey(record: ApplicationOrderInput) {
   return JSON.stringify({ id: record.id, project_id: record.project_id, field_id: record.field_id, crop_id: record.crop_id, method_id: record.method_id,
     indicated_date: record.indicated_date, scheduled_date: record.scheduled_date, water_l_ha: record.water_l_ha, observations: record.observations,
-    source_text: record.source_text ?? '', source_group_id: record.source_group_id ?? null, recipe_source: record.recipe_source ? [record.recipe_source.order_id, record.recipe_source.revision, record.recipe_source.stage_id ?? null] : null, application_number: record.application_number ?? null, stage_ids: [...record.stage_ids].sort(), products: mixtureKey(record.products) })
+    source_text: record.source_text ?? '', source_capture: imageSourceCaptureKey(record.source_capture), source_group_id: record.source_group_id ?? null, recipe_source: record.recipe_source ? [record.recipe_source.order_id, record.recipe_source.revision, record.recipe_source.stage_id ?? null] : null, application_number: record.application_number ?? null, stage_ids: [...record.stage_ids].sort(), products: mixtureKey(record.products) })
 }
 
 function firstPerformance(data: WorkspaceData, target: ApplicationTarget): ApplicationActualSnapshot {
@@ -93,6 +94,7 @@ export function applyApplicationCommand(data: WorkspaceData, command: WorkspaceC
       const record = command.record
       if (record.application_number !== undefined && (!Number.isInteger(record.application_number) || record.application_number < 1 || record.application_number > 2147483647)) fail('El número de aplicación debe ser un entero positivo válido.')
       if (record.source_text !== undefined && (typeof record.source_text !== 'string' || record.source_text.length > 20000)) fail('El mensaje original debe ser texto de hasta 20,000 caracteres.')
+      const sourceCapture = record.source_capture == null ? null : validateImageSourceCapture(record.source_capture)
       const existing = data.applicationOrders.find(o => o.id === record.id)
       if (existing) {
         const previous = { ...existing, application_number: existing.application_number, source_text: existing.source_text, stage_ids: data.applicationTargets.filter(t => t.order_id === existing.id).map(t => t.stage_id), products: existing.products.map(p => ({ product_id: p.product_id, dose: p.dose })) }
@@ -101,6 +103,7 @@ export function applyApplicationCommand(data: WorkspaceData, command: WorkspaceC
         return true
       }
       const stages = destinations(data, record.stage_ids, record.project_id, record.field_id, record.crop_id)
+      if (sourceCapture) validateImageOrderSourceCapture(sourceCapture, stages.map(stage => ({ stage_id: stage.id, area_ha: stage.area_ha })), data.catalogs.products, record.products)
       const groupOrigin = applicationGroupOrigin(data, record)
       validateRecipeSource(data, record)
       if (!validDate(record.indicated_date) || !validDate(record.scheduled_date) || record.scheduled_date < record.indicated_date) fail('La fecha programada debe ser igual o posterior a la indicación.')
@@ -116,7 +119,7 @@ export function applyApplicationCommand(data: WorkspaceData, command: WorkspaceC
       }
       const nextNumber = Math.max(0, ...data.applicationOrders.map(o => Number(o.folio.replace(/^APL-/, '')) || 0)) + 1
       const { stage_ids: _stageIds, ...order } = record
-      data.applicationOrders.push({ ...order, ...groupOrigin, products, revision: 0, folio: `APL-${String(nextNumber).padStart(6, '0')}`, project_name: data.projects.find(p => p.id === record.project_id)!.name, field_name: data.catalogs.fields.find(f => f.id === record.field_id)!.name, crop_name: data.catalogs.crops.find(c => c.id === record.crop_id)!.name, method_name: method.name })
+      data.applicationOrders.push({ ...order, source_capture: structuredClone(sourceCapture), ...groupOrigin, products, revision: 0, folio: `APL-${String(nextNumber).padStart(6, '0')}`, project_name: data.projects.find(p => p.id === record.project_id)!.name, field_name: data.catalogs.fields.find(f => f.id === record.field_id)!.name, crop_name: data.catalogs.crops.find(c => c.id === record.crop_id)!.name, method_name: method.name })
       for (const stage of stages) {
         const sub = data.subdivisions.find(s => s.id === stage.subdivision_id)!
         const lot = data.lots.find(l => l.id === sub.lot_id)!

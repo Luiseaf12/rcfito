@@ -959,3 +959,11 @@ appgprj_6ae67ae019e88191a7012093bb19c505~appgver_58d6f068dbb0819187210d43acfd194
 despliegue appgdep_6aeb5048fe1c8191a89300c59f458db8 en
 [RCFito](https://rcfito.paxxa.chatgpt.site). Audiencia pública, R2 y revisión de
 entorno 1 conservados. Cambios ajenos de la carpeta excluidos de esta entrega.
+
+
+## Captura desde imagen — RCF-040
+
+2026-11-04: ampliación autorizada con la configuración de IA existente.
+Implementación y pruebas aisladas completas; migración aditiva con respaldo,
+frontend Docker y publicación en Sites pendientes de registrar aquí.
+[Alcance y evidencia](flows/image-capture.md). No se altera la audiencia.
