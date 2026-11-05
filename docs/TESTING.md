@@ -854,3 +854,9 @@ conservado; sin escrituras de negocio en operación.
 QA ficticio de guardado/relectura, plantillas/copia, historial, último admin,
 lector, URL directa, cero secciones y móvil 375 px aprobado. Autorrevisión.
 [Contrato y evidencia](flows/menu-permissions.md).
+
+
+Cierre RCF-044: fuente 1ffb49b, Docker healthy y Sites 44; entrada y 38 recursos
+exactos por destino, 90 controles posteriores y 20 HTTPS aprobados. Ledger 13/0,
+respaldo validado y comparación privada de negocio/roles/asignaciones intacta.
+[Publicación](OPERATIONS.md#permisos-de-menú-por-usuario--rcf-044).

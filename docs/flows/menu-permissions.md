@@ -2,7 +2,7 @@
 
 Solicitud del Propietario, 2026-11-05: implementar la propuesta de permisos de
 menú y, tras verificarlos, hacer commit, push y publicación. No hay dudas de alcance.
-Estado: implementación verificada; migración y publicación en preparación.
+Estado: implementado y publicado en Sites 44; Docker actualizado.
 Contrato de negocio: [PRODUCT](../PRODUCT.md#permisos-de-menú-por-usuario).
 El agente principal asume diseño, implementación, pruebas y autorrevisión; no
 se atribuye revisión independiente.
@@ -127,4 +127,12 @@ y registro SHA-256 con trece aplicadas/cero pendientes. Huellas antes/después
 de negocio, roles y asignaciones idénticas; administrador conserva el control.
 Actualizado solo el código de alta y reiniciado su servicio, con entorno,
 secretos y volúmenes conservados. Sin fixtures ni cambios manuales de permisos
-de cuentas reales. Pendiente: commit/push y publicación del frontend/Sites.
+de cuentas reales.
+
+Cierre: fuente `1ffb49b0b26fee32c1852a35d6c6fb8ac5148ad8` en GitHub,
+Docker healthy y Sites 44 con resultado nativo succeeded. Se integró la entrega
+concurrente de fechas reales, con 391 pruebas y build/checker aprobados sobre la
+misma revisión. Entrada y 38 recursos exactos por destino, seis controles de
+conexión/permisos por destino (90 en total) y 20 controles HTTPS aprobados.
+Se conserva audiencia pública, R2 y entorno revisión 1. No hubo cambios de
+permisos manuales ni fixtures en operación. [Publicación](../OPERATIONS.md#permisos-de-menú-por-usuario--rcf-044).

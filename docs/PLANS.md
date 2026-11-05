@@ -240,4 +240,4 @@ La evidencia de publicación está en OPERATIONS.
 
 | ID | Trabajo | Estado | Responsable | Próxima acción | Fuente |
 | --- | --- | --- | --- | --- | --- |
-| RCF-044 | Permisos de menú por usuario con copia, plantillas, historial y validación de servidor. | en verificación | Agente principal | 391 pruebas cliente, 640 SQL y 268 HTTP aprobados; QA demo/móvil y advisors sin alertas. Respaldo/migración 13/0 confirmados y función de alta actualizada; publicar la revisión validada. | [Contrato y evidencia](flows/menu-permissions.md) |
+| RCF-044 | Permisos de menú por usuario con copia, plantillas, historial y validación de servidor. | cerrada | Agente principal | Fuente 1ffb49b en GitHub, Docker healthy y Sites 44. 391 pruebas, 640 SQL, 268 HTTP, QA demo/móvil y advisors aprobados; 90 controles publicados y 20 HTTPS. Respaldo/migración 13/0 y función de alta confirmados; roles y agrícolas conservados. | [Contrato y evidencia](flows/menu-permissions.md) |

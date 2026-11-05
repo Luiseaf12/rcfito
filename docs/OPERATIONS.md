@@ -1045,3 +1045,37 @@ Sites confirmó `succeeded`, versión
 despliegue `appgdep_6aeced4adf6c8191894af4288639eb76` en
 [RCFito](https://rcfito.paxxa.chatgpt.site). Audiencia pública, R2 y revisión de
 entorno 1 conservados. Cambios ajenos del workspace excluidos de la entrega.
+
+
+## Permisos de menú por usuario — RCF-044
+
+2026-11-05: fuente `1ffb49b0b26fee32c1852a35d6c6fb8ac5148ad8` publicada en
+GitHub, Docker y Sites **44**. Usuarios y accesos permite seleccionar menús y
+catálogos por cuenta de consulta, plantillas, copia e historial. Se conserva
+administración completa, último administrador activo, roles y ámbito agrícola.
+[Contrato, dependencias y QA](flows/menu-permissions.md).
+
+391 pruebas de cliente en la revisión integrada con fechas reales; 516 SQL de
+aplicaciones/catálogos/menús y 124 de consultas/contexto, más 268 HTTP/Auth/REST/
+Edge/RLS aprobados. Advisors sin WARN/ERROR; tipos, build y checker aprobados.
+QA ficticio de permisos, URL directa, cero secciones, copia, plantilla, bloqueo
+de último administrador, recarga, historial, descarte y móvil 375 px aprobado.
+Autorrevisión; no se presenta como revisión independiente. Advertencia anterior
+del chunk principal conservada. Los recursos de QA ficticios quedan fuera de Git.
+
+Respaldo privado custom validado (600,378 bytes) y copia previa del código de alta
+antes de `20261105203609_user_menu_permissions.sql`; ledger SHA-256 con trece
+aplicadas y cero pendientes. Comparación privada conserva todos los registros de
+negocio, roles y asignaciones. La inicialización añade los menús compatibles a las
+cuentas existentes, sin eventos de cambios inventados. Se actualizó solo el código
+de admin-create-user y se reinició su servicio. Entorno, secretos y volúmenes
+conservados; no se leyó ni modificó el `.env` del usuario ni se generaron fixtures.
+
+Docker healthy y build integrado exacto. Sites confirmó succeeded para versión
+`appgprj_6ae67ae019e88191a7012093bb19c505~appgver_871bf3687ab48191b91a91723d0a7b2e`,
+despliegue `appgdep_6aecf05a60008191a093230e29efa19b`, en
+[RCFito](https://rcfito.paxxa.chatgpt.site). Audiencia pública, R2 y entorno
+revisión 1 conservados. Se comprobaron entrada y 38 recursos estáticos exactos
+por destino, configuración del mismo origen, Auth 200 y rechazo anónimo 401 de
+referencias, sello, alta e historial (90 controles en total). Otros 20 controles
+HTTPS del túnel aprobaron sin crear cuentas ni registros de operación.
