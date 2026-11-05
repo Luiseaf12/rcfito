@@ -840,3 +840,8 @@ recálculo, filtros, referencia fuera del filtro, teclado, enlace y recarga apro
 Móvil 375×812 px sin overflow global (documento 360 px); detalle táctil y consola
 limpia. Las escrituras ficticias permanecen solo en demo; no se tocó operación.
 [Contrato y evidencia](flows/application-performance-dates.md).
+
+Fuente `041a926` publicada en GitHub, Docker healthy y Sites 43. Entrada y 38
+recursos estáticos exactos con la funcionalidad, Auth y rechazo anónimo verificados
+en ambos destinos. Nueve controles HTTPS aprobados, checker válido y ledger 12/0
+conservado; sin escrituras de negocio en operación.

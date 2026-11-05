@@ -1,6 +1,6 @@
 # Fecha real e intervalo de aplicaciones — RCF-043
 
-Estado: implementación y verificación aprobadas; publicación en curso.
+Estado: cerrada y publicada el 2026-11-05 en Sites 43 y frontend Docker.
 Solicitud y publicación autorizadas por el Propietario
 el 2026-11-05. Sustituye la fecha programada en el listado y el cálculo de
 [RCF-041/042](application-schedule.md); conserva su secuencia por folio.
@@ -59,4 +59,8 @@ parcial, pendiente, cancelada, detalle por destino A–Z, teclado, enlace y reca
 aprobados. Móvil 375×812 px con documento de 360 px, tabla desplazable y apertura
 táctil; consola sin avisos/errores. Realizaciones y corrección ficticias conservadas
 con su historial únicamente en la demo del navegador. Sin escrituras en operación.
-Publicación y comprobaciones posteriores pendientes.
+Fuente `041a926` publicada en GitHub, Docker healthy y Sites 43. Entrada y 38
+recursos estáticos exactos con la funcionalidad, Auth y rechazo anónimo aprobados
+en ambos destinos; nueve controles HTTPS y ledger 12/0 comprobados. Tipos/build
+y checker aprobados; advertencia previa de tamaño de chunk conservada.
+[Publicación](../OPERATIONS.md#fecha-real-e-intervalo-de-aplicaciones--rcf-043).

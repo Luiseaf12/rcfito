@@ -1034,4 +1034,14 @@ cancelación sin usar la programación como reemplazo. Filtros por realización;
 folios descendentes conservados. [Contrato](flows/application-performance-dates.md).
 383 pruebas, tipos/build y QA demo de teclado, móvil y recarga aprobados.
 Sin migraciones, dependencias, permisos nuevos ni escrituras de operación.
-Publicación de RCF-043 y comprobaciones posteriores en curso.
+Fuente `041a9260b47898c06acf1f0992113b07a408347f` publicada en GitHub, frontend
+Docker healthy y Sites versión **43**. Entrada y 38 recursos estáticos exactos,
+incluidas fechas reales y estados, Auth y rechazo anónimo verificados en ambos
+destinos. Nueve controles HTTPS aprobados y registro de migraciones 12/0 conservado.
+Tipos/build/checker aprobados; advertencia previa de tamaño de chunk conservada.
+
+Sites confirmó `succeeded`, versión
+`appgprj_6ae67ae019e88191a7012093bb19c505~appgver_65c50fc334f881919f4f80450f95e0bc`,
+despliegue `appgdep_6aeced4adf6c8191894af4288639eb76` en
+[RCFito](https://rcfito.paxxa.chatgpt.site). Audiencia pública, R2 y revisión de
+entorno 1 conservados. Cambios ajenos del workspace excluidos de la entrega.
