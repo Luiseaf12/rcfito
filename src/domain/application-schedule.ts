@@ -6,6 +6,16 @@ export type ScheduledInterval =
   | { kind: 'first' | 'cancelled' | 'unavailable' }
 
 const folios = new Intl.Collator('es-MX', { numeric: true })
+/** Ascending recipe sequence, independent of scheduled dates. */
+export function compareRecipeSequence(a: Pick<ApplicationOrder, 'folio' | 'id'>, b: Pick<ApplicationOrder, 'folio' | 'id'>): number {
+  return folios.compare(a.folio, b.folio) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)
+}
+
+export function scheduledIntervalLabel(days: number): string {
+  const count = Math.abs(days)
+  return `${count} ${count === 1 ? 'día' : 'días'} ${days < 0 ? 'antes de la anterior' : 'desde la anterior'}`
+}
+
 function day(value: string): number | undefined {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return
   const epoch = Date.parse(`${value}T00:00:00Z`)
@@ -33,9 +43,8 @@ export function buildScheduledIntervals(orders: readonly ApplicationOrder[], tar
   }
   const last = new Map<string, PreviousSchedule>()
   const result = new Map<string, ScheduledInterval>()
-  const chronological = [...orders].sort((a, b) => a.scheduled_date.localeCompare(b.scheduled_date)
-    || folios.compare(a.folio, b.folio) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
-  for (const order of chronological) {
+  const sequence = [...orders].sort(compareRecipeSequence)
+  for (const order of sequence) {
     const destinations = byOrder.get(order.id) ?? []
     if (destinations.length && destinations.every(target => target.status === 'cancelled')) {
       result.set(order.id, { kind: 'cancelled' }); continue

@@ -221,3 +221,10 @@ La evidencia de publicación está en OPERATIONS.
 | ID | Trabajo | Estado | Responsable | Próxima acción | Fuente |
 | --- | --- | --- | --- | --- | --- |
 | RCF-041 | Mostrar días entre la fecha programada de una receta y su anterior comparable. | cerrada | Agente principal | Fuente 090b91d en GitHub, Docker healthy y Sites 41. 374 pruebas, tipos/build/checker, QA demo/móvil/lector, 38 recursos exactos y nueve checks HTTPS aprobados. Ledger 12/0 conservado; sin escrituras operativas. | [Reglas y evidencia](flows/application-schedule.md) |
+
+
+## Secuencia de recetas — RCF-042
+
+| ID | Trabajo | Estado | Responsable | Próxima acción | Fuente |
+| --- | --- | --- | --- | --- | --- |
+| RCF-042 | Usar la receta previa por número para el intervalo y listar folios de mayor a menor. | en curso | Agente principal | 376 pruebas, tipos/checker, QA demo/móvil y comparación privada de solo lectura aprobados. Completar build y publicación. | [Decisión y corrección](flows/application-schedule.md#corrección-de-secuencia--rcf-042) |

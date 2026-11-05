@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { buildScheduledIntervals } from '../src/domain/application-schedule.ts'
+import { buildScheduledIntervals, compareRecipeSequence, scheduledIntervalLabel } from '../src/domain/application-schedule.ts'
 import { currentOrderIndication } from '../src/domain/application-editing.ts'
 import { emptyWorkspace, type ApplicationOrder, type ApplicationTarget } from '../src/domain/model.ts'
 
@@ -93,14 +93,14 @@ test('la última indicación recalcula referencias aunque la anterior no aparezc
   const order = data.applicationOrders[1]
   const before = currentOrderIndication(data, order)
   data.applicationChanges.push({ id: 'revision', order_id: order.id, target_id: null, target_ids: data.applicationTargets.filter(target => target.order_id === order.id).map(target => target.id), kind: 'indication', version: 1,
-    reason: 'Cambio ficticio', changed_by: 'admin', changed_by_name: 'QA', changed_at: '2026-09-05T15:00:00Z', before, after: { ...before, scheduled_date: '2026-09-08' } })
+    reason: 'Cambio ficticio', changed_by: 'admin', changed_by_name: 'QA', changed_at: '2026-09-05T15:00:00Z', before, after: { ...before, scheduled_date: '2026-09-12' } })
   order.revision = 1
   const all = data.applicationOrders.map(item => ({ ...item, ...currentOrderIndication(data, item) }))
   const intervals = buildScheduledIntervals(all, data.applicationTargets)
   const visible = all.filter(item => item.id === 'order-3').slice(0, 1)
   const interval = intervals.get(visible[0].id)
-  assert.equal(interval?.kind === 'interval' && interval.days, 2)
-  assert.equal(interval?.kind === 'interval' && interval.previous.scheduled_date, '2026-09-08')
+  assert.equal(interval?.kind === 'interval' && interval.days, -2)
+  assert.equal(interval?.kind === 'interval' && interval.previous.scheduled_date, '2026-09-12')
 })
 
 test('sin destinos, origen desconocido o grupo sin identidad no se inventan recetas anteriores', () => {
@@ -110,4 +110,34 @@ test('sin destinos, origen desconocido o grupo sin identidad no se inventan rece
   data.applicationOrders[2].source_group_id = null
   data.applicationTargets.push({ ...data.applicationTargets.find(target => target.order_id === 'order-4')!, id: 'duplicate' })
   for (const interval of buildScheduledIntervals(data.applicationOrders, data.applicationTargets).values()) assert.equal(interval.kind, 'unavailable')
+})
+
+test('la receta previa se elige por folio aunque la fecha retroceda: no salta recetas intermedias', () => {
+  const data = fixture(['2028-04-09', '2028-03-14', '2028-03-19', '2028-04-25', '2028-04-30'])
+  data.applicationOrders.forEach((order, i) => { order.folio = `APL-${101 + i}` })
+  const before = structuredClone(data)
+  const result = buildScheduledIntervals([...data.applicationOrders].reverse(), data.applicationTargets)
+  const expected = [[2, -26, 'APL-101'], [3, 5, 'APL-102'], [4, 37, 'APL-103'], [5, 5, 'APL-104']] as const
+  for (const [number, days, previous] of expected) {
+    const interval = result.get(`order-${number}`)
+    assert.equal(interval?.kind, 'interval')
+    if (interval?.kind === 'interval') { assert.equal(interval.days, days); assert.equal(interval.previous.folio, previous) }
+  }
+  assert.deepEqual(data, before)
+  data.applicationTargets.filter(target => target.order_id === 'order-3').forEach(target => { target.status = 'cancelled' })
+  const skippingCancelled = buildScheduledIntervals(data.applicationOrders, data.applicationTargets).get('order-4')
+  assert.equal(skippingCancelled?.kind === 'interval' && skippingCancelled.previous.folio, 'APL-102')
+})
+
+test('listado numérico descendente antes de paginar y textos claros para fechas anteriores', () => {
+  const data = fixture(Array.from({ length: 12 }, (_, i) => `2028-08-${31 - i}`))
+  const original = structuredClone(data.applicationOrders)
+  const sorted = [...data.applicationOrders].sort((a, b) => compareRecipeSequence(b, a))
+  assert.deepEqual(sorted.slice(0, 8).map(order => order.folio), ['APL-12', 'APL-11', 'APL-10', 'APL-9', 'APL-8', 'APL-7', 'APL-6', 'APL-5'])
+  assert.deepEqual(sorted.slice(8).map(order => order.folio), ['APL-4', 'APL-3', 'APL-2', 'APL-1'])
+  assert.deepEqual(data.applicationOrders, original)
+  assert.equal(scheduledIntervalLabel(-26), '26 días antes de la anterior')
+  assert.equal(scheduledIntervalLabel(-1), '1 día antes de la anterior')
+  assert.equal(scheduledIntervalLabel(0), '0 días desde la anterior')
+  assert.equal(scheduledIntervalLabel(1), '1 día desde la anterior')
 })

@@ -1,7 +1,7 @@
 import { buildImageAllocation, type ImageExtraction, type ImageTotalRow } from '@/domain/application-image'
 import { ImageProductEditor, ImageSourceDetails } from './image-capture-fields'
 import { sortDisplay } from '@/domain/list-order'
-import { buildScheduledIntervals } from '@/domain/application-schedule'
+import { buildScheduledIntervals, compareRecipeSequence } from '@/domain/application-schedule'
 import { ScheduledDate } from './application-schedule'
 import { businessToday, validDate, validateProducts, newProductRow, ProductMixtureEditor, MixtureReadOnly, TextField, type ProductDraft } from './application-fields'
 import { useId, useMemo, useState, type FormEvent } from 'react'
@@ -141,7 +141,7 @@ export function ApplicationsPage() {
         && (!from || order.scheduled_date >= from)
         && (!to || order.scheduled_date <= to)
         && normalizeSearch(`${order.folio} ${order.project_name || project?.name || ''} ${order.field_name || recordName(data.catalogs.fields, order.field_id)} ${order.crop_name || recordName(data.catalogs.crops, order.crop_id)} ${order.observations} ${destinations.map(target => `${target.lot_name} ${target.subdivision_name}`).join(' ')}`).includes(search)
-    }).sort((a, b) => b.scheduled_date.localeCompare(a.scheduled_date) || String(b.folio).localeCompare(String(a.folio), 'es', { numeric: true }))
+    }).sort((a, b) => compareRecipeSequence(b, a))
   }, [orders, targets, data.projects, data.catalogs, query, unitId, fieldId, cropId, status, from, to, badRange])
   const filteredIds = new Set(filtered.map(order => order.id))
   const filteredTargets = targets.filter(target => filteredIds.has(target.order_id))

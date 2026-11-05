@@ -1004,3 +1004,14 @@ appgprj_6ae67ae019e88191a7012093bb19c505~appgver_949dcc54b10481918feb8980eb25557
 despliegue appgdep_6aece24a2b588191a55162013a63ffef en
 [RCFito](https://rcfito.paxxa.chatgpt.site). Audiencia pública, R2 y revisión de
 entorno 1 conservados. Cambios ajenos de la carpeta excluidos de la entrega.
+
+
+## Secuencia descendente de recetas — RCF-042
+
+2026-11-05: la receta anterior se elige por folio, con listado de mayor a menor
+número. Fechas programadas se usan solo para la diferencia; los retrocesos se
+muestran como «N días antes de la anterior». 376 pruebas y QA demo de escritorio,
+móvil, teclado y recarga aprobados; caso reportado comprobado en consulta privada
+de solo lectura. [Decisión y reglas](flows/application-schedule.md#corrección-de-secuencia--rcf-042).
+Sin migraciones, dependencias ni escrituras de datos en operación.
+Publicación y comprobaciones posteriores en curso.

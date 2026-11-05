@@ -808,3 +808,18 @@ Fuente 090b91d publicada en GitHub, Docker healthy y Sites 41. Build Linux y
 checker aprobados. Entrada y 38 recursos estáticos exactos con el intervalo,
 Auth y rechazo anónimo verificados en ambos destinos; nueve checks HTTPS
 aprobados sin escrituras. Ledger 12/0 conservado; fechas reales intactas.
+
+
+## Secuencia descendente de recetas — RCF-042
+
+2026-11-05: 376 pruebas aprobadas. La referencia sigue el folio previo aunque su
+fecha sea posterior; el listado usa el mismo comparador invertido antes de paginar.
+Regresiones ficticias de fechas fuera de orden, dos páginas de folios naturales,
+fechas negativas y singular/plural. Comparación privada de solo lectura contra
+el caso reportado aprobada; datos reales fuera de Git/builds.
+
+QA demo con fechas fuera de secuencia, orden descendente, teclado, apertura de
+referencia, búsqueda, recarga y móvil 375×812 px aprobada; sin overflow global ni
+avisos/errores de consola. Fecha ficticia restaurada. Autorrevisión de cálculo y
+React, sin revisión independiente ni nuevas suites de backend/PDF.
+[Reglas](flows/application-schedule.md#corrección-de-secuencia--rcf-042).

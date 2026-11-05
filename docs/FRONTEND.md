@@ -266,8 +266,8 @@ listas de casillas, relaciones en detalles y resultados de búsqueda.
 - Opciones de alcance o ausencia (Todos, Sin asignar y selección manual) pueden
   fijarse al principio; los registros siguientes mantienen A-Z. Las referencias
   inactivas que deban conservarse siguen disponibles y ordenadas.
-- Las excepciones deben constar en la ficha del recorrido. Se conservan fechas
-  de aplicaciones/recetas e historiales, numeración de etapas, cantidades y ranking
+- Las excepciones deben constar en la ficha del recorrido. Se conservan folios de recetas, fechas
+  de búsqueda de recetas e historiales, numeración de etapas, cantidades y ranking
   del reporte, y la ordenación elegida explícitamente por el usuario. También se
   conserva la secuencia funcional de estados, navegación, campos y acciones.
 - Los renglones de una captura editable conservan su posición durante la edición;
@@ -303,3 +303,9 @@ intervalo anterior. Button/Collapsible permiten abrir la fecha y folio de refere
 por teclado o toque, con Link al detalle. La coordinación usa todo el historial
 cargado autorizado antes de filtrar/paginar. Primera receta, cancelación total y
 contexto incompleto tienen textos explícitos. [Reglas y evidencia](flows/application-schedule.md).
+
+
+RCF-042 corrige el listado de Aplicaciones: folio numérico de mayor a menor antes
+de paginar. La referencia del intervalo sigue el folio anterior comparable; la
+fecha programada solo determina la diferencia de días, incluidos retrocesos con
+texto «N días antes de la anterior». [Decisión](flows/application-schedule.md#corrección-de-secuencia--rcf-042).
