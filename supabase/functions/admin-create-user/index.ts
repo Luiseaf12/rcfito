@@ -48,6 +48,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
     if (typeof body?.email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email.trim()) || typeof body.password !== 'string' || body.password.length < 8 || typeof body.display_name !== 'string' || !body.display_name.trim() || !['admin', 'viewer'].includes(body.role) || !Array.isArray(body.agricultural_unit_ids) || body.agricultural_unit_ids.length > 500 || body.agricultural_unit_ids.some((id: unknown) => typeof id !== 'string' || !uuid.test(id))) {
       return respond({ error: 'Revisa nombre, correo, contraseña de al menos ocho caracteres, rol y agrícolas.' }, 400);
     }
+    if(body.menu_permissions!==undefined&&(!Array.isArray(body.menu_permissions)||body.menu_permissions.length>50||body.menu_permissions.some((key:unknown)=>typeof key!=='string')))return respond({error:'Revisa los permisos de menú.'},400);
     const createdResponse = await request('/auth/v1/admin/users', privateHeaders, 'POST', {
       email: body.email.trim(), password: body.password, email_confirm: true,
       user_metadata: { display_name: body.display_name.trim() },
@@ -56,9 +57,10 @@ Deno.serve(async (req: Request): Promise<Response> => {
     const created = await createdResponse.json();
     createdId = created.id;
     if (typeof createdId !== 'string' || !uuid.test(createdId)) throw new Error('Unexpected Auth response');
-    const assign = await request('/rest/v1/rpc/set_user_access', callerHeaders, 'POST', {
+    const assign = await request('/rest/v1/rpc/set_user_menu_access', callerHeaders, 'POST', {
       p_user_id: createdId, p_role: body.role, p_active: true,
       p_agricultural_unit_ids: [...new Set(body.agricultural_unit_ids)],
+      p_menu_permissions:body.menu_permissions??['summary','projects','applications','queries','groups','catalog:agricultural_units','catalog:fields','catalog:crops','catalog:varieties','catalog:products','catalog:active_ingredients','catalog:ingredient_classifications','catalog:brands','catalog:product_families','catalog:infrastructure_types','catalog:application_methods'],p_expected_version:0,
     });
     if (!assign.ok) throw new Error('Access assignment failed');
     return respond({ id: createdId, email: body.email.trim(), display_name: body.display_name.trim(), role: body.role }, 201);

@@ -320,3 +320,12 @@ ofrecen el detalle A–Z de lotes/subdivisiones con Button/Collapsible y enlaces
 la receta anterior. Sin fecha real no se usa la programación como reemplazo ni
 se salta una receta. Los filtros Aplicada desde/hasta usan realizaciones.
 [Reglas, estados y evidencia](flows/application-performance-dates.md).
+
+
+## Permisos de menú por usuario
+
+Mapa canónico en src/domain/menu-permissions.ts para menú, rutas, encabezado,
+plantillas y editor. Se retiran grupos vacíos, se protege URL directa y se usa
+el primer destino autorizado. Cero menús tiene un estado explícito. Formulario
+con FieldSet, Checkbox, FormSelect y RecordDialog; historial y descarte.
+[Contrato y evidencia](flows/menu-permissions.md).

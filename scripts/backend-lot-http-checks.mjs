@@ -19,7 +19,8 @@ export async function verifyLotCorrections({ request, check, adminToken, readerT
   const project=await rpc('create_sowing_project',{p_data:{agricultural_unit_id:ids.unit,name:'Temporada ficticia de corrección',season:`QA-${suffix}`}});
   check(project.status===200&&typeof project.data==='string','Corrección: proyecto aislado creado');
   check(ok(await request(`/rest/v1/sowing_projects?id=eq.${project.data}`,adminToken,{status:'active'},'PATCH')),'Corrección: proyecto de QA activado');
-  check(ok(await post('user_agricultural_units',{user_id:readerId,agricultural_unit_id:ids.unit})),'Corrección: lector ficticio asignado a agrícola de QA');
+  const assigned=(await read(`user_agricultural_units?user_id=eq.${readerId}&select=agricultural_unit_id`)).data;
+  check(ok(await rpc('set_user_access',{p_user_id:readerId,p_role:'viewer',p_active:true,p_agricultural_unit_ids:[...assigned.map(row=>row.agricultural_unit_id),ids.unit]})),'Corrección: lector ficticio asignado a agrícola de QA');
   const lots=[],stages=[];
   for(let index=0;index<2;index++){
     const lot=await rpc('create_project_lot',{p_data:{project_id:project.data,field_id:ids.field,code:`CORR-${index}`,name:`Malla ficticia ${index}`,area_ha:5,infrastructure_type_id:ids.infra}});

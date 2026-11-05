@@ -312,3 +312,13 @@ el límite de texto anterior. No guarda binarios, URLs ni claves en órdenes.
 El RPC valida bajo bloqueo superficie vigente, unidades y dosis de cada total;
 source_capture es metadato histórico inmutable. RLS/roles no se amplían.
 [Contrato y controles](flows/image-capture.md).
+
+
+## Permisos de menú por usuario
+
+Permisos y versión proceden de profiles en servidor. RLS restrictiva se combina
+con la agrícola; las RPC y Worker verifican la sección antes de consultar o usar
+IA. Escritura de perfiles/asignaciones solo por RPC auditada; se conserva último
+administrador. Referencias mínimas no abren catálogos. Datos operativos
+compartidos siguen el alcance de sus pantallas autorizadas.
+[Contrato y evidencia](flows/menu-permissions.md).

@@ -53,10 +53,11 @@ export function createApplicationChatService({ fetch: chatFetch = fetch, now = D
     if (identityResponse.status !== 200) { await identityResponse.body?.cancel(); throw new ApplicationQueryError(401, 'Tu sesión venció. Inicia sesión nuevamente.'); }
     const identity = await queryReadJson(identityResponse, 65_536, signal);
     if (!identity || typeof identity.id !== 'string' || !/^[0-9a-f-]{36}$/i.test(identity.id)) throw new ApplicationQueryError(401, 'La sesión no es válida.');
-    const profileResponse = await chatFetch(base + `/rest/v1/profiles?id=eq.${encodeURIComponent(identity.id)}&select=role,active`, { headers, redirect: 'manual', signal });
+    const profileResponse = await chatFetch(base + `/rest/v1/profiles?id=eq.${encodeURIComponent(identity.id)}&select=role,active,menu_permissions`, { headers, redirect: 'manual', signal });
     if (profileResponse.status !== 200) { await profileResponse.body?.cancel(); throw new ApplicationQueryError(403, 'No se pudieron comprobar tus permisos de consulta.'); }
     const profiles = await queryReadJson(profileResponse, 16_384, signal);
     if (!Array.isArray(profiles) || profiles.length !== 1 || profiles[0]?.active !== true || !['admin', 'viewer'].includes(profiles[0]?.role)) throw new ApplicationQueryError(403, 'La consulta requiere una cuenta activa con permiso de lectura.');
+    if(profiles[0].role!=='admin'&&(!Array.isArray(profiles[0].menu_permissions)||!profiles[0].menu_permissions.includes('queries')))throw new ApplicationQueryError(403,'Tu cuenta no tiene acceso a Consultas.');
     return { base, authorization, userId: identity.id, env, signal };
   }
   async function configured(env) {

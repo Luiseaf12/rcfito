@@ -49,7 +49,7 @@ type Raw = Record<string, unknown>
 const string = (value:unknown) => typeof value==='string'?value:''
 const n = (value:unknown) => Number(value??0)
 export async function loadWorkspace(client:SupabaseClient, attempt=0):Promise<WorkspaceData> {
-  const tables=[...catalogKinds,'product_ingredients','product_synonyms','profiles','user_agricultural_units','sowing_projects','project_lots','lot_subdivisions','sowing_stages','application_orders','application_order_products','application_targets','application_actual_products','application_changes','lot_corrections','sowing_groups','sowing_group_members']
+  const tables=[...catalogKinds,'product_ingredients','product_synonyms','profiles','user_agricultural_units','sowing_projects','project_lots','lot_subdivisions','sowing_stages','application_orders','application_order_products','application_targets','application_actual_products','application_changes','lot_corrections','sowing_groups','sowing_group_members','user_access_changes']
   const relationKeys: Record<string, string[]> = { product_ingredients:['product_id','active_ingredient_id'],user_agricultural_units:['user_id','agricultural_unit_id'],application_order_products:['order_id','product_id'],application_actual_products:['target_id','product_id'],sowing_group_members:['group_id','stage_id'] }
   const entries=await Promise.all(tables.map(async table=>{
     const rows:Raw[]=[]; let offset=0
@@ -65,13 +65,17 @@ export async function loadWorkspace(client:SupabaseClient, attempt=0):Promise<Wo
     return [table,rows] as const
   }))
   const raw=Object.fromEntries(entries)
+  const {data:references,error:referenceError}=await client.rpc('menu_reference_catalogs')
+  if(referenceError)throw Object.assign(new Error(`No se pudieron comprobar las referencias autorizadas: ${referenceError.message}`),{code:referenceError.code})
+  for(const kind of catalogKinds) { const known=new Set(raw[kind].map(row=>row.id));raw[kind].push(...((references?.[kind]??[]) as Raw[]).filter(row=>!known.has(row.id))) }
   const d=emptyWorkspace()
+  d.userAccessChanges=raw.user_access_changes as import('@/domain/model').UserAccessChange[]
   for(const kind of catalogKinds) d.catalogs[kind]=raw[kind].map(row=>({...row,id:string(row.id),name:string(row.name),active:row.active===true,...(kind==='products'?{family_id:row.product_family_id as string|null,default_dose:n(row.default_dose),synonyms:raw.product_synonyms.filter(s=>s.product_id===row.id).map(s=>string(s.name)),ingredients:raw.product_ingredients.filter(i=>i.product_id===row.id).map(i=>({ingredient_id:string(i.active_ingredient_id),concentration:i.concentration as string|null}))}:{})})) as CatalogRecord[]
   d.projects=raw.sowing_projects.map(row=>({id:string(row.id),agricultural_unit_id:string(row.agricultural_unit_id),name:string(row.name),season:string(row.season),start_date:string(row.start_date),status:row.status as 'draft'|'active'|'closed'}))
   d.lots=raw.project_lots.map(row=>({id:string(row.id),project_id:string(row.project_id),field_id:string(row.field_id),code:string(row.code),name:string(row.name),area_ha:n(row.area_ha),infrastructure_type_id:string(row.infrastructure_type_id),active:row.active===true,field_name_snapshot:string(row.field_name),infrastructure_name_snapshot:string(row.infrastructure_type_name),correction_version:n(row.correction_version)}))
   d.subdivisions=raw.lot_subdivisions.map(row=>({id:string(row.id),lot_id:string(row.lot_id),name:string(row.name),area_ha:n(row.area_ha),active:row.active===true}))
   d.stages=raw.sowing_stages.map(row=>({id:string(row.id),subdivision_id:string(row.subdivision_id),stage_number:n(row.stage_number),crop_id:string(row.crop_id),variety_id:string(row.variety_id),area_ha:n(row.area_ha),planned_sowing_date:string(row.planned_sowing_date),actual_sowing_date:row.actual_sowing_date as string|null,closed_at:row.end_date as string|null,status:row.status as SowingStage['status'],crop_name_snapshot:string(row.crop_name),variety_name_snapshot:string(row.variety_name)}))
-  d.profiles=raw.profiles.filter(row=>row.active).map(row=>({id:string(row.id),full_name:string(row.display_name),role:row.role==='admin'?'admin':'reader'}))
+  d.profiles=raw.profiles.filter(row=>row.active).map(row=>({id:string(row.id),full_name:string(row.display_name),role:row.role==='admin'?'admin':'reader',active:row.active===true,menu_permissions:row.menu_permissions as import('@/domain/menu-permissions').MenuKey[],access_version:n(row.access_version)}))
   d.assignments=raw.user_agricultural_units.map(row=>({user_id:string(row.user_id),agricultural_unit_id:string(row.agricultural_unit_id)}))
   const productLine=(row:Raw):ProductLine=>({product_id:string(row.product_id),dose:n(row.dose),product_name:string(row.product_name),unit:row.unit as ProductLine['unit']})
   d.applicationOrders=raw.application_orders.map(row=>({...readOrderGroupHistory(row),...readRecipeSource(row),id:string(row.id),folio:string(row.folio),project_id:string(row.project_id),field_id:string(row.field_id),crop_id:string(row.crop_id),method_id:string(row.method_id),indicated_date:string(row.indicated_date),scheduled_date:string(row.scheduled_date),water_l_ha:n(row.water_l_ha),observations:string(row.observations),source_text:string(row.source_text),source_capture:row.source_capture as import('@/domain/model').ApplicationSourceCapture | null,revision:n(row.revision),application_number:typeof (row.request_signature as Raw | null)?.application_number==='number'?n((row.request_signature as Raw).application_number):undefined,project_name:string(row.project_name),field_name:string(row.field_name),crop_name:string(row.crop_name),method_name:string(row.method_name),products:raw.application_order_products.filter(p=>p.order_id===row.id).map(productLine)}))
@@ -125,6 +129,6 @@ export async function writeCommand(client:SupabaseClient,c:WorkspaceCommand):Pro
     case 'plant_stage':await rpc('transition_sowing_stage',{p_stage_id:c.id,p_status:'planted',p_date:c.actual_sowing_date});break
     case 'close_stage':await rpc('transition_sowing_stage',{p_stage_id:c.id,p_status:'closed',p_date:c.closed_at});break
     case 'discard_stage':await rpc('discard_planned_stage',{p_stage_id:c.id});break
-    case 'set_user_access':await rpc('set_user_access',{p_user_id:c.user_id,p_role:c.role==='admin'?'admin':'viewer',p_active:true,p_agricultural_unit_ids:c.agricultural_unit_ids});break
+    case 'set_user_access':await rpc('set_user_menu_access',{p_user_id:c.user_id,p_role:c.role==='admin'?'admin':'viewer',p_active:true,p_agricultural_unit_ids:c.agricultural_unit_ids,p_menu_permissions:c.menu_permissions??null,p_expected_version:c.expected_version??null});break
   }
 }

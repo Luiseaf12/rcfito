@@ -330,3 +330,21 @@ Bajo bloqueo exige área vigente y dosis g/ml por ha, división half-up a seis
 decimales. La firma idempotente incluye la fuente canónica por producto;
 fuente inmutable en modificaciones posteriores. Filas previas permanecen null.
 [Contrato completo](flows/image-capture.md).
+
+
+## Permisos de menú por usuario
+
+`profiles.menu_permissions` guarda claves autorizadas y `access_version` detecta
+ediciones simultáneas. `set_user_menu_access(p_user_id,p_role,p_active,
+p_agricultural_unit_ids,p_menu_permissions,p_expected_version)` actualiza los
+tres controles de acceso atómicamente y registra antes/después en
+`user_access_changes` (lectura solo admin, sin DML cliente). `set_user_access`
+se conserva para clientes anteriores, con la misma validación y auditoría.
+
+SELECT restrictivo conserva las RLS agrícolas. `menu_reference_catalogs()`
+devuelve referencias mínimas de datos permitidos para filtros con catálogos
+ocultos; no habilita su lectura completa. Las RPC `application_query`,
+`application_query_stamp` y `application_query_resolve` exigen Consultas.
+Worker verifica el mismo permiso antes de consumir IA/audio. No se conceden
+permisos por metadata del usuario ni por almacenamiento local.
+[Claves, dependencias y compatibilidad](flows/menu-permissions.md).

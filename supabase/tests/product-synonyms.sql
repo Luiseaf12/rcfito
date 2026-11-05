@@ -6,6 +6,12 @@ create or replace function pg_temp.expect_error(statement text,pattern text,desc
 begin begin execute statement; exception when others then if sqlerrm !~* pattern then raise exception 'FAIL: %; error inesperado: %',description,sqlerrm; end if; raise notice 'PASS: %',description; return; end; raise exception 'FAIL: %; la operación debía fallar',description; end $$;
 insert into auth.users(id,email) values('d1000000-0000-4000-8000-000000000001','syn-admin@example.invalid'),('d1000000-0000-4000-8000-000000000002','syn-reader@example.invalid');
 update public.profiles set role='admin' where id='d1000000-0000-4000-8000-000000000001';
+do $$ begin
+  if exists(select 1 from pg_attribute where attrelid='public.profiles'::regclass and attname='menu_permissions' and not attisdropped) then
+    execute $seed$update public.profiles set menu_permissions=array_remove(array_remove(array_remove(rcfito_private.menu_keys(),'ai_capture'),'users'),'connection') where role='viewer'$seed$;
+  end if;
+end $$;
+
 insert into public.products(id,code,name,unit,default_dose,active) values
 ('d2000000-0000-4000-8000-000000000001','SYN-A','Producto matriz','g',10,true),
 ('d2000000-0000-4000-8000-000000000002','BETA100','Sulfato brillante','ml',20,true),

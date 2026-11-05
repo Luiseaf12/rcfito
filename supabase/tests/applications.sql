@@ -10,6 +10,12 @@ begin begin execute statement; exception when others then
 end; raise exception 'FAIL: %; la operación debía fallar',description; end $$;
 insert into auth.users(id,email) values ('10000000-0000-4000-8000-000000000001','admin@example.invalid'),('10000000-0000-4000-8000-000000000002','reader@example.invalid'),('10000000-0000-4000-8000-000000000003','unassigned@example.invalid');
 update public.profiles set role='admin' where id='10000000-0000-4000-8000-000000000001';
+do $$ begin
+  if exists(select 1 from pg_attribute where attrelid='public.profiles'::regclass and attname='menu_permissions' and not attisdropped) then
+    execute $seed$update public.profiles set menu_permissions=array_remove(array_remove(array_remove(rcfito_private.menu_keys(),'ai_capture'),'users'),'connection') where role='viewer'$seed$;
+  end if;
+end $$;
+
 insert into public.agricultural_units(id,code,name) values ('20000000-0000-4000-8000-000000000001','A','Agrícola A ficticia'),('20000000-0000-4000-8000-000000000002','B','Agrícola B ficticia');
 insert into public.fields(id,agricultural_unit_id,code,name) values
 ('30000000-0000-4000-8000-000000000001','20000000-0000-4000-8000-000000000001','A','Campo A'),('30000000-0000-4000-8000-000000000002','20000000-0000-4000-8000-000000000001','B','Campo B'),('30000000-0000-4000-8000-000000000003','20000000-0000-4000-8000-000000000002','C','Campo C');

@@ -13,7 +13,7 @@ function setup(options = {}) {
   const fetch = async (url, init) => {
     calls.push({ url, init });
     if (url.endsWith('/auth/v1/user')) return Response.json({ id: user }, { status: options.authStatus ?? 200 });
-    if (url.includes('/rest/v1/profiles?')) return Response.json(options.profiles ?? [{ role: 'viewer', active: true }]);
+    if (url.includes('/rest/v1/profiles?')) return Response.json(options.profiles ?? [{ role: 'viewer', active: true, menu_permissions: ['queries'] }]);
     if (url.endsWith('/application_query_stamp')) return Response.json({ revision: 'version', as_of: '2026-11-01T12:00:00Z' });
     if (url.endsWith('/application_query')) {
       dataCalls++; const query = JSON.parse(init.body).p_query;
@@ -106,4 +106,12 @@ test('audio sobredimensionado se rechaza antes de consumir proveedor', async () 
 test('Worker conecta las tres rutas nuevas con guardas y no las sirve como HTML', async () => {
   const worker = createSiteWorker({}, { key: 'sb_publishable_fictitious' });
   for (const path of ['/api/application-chat', '/api/application-query', '/api/application-transcription']) assert.equal((await worker.fetch(new Request(origin + path), {})).status, 405);
+});
+
+
+test('retirar Consultas rechaza chat, consulta y audio antes de consumir proveedor',async()=>{
+  for(const path of ['/api/application-chat','/api/application-query','/api/application-transcription']) {
+    const state=setup({profiles:[{role:'viewer',active:true,menu_permissions:[]}]});
+    assert.equal((await state.handle(request({},path),{})).status,403);assert.deepEqual(state.counts(),{providerCalls:0,dataCalls:0});
+  }
 });

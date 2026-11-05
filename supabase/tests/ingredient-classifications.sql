@@ -16,6 +16,12 @@ insert into auth.users(id,email) values
 ('a1000000-0000-4000-8000-000000000001','classification-admin@example.invalid'),
 ('a1000000-0000-4000-8000-000000000002','classification-reader@example.invalid');
 update public.profiles set role='admin' where id='a1000000-0000-4000-8000-000000000001';
+do $$ begin
+  if exists(select 1 from pg_attribute where attrelid='public.profiles'::regclass and attname='menu_permissions' and not attisdropped) then
+    execute $seed$update public.profiles set menu_permissions=array_remove(array_remove(array_remove(rcfito_private.menu_keys(),'ai_capture'),'users'),'connection') where role='viewer'$seed$;
+  end if;
+end $$;
+
 insert into public.active_ingredients(id,code,name) values('a2000000-0000-4000-8000-000000000001','CL-IA','Ingrediente ficticio');
 select pg_temp.assert_true((select classification_id is null from public.active_ingredients where code='CL-IA'),'ingrediente puede conservarse sin clasificación');
 

@@ -527,3 +527,15 @@ consecutivas de su ámbito histórico, conservando el orden descendente por foli
 Los filtros del listado usan fecha real; la programación permanece en el detalle.
 Pendientes, canceladas, aplicaciones parciales y fechas distintas tienen estados
 explícitos. [Contrato vigente](flows/application-performance-dates.md).
+
+
+## Permisos de menú por usuario
+
+2026-11-05: autorizado implementar y publicar permisos de menú desde Usuarios y
+accesos. Las cuentas de consulta eligen secciones y catálogos individuales; rol
+y agrícolas conservan su alcance. Incluye plantillas, copia de menús, rutas
+protegidas, comprobación de servidor e historial de cambios. Administración
+conserva todas las secciones y al menos una cuenta activa; Captura con IA,
+usuarios y configuración requieren ese rol. Consultas con IA conserva permiso
+propio. Referencias mínimas para filtros no habilitan catálogos completos.
+[Contrato, navegación y evidencia](flows/menu-permissions.md).

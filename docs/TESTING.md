@@ -845,3 +845,12 @@ Fuente `041a926` publicada en GitHub, Docker healthy y Sites 43. Entrada y 38
 recursos estáticos exactos con la funcionalidad, Auth y rechazo anónimo verificados
 en ambos destinos. Nueve controles HTTPS aprobados, checker válido y ledger 12/0
 conservado; sin escrituras de negocio en operación.
+
+
+## Permisos de menú por usuario — RCF-044
+
+2026-11-05: 391 pruebas cliente, 516 SQL de aplicaciones/catálogos/menús y
+124 de consultas aprobadas; 268 HTTP/Auth/REST/Edge/RLS y advisors sin WARN/ERROR.
+QA ficticio de guardado/relectura, plantillas/copia, historial, último admin,
+lector, URL directa, cero secciones y móvil 375 px aprobado. Autorrevisión.
+[Contrato y evidencia](flows/menu-permissions.md).

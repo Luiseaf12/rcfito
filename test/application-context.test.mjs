@@ -17,7 +17,7 @@ function contextSetup(options = {}) {
   const backendFetch = async (url, init) => {
     calls.push(url);
     if (url.endsWith('/auth/v1/user')) return Response.json({ id: init.headers.authorization.includes('other') ? otherUser : unit });
-    if (url.includes('/profiles?')) return Response.json([{ role: 'viewer', active: true }]);
+    if (url.includes('/profiles?')) return Response.json([{ role: 'viewer', active: true, menu_permissions: ['queries'] }]);
     if (url.endsWith('/responses') && options.plan) return Response.json({ status: 'completed', output: [{ type: 'message', content: [{ type: 'output_text', text: JSON.stringify(options.plan) }] }], usage: { input_tokens: 500, output_tokens: 100 } });
     if (url.endsWith('/application_query_stamp')) return Response.json({ revision: 'r1', as_of: '2026-11-01T12:00:00Z' });
     if (url.endsWith('/application_query_resolve')) {

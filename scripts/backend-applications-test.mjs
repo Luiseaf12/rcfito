@@ -151,6 +151,25 @@ try {
         rollback;
       `);
     }
+    if(file.endsWith('_user_menu_permissions.sql')) {
+      const setup=applicationTests.slice(0,applicationTests.indexOf('-- Captura asistida:'));
+      sql(`${setup}
+        select public.create_application_order(pg_temp.order_data(),pg_temp.stages(),pg_temp.mixture());
+        reset role;
+        create temporary table before_menu_upgrade as select
+          (select jsonb_agg(to_jsonb(o) order by id) from public.application_orders o) orders,
+          (select jsonb_agg(to_jsonb(t) order by id) from public.application_targets t) targets,
+          (select jsonb_agg(to_jsonb(p) order by id) from public.profiles p) profiles;
+        ${migrationBody(source)}
+        select pg_temp.assert_true((select jsonb_agg(to_jsonb(o) order by id) from public.application_orders o)=(select orders from before_menu_upgrade),'menús: migración conserva órdenes existentes');
+        select pg_temp.assert_true((select jsonb_agg(to_jsonb(t) order by id) from public.application_targets t)=(select targets from before_menu_upgrade),'menús: migración conserva destinos y snapshots');
+        select pg_temp.assert_true((select jsonb_agg(to_jsonb(p)-array['menu_permissions','access_version'] order by id) from public.profiles p)=(select profiles from before_menu_upgrade),'menús: migración conserva roles y estado anteriores');
+        select pg_temp.assert_true((select bool_and(menu_permissions @> array['summary','applications','queries']) from public.profiles where role='viewer'),'menús: cuentas existentes conservan secciones de consulta');
+        select pg_temp.assert_true((select bool_and(menu_permissions @> array['users','connection','ai_capture']) from public.profiles where role='admin'),'menús: administrador existente conserva control completo');
+        select pg_temp.assert_true((select count(*)=0 from public.user_access_changes),'menús: migración no inventa historial de cambios');
+        rollback;
+      `);
+    }
     sql(source);
   }
   sql(readFileSync(resolve(root, 'supabase/tests/catalogs-and-sowing.sql'), 'utf8'));
@@ -166,6 +185,7 @@ try {
   sql(applicationTests.slice(0, editingSetupEnd) + readFileSync(resolve(root, 'supabase/tests/lot-corrections.sql'), 'utf8'));
   sql(applicationTests.slice(0, editingSetupEnd) + readFileSync(resolve(root, 'supabase/tests/application-image.sql'), 'utf8'));
   sql(readFileSync(resolve(root, 'supabase/tests/product-synonyms.sql'), 'utf8'));
+  sql(applicationTests.slice(0, applicationTests.indexOf('-- Captura asistida:')) + readFileSync(resolve(root, 'supabase/tests/menu-permissions.sql'), 'utf8'));
   console.log(`Backend aplicaciones verificado: ${migrations.length} migración(es), fixtures aislados y controles de RLS/integridad. Auth es un stub de prueba; REST/Auth reales requieren integración aparte.`);
 } finally {
   if (started) removeOwnedContainer();

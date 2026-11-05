@@ -18,6 +18,12 @@ insert into auth.users(id,email,raw_user_meta_data) values
 ('10000000-0000-4000-8000-000000000003','sin-asignar@example.invalid','{}');
 select pg_temp.assert_true((select role='viewer' from public.profiles where id='10000000-0000-4000-8000-000000000001'),'Auth no toma rol administrador desde user_metadata');
 update public.profiles set role='admin' where id='10000000-0000-4000-8000-000000000001';
+do $$ begin
+  if exists(select 1 from pg_attribute where attrelid='public.profiles'::regclass and attname='menu_permissions' and not attisdropped) then
+    execute $seed$update public.profiles set menu_permissions=array_remove(array_remove(array_remove(rcfito_private.menu_keys(),'ai_capture'),'users'),'connection') where role='viewer'$seed$;
+  end if;
+end $$;
+
 
 insert into public.agricultural_units(id,code,name) values
 ('20000000-0000-4000-8000-000000000001','AG-A','Agrícola A ficticia'),
@@ -45,7 +51,7 @@ select pg_temp.assert_true((select count(*)=1 from public.fields),'lector no ve 
 select pg_temp.assert_true((select count(*)=1 from public.profiles),'lector solo ve su perfil');
 select pg_temp.expect_error($q$insert into public.crops(code,name) values('BAD','No permitido')$q$,'row-level security','lector no mantiene catálogos');
 select pg_temp.expect_error($q$select public.create_sowing_project('{}')$q$,'administrador','RPC rechaza lector');
-update public.profiles set role='admin' where id=auth.uid();
+select pg_temp.expect_error($q$update public.profiles set role='admin' where id=auth.uid()$q$,'permission denied','perfil no se modifica por API directa');
 select pg_temp.assert_true((select role='viewer' from public.profiles where id=auth.uid()),'lector no escala su rol con API directa');
 
 set local request.jwt.claim.sub='10000000-0000-4000-8000-000000000001';

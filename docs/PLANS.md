@@ -234,3 +234,10 @@ La evidencia de publicación está en OPERATIONS.
 | ID | Trabajo | Estado | Responsable | Próxima acción | Fuente |
 | --- | --- | --- | --- | --- | --- |
 | RCF-043 | Mostrar fechas reales e intervalos por destino en el listado de recetas. | cerrada | Agente principal | Fuente 041a926 en GitHub, Docker healthy y Sites 43. 383 pruebas, tipos/build/checker, QA demo de teclado/móvil/recarga, 38 recursos exactos por destino y nueve controles HTTPS aprobados. Ledger 12/0 conservado; sin escrituras operativas. | [Reglas y aceptación](flows/application-performance-dates.md) |
+
+
+## Permisos de menú por usuario — RCF-044
+
+| ID | Trabajo | Estado | Responsable | Próxima acción | Fuente |
+| --- | --- | --- | --- | --- | --- |
+| RCF-044 | Permisos de menú por usuario con copia, plantillas, historial y validación de servidor. | en verificación | Agente principal | 391 pruebas cliente, 640 SQL y 268 HTTP aprobados; QA demo/móvil y advisors sin alertas. Respaldo/migración 13/0 confirmados y función de alta actualizada; publicar la revisión validada. | [Contrato y evidencia](flows/menu-permissions.md) |

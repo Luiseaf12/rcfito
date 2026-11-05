@@ -1,3 +1,4 @@
+import { effectiveMenus, hasScopedData, hasApplicationData, normalizeMenus } from './menu-permissions'
 import type { CatalogKind, CatalogRecord, UserProfile, WorkspaceCommand, WorkspaceData } from './model'
 import { applyApplicationCommand } from './applications'
 import { validateCatalogEdit } from './catalogs'
@@ -11,7 +12,7 @@ const normalized = (value:string) => value.trim().normalize('NFD').replace(/[\u0
 
 export function scopeWorkspace(data: WorkspaceData, profile: UserProfile): WorkspaceData {
   const result = structuredClone({ ...data, applicationOrders: data.applicationOrders ?? [], applicationTargets: data.applicationTargets ?? [], applicationChanges: data.applicationChanges ?? [], sowingGroups: data.sowingGroups ?? [] })
-  if (profile.role === 'admin') return result
+  if (profile.role === 'admin' && profile.active !== false) return result
   const allowed = new Set(result.assignments.filter(a => a.user_id === profile.id).map(a=>a.agricultural_unit_id))
   result.catalogs.agricultural_units = result.catalogs.agricultural_units.filter(a=>allowed.has(a.id))
   result.catalogs.fields = result.catalogs.fields.filter(a=>allowed.has(a.agricultural_unit_id!))
@@ -30,11 +31,14 @@ export function scopeWorkspace(data: WorkspaceData, profile: UserProfile): Works
   result.sowingGroups = result.sowingGroups.filter(g => projects.has(g.project_id))
   result.profiles = result.profiles.filter(p=>p.id===profile.id)
   result.assignments = result.assignments.filter(a=>a.user_id===profile.id)
+  if (!hasScopedData(profile)) { result.projects=[]; result.lots=[]; result.subdivisions=[]; result.stages=[]; result.lotCorrections=[]; result.sowingGroups=[] }
+  if (!hasApplicationData(profile)) { result.applicationOrders=[]; result.applicationTargets=[]; result.applicationChanges=[] }
+  result.userAccessChanges=[]
   return result
 }
 
 export function applyCommand(input: WorkspaceData, command: WorkspaceCommand, profile: UserProfile): WorkspaceData {
-  if (profile.role !== 'admin') fail('Tu usuario tiene acceso de consulta. Solo la administración puede guardar cambios.')
+  if (profile.role !== 'admin' || profile.active === false) fail('Tu usuario tiene acceso de consulta. Solo la administración puede guardar cambios.')
   const d = structuredClone({ ...input, applicationOrders: input.applicationOrders ?? [], applicationTargets: input.applicationTargets ?? [], applicationChanges: input.applicationChanges ?? [], sowingGroups: input.sowingGroups ?? [] })
   if (applyApplicationCommand(d, command, profile)) return d
   const catalog = (kind:CatalogKind,id:string|undefined) => d.catalogs[kind].find(row=>row.id===id)
@@ -154,7 +158,18 @@ export function applyCommand(input: WorkspaceData, command: WorkspaceCommand, pr
       s.status='closed';s.closed_at=command.closed_at;break
     }
     case 'discard_stage': { const s=stageOf(command.id);editable(lotOf(subOf(s.subdivision_id).lot_id).project_id);if(s.status!=='planned') fail('Solo se retira una etapa planeada.'); if(d.stages.some(x=>x.subdivision_id===s.subdivision_id&&x.stage_number>s.stage_number)) fail('Retira primero la última etapa planeada.');d.stages=d.stages.filter(x=>x.id!==s.id);break }
-    case 'set_user_access': { const p=d.profiles.find(x=>x.id===command.user_id)??fail('No se encontró el usuario.'); if(p.id===profile.id&&command.role!=='admin') fail('No puedes retirar tu propio acceso de administrador.'); if(command.agricultural_unit_ids.some(id=>!catalog('agricultural_units',id))) fail('Selecciona agrícolas válidas.');p.role=command.role;d.assignments=d.assignments.filter(a=>a.user_id!==p.id).concat(command.agricultural_unit_ids.map(id=>({user_id:p.id,agricultural_unit_id:id})));break }
+    case 'set_user_access': {
+      const user=d.profiles.find(item=>item.id===command.user_id)??fail('No se encontró el usuario.')
+      if(command.expected_version!==undefined&&command.expected_version!==(user.access_version??0))fail('El acceso cambió. Actualiza y revisa los permisos antes de guardar.')
+      if(user.role==='admin'&&command.role!=='admin'&&!d.profiles.some(item=>item.id!==user.id&&item.role==='admin'&&item.active!==false))fail('Debe conservar al menos un administrador activo.')
+      if(command.agricultural_unit_ids.some(id=>!catalog('agricultural_units',id)))fail('Selecciona agrícolas válidas.')
+      const before={role:user.role,menus:effectiveMenus(user),agricultural_unit_ids:d.assignments.filter(item=>item.user_id===user.id).map(item=>item.agricultural_unit_id).sort()}
+      user.role=command.role;user.menu_permissions=normalizeMenus(command.menu_permissions??user.menu_permissions??effectiveMenus(user));user.access_version=(user.access_version??0)+1
+      d.assignments=d.assignments.filter(item=>item.user_id!==user.id).concat([...new Set(command.agricultural_unit_ids)].map(id=>({user_id:user.id,agricultural_unit_id:id})))
+      const after={role:user.role,menus:effectiveMenus(user),agricultural_unit_ids:[...new Set(command.agricultural_unit_ids)].sort()}
+      d.userAccessChanges=[...(d.userAccessChanges??[]),{id:uuid(),user_id:user.id,changed_by_name:profile.full_name,changed_at:new Date().toISOString(),before,after}]
+      break
+    }
   }
   return d
 }

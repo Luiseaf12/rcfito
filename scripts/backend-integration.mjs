@@ -1,3 +1,4 @@
+import { verifyMenuPermissions } from './backend-menu-http-checks.mjs';
 import { spawnSync } from 'node:child_process';
 import { randomUUID, randomBytes } from 'node:crypto';
 import { readFileSync, readdirSync, writeFileSync, mkdirSync, copyFileSync, existsSync } from 'node:fs';
@@ -466,7 +467,8 @@ async function verifyApplicationImage(adminToken,readerToken,noAccessToken,reade
   check(projectRow.status===200&&typeof projectRow.data==='string','Imagen: proyecto de QA creado por RPC');
   const projectId=projectRow.data;
   check(succeeded(await request(`/rest/v1/sowing_projects?id=eq.${projectId}`,adminToken,{status:'active'},'PATCH')),'Imagen: temporada de QA activa');
-  check(succeeded(await request('/rest/v1/user_agricultural_units',adminToken,{user_id:readerId,agricultural_unit_id:fixture.unit})),'Imagen: lector ficticio asignado a agrícola del caso');
+  const imageAssignments=(await request(`/rest/v1/user_agricultural_units?user_id=eq.${readerId}&select=agricultural_unit_id`,adminToken)).data;
+  check(succeeded(await request('/rest/v1/rpc/set_user_access',adminToken,{p_user_id:readerId,p_role:'viewer',p_active:true,p_agricultural_unit_ids:[...imageAssignments.map(row=>row.agricultural_unit_id),fixture.unit]})),'Imagen: lector ficticio asignado a agrícola del caso');
   const stages=[],lots=[];
   for(const [index,area] of [12,2].entries()) {
     const lot=await rpc('create_project_lot',{p_data:{project_id:projectId,field_id:fixture.field,code:`IMAGE-${index}`,name:`Malla imagen ficticia ${index}`,area_ha:area,infrastructure_type_id:fixture.infra}});
@@ -524,6 +526,7 @@ try {
   const reader = await adminCreate(`qa-reader-${suffix}@example.invalid`, { display_name: 'QA Lector' });
   const unassigned = await adminCreate(`qa-unassigned-${suffix}@example.invalid`);
   sql(`update public.profiles set role='admin' where id='${admin.id}';
+    update public.profiles set menu_permissions=array_remove(array_remove(array_remove(rcfito_private.menu_keys(),'ai_capture'),'users'),'connection') where role='viewer';
     insert into public.agricultural_units(id,code,name) values ('${ids.unitA}','QA-A-${suffix}','Agrícola A ficticia'),('${ids.unitB}','QA-B-${suffix}','Agrícola B ficticia');
     insert into public.user_agricultural_units(user_id,agricultural_unit_id) values('${reader.id}','${ids.unitA}');`);
   const adminToken = await login(admin.email);
@@ -554,6 +557,13 @@ try {
   const createdToken = await login(`qa-created-${suffix}@example.invalid`);
   const createdUnits = await request('/rest/v1/agricultural_units?select=id', createdToken);
   assert(createdUnits.status === 200 && createdUnits.data.length === 1 && createdUnits.data[0].id === ids.unitA, 'La cuenta creada consulta solo la agrícola asignada');
+  const limitedEmail=`qa-menu-${suffix}@example.invalid`;
+  const limited=await request('/functions/v1/admin-create-user',adminToken,{email:limitedEmail,password,display_name:'Consulta limitada ficticia',role:'viewer',agricultural_unit_ids:[ids.unitA],menu_permissions:['queries']});
+  check(limited.status===201,'Menús: alta privada acepta permisos seleccionados');
+  const limitedToken=await login(limitedEmail);
+  const limitedProfile=await request(`/rest/v1/profiles?id=eq.${limited.data.id}&select=role,menu_permissions,access_version`,limitedToken);
+  check(limitedProfile.status===200&&limitedProfile.data[0].role==='viewer'&&JSON.stringify(limitedProfile.data[0].menu_permissions)==='["queries"]'&&limitedProfile.data[0].access_version===1,'Menús: cuenta nueva conserva rol y selección exacta');
+  check((await request('/rest/v1/agricultural_units?select=id',limitedToken)).data.length===0&&(await request('/rest/v1/rpc/menu_reference_catalogs',limitedToken,{})).data.agricultural_units.length===1,'Menús: alta limitada obtiene referencias asignadas sin catálogo completo');
   await verifyApplications(adminToken, readerToken, noAccessToken, create.data);
   await verifyApplicationChanges(adminToken, readerToken, noAccessToken, create.data);
   await verifyApplicationQueries({ request, check, adminToken, readerToken, noAccessToken, readerId: reader.id, unitA: ids.unitA, unitB: ids.unitB, projectA: create.data, base, publicKey });
@@ -576,6 +586,7 @@ try {
 
   await verifyLotCorrections({ request, check, adminToken, readerToken, noAccessToken, readerId: reader.id });
   await verifyApplicationImage(adminToken,readerToken,noAccessToken,reader.id);
+  await verifyMenuPermissions({request,check,adminToken,readerToken,readerId:reader.id,unitA:ids.unitA,base,publicKey});
   sql(`update public.profiles set active=false where id='${reader.id}';`);
   const revoked = await request('/rest/v1/agricultural_units?select=id', readerToken);
   assert(revoked.status === 200 && revoked.data.length === 0, 'Desactivación bloquea JWT de lector ya emitido');
