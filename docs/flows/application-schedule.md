@@ -1,6 +1,6 @@
 # Intervalo entre fechas programadas — RCF-041
 
-Estado: implementación y QA verificados; publicación en curso.
+Estado: cerrada el 2026-11-05, con implementación, QA y publicación verificadas.
 Solicitado y autorizado por el Propietario el 2026-11-05, con commit, push y
 publicación condicionados a que las comprobaciones aprueben.
 
@@ -51,7 +51,7 @@ folios o historial; el cálculo es de presentación.
 cancelación total/parcial, mismo día, meses/años y año bisiesto, fechas inválidas,
 revisiones, referencias fuera del filtro y conservación de datos. Tipos/build y
 checker aprobados. Autorrevisión de React, cálculo y aislamiento de ámbitos;
-sin revisión independiente ni nueva prueba de SQL/HTTP/PDF.
+sin revisión independiente ni nueva suite aislada de backend o PDF.
 
 QA demo: cinco días respecto a la receta anterior, cero días en una misma fecha,
 primera receta y cancelación total; filtro por folio conserva referencia no visible.

@@ -801,5 +801,10 @@ QA demo de cinco/cero días, primera/cancelada, búsqueda con referencia oculta,
 abrir/cerrar con teclado o toque, enlace anterior, recarga y recalcular aprobado.
 Lector consulta sin escritura; móvil 375×812 px sin overflow global. Contraste
 corregido con variante existente; consola limpia y fecha ficticia restaurada.
-Autorrevisión de React/cálculo; sin revisión independiente ni nuevas pruebas
-SQL/HTTP/PDF. [Reglas y detalles](flows/application-schedule.md).
+Autorrevisión de React/cálculo; sin revisión independiente ni nuevas suites
+aisladas de backend o PDF. [Reglas y detalles](flows/application-schedule.md).
+
+Fuente 090b91d publicada en GitHub, Docker healthy y Sites 41. Build Linux y
+checker aprobados. Entrada y 38 recursos estáticos exactos con el intervalo,
+Auth y rechazo anónimo verificados en ambos destinos; nueve checks HTTPS
+aprobados sin escrituras. Ledger 12/0 conservado; fechas reales intactas.

@@ -993,4 +993,14 @@ de fecha/folio anterior. Usa historial autorizado completo y la última indicaci
 con ámbito histórico y exclusión de cancelaciones totales. [Reglas](flows/application-schedule.md).
 374 pruebas, tipos/build/checker y QA demo de teclado, móvil y lector aprobados.
 No hay migraciones, dependencias o permisos nuevos ni escrituras de operación.
-Publicación y comprobaciones posteriores en curso.
+Fuente 090b91dc886a32f96f8cc1e2c641c7364883cefe publicada en GitHub, frontend
+Docker healthy y Sites versión **41**. Build Linux/Windows y checker aprobados;
+advertencia previa del tamaño de chunk conservada. Entrada y 38 recursos exactos,
+incluido el intervalo compilado, Auth y rechazo anónimo comprobados en Docker y
+Sites; nueve controles HTTPS aprobados. Registro de migraciones 12/0 conservado.
+
+Sites confirmó succeeded, versión
+appgprj_6ae67ae019e88191a7012093bb19c505~appgver_949dcc54b10481918feb8980eb25557d,
+despliegue appgdep_6aece24a2b588191a55162013a63ffef en
+[RCFito](https://rcfito.paxxa.chatgpt.site). Audiencia pública, R2 y revisión de
+entorno 1 conservados. Cambios ajenos de la carpeta excluidos de la entrega.

@@ -220,4 +220,4 @@ La evidencia de publicación está en OPERATIONS.
 
 | ID | Trabajo | Estado | Responsable | Próxima acción | Fuente |
 | --- | --- | --- | --- | --- | --- |
-| RCF-041 | Mostrar días entre la fecha programada de una receta y su anterior comparable. | en curso | Agente principal | 374 pruebas, tipos/build/checker y QA de escritorio/móvil/lector aprobados. Publicar y verificar recursos/conexión; sin migraciones ni datos operativos modificados. | [Reglas y evidencia](flows/application-schedule.md) |
+| RCF-041 | Mostrar días entre la fecha programada de una receta y su anterior comparable. | cerrada | Agente principal | Fuente 090b91d en GitHub, Docker healthy y Sites 41. 374 pruebas, tipos/build/checker, QA demo/móvil/lector, 38 recursos exactos y nueve checks HTTPS aprobados. Ledger 12/0 conservado; sin escrituras operativas. | [Reglas y evidencia](flows/application-schedule.md) |
