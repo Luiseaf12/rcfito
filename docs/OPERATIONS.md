@@ -1014,4 +1014,14 @@ muestran como «N días antes de la anterior». 376 pruebas y QA demo de escrito
 móvil, teclado y recarga aprobados; caso reportado comprobado en consulta privada
 de solo lectura. [Decisión y reglas](flows/application-schedule.md#corrección-de-secuencia--rcf-042).
 Sin migraciones, dependencias ni escrituras de datos en operación.
-Publicación y comprobaciones posteriores en curso.
+Fuente `eddc923eb26e41b24be228538ec31ef14c20a63f` publicada en GitHub, frontend
+Docker healthy y Sites versión **42**. Tipos/build/checker aprobados; advertencia
+previa de tamaño de chunk conservada. Entrada y 38 recursos estáticos exactos,
+incluida la secuencia corregida, Auth y rechazo anónimo comprobados en ambos
+destinos. Nueve controles HTTPS aprobados y registro de migraciones 12/0 conservado.
+
+Sites confirmó `succeeded`, versión
+`appgprj_6ae67ae019e88191a7012093bb19c505~appgver_c64caa3ce70c8191b9d73b7ccf305519`,
+despliegue `appgdep_6aece69f4be0819195c3131a4bd28fc9` en
+[RCFito](https://rcfito.paxxa.chatgpt.site). Audiencia pública, R2 y revisión de
+entorno 1 conservados. Cambios ajenos del workspace excluidos de la entrega.

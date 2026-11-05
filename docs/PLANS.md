@@ -227,4 +227,4 @@ La evidencia de publicación está en OPERATIONS.
 
 | ID | Trabajo | Estado | Responsable | Próxima acción | Fuente |
 | --- | --- | --- | --- | --- | --- |
-| RCF-042 | Usar la receta previa por número para el intervalo y listar folios de mayor a menor. | en curso | Agente principal | 376 pruebas, tipos/checker, QA demo/móvil y comparación privada de solo lectura aprobados. Completar build y publicación. | [Decisión y corrección](flows/application-schedule.md#corrección-de-secuencia--rcf-042) |
+| RCF-042 | Usar la receta previa por número para el intervalo y listar folios de mayor a menor. | cerrada | Agente principal | Fuente eddc923 en GitHub, Docker healthy y Sites 42. 376 pruebas, tipos/build/checker, QA demo/móvil y comparación privada de solo lectura aprobados. Entrada y 38 recursos exactos por destino, nueve controles HTTPS y ledger 12/0 comprobados; sin escrituras operativas. | [Decisión y corrección](flows/application-schedule.md#corrección-de-secuencia--rcf-042) |

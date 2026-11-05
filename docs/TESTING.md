@@ -823,3 +823,8 @@ referencia, búsqueda, recarga y móvil 375×812 px aprobada; sin overflow globa
 avisos/errores de consola. Fecha ficticia restaurada. Autorrevisión de cálculo y
 React, sin revisión independiente ni nuevas suites de backend/PDF.
 [Reglas](flows/application-schedule.md#corrección-de-secuencia--rcf-042).
+
+Fuente `eddc923` publicada en GitHub, Docker healthy y Sites 42. Tipos/build y
+checker aprobados. Entrada y 38 recursos estáticos exactos con la corrección,
+Auth y rechazo anónimo comprobados en ambos destinos. Nueve controles HTTPS
+aprobados y ledger 12/0 conservado; sin escrituras ni cuentas de prueba en operación.

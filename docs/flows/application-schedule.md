@@ -72,7 +72,8 @@ Entrega y comprobaciones posteriores:
 
 ## Corrección de secuencia — RCF-042
 
-Estado: verificación aprobada; publicación en curso. El Propietario aclaró el 2026-11-05 que anterior significa
+Estado: cerrada y publicada en Sites 42 y frontend Docker el 2026-11-05.
+El Propietario aclaró el 2026-11-05 que anterior significa
 la receta previa por número y solicitó ordenar el listado de mayor a menor receta.
 Esta decisión reemplaza la cronología programada de la entrega original RCF-041.
 
@@ -93,4 +94,7 @@ QA demo: folios descendentes con fechas fuera de secuencia, apertura por teclado
 referencia anterior, mensaje de fecha adelantada, búsqueda y recarga aprobados.
 Móvil 375×812 px sin overflow global (documento 360 px); consola limpia. Fecha de
 prueba restaurada. Autorrevisión; sin revisión independiente ni nuevas suites de
-backend/PDF. [Publicación](../OPERATIONS.md#secuencia-descendente-de-recetas--rcf-042).
+backend/PDF. Fuente `eddc923` publicada en GitHub; entrada y 38 recursos exactos,
+Auth y rechazo anónimo aprobados en ambos destinos. Nueve controles HTTPS y
+registro de migraciones 12/0 aprobados, sin escrituras de operación.
+[Publicación](../OPERATIONS.md#secuencia-descendente-de-recetas--rcf-042).
