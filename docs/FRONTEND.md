@@ -294,3 +294,12 @@ la vista previa, permite aclarar cada producto y total y muestra superficie,
 dosis, total reconstruido y diferencia por redondeo. Recalcular invalida la
 confirmación del reparto. Los impedimentos comparten la validación de guardar
 y se enumeran antes del botón. Recorrido en [la ficha](flows/image-capture.md).
+
+
+## Intervalo programado de aplicaciones — RCF-041
+
+La celda de fecha programada conserva su fecha y añade una segunda línea con el
+intervalo anterior. Button/Collapsible permiten abrir la fecha y folio de referencia
+por teclado o toque, con Link al detalle. La coordinación usa todo el historial
+cargado autorizado antes de filtrar/paginar. Primera receta, cancelación total y
+contexto incompleto tienen textos explícitos. [Reglas y evidencia](flows/application-schedule.md).

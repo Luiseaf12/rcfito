@@ -984,3 +984,13 @@ Advertencia previa de tamaño del chunk conservada.
 La herramienta visual agotó el acceso a la ventana; el recorrido de carga/pegado,
 aprobación y móvil no se verificó en navegador. Se acredita código y pruebas
 automatizadas, con ese límite explícito en [la ficha](flows/image-capture.md).
+
+
+## Intervalo programado de aplicaciones — RCF-041
+
+2026-11-05: añadido el intervalo calendario bajo la fecha programada, con apertura
+de fecha/folio anterior. Usa historial autorizado completo y la última indicación,
+con ámbito histórico y exclusión de cancelaciones totales. [Reglas](flows/application-schedule.md).
+374 pruebas, tipos/build/checker y QA demo de teclado, móvil y lector aprobados.
+No hay migraciones, dependencias o permisos nuevos ni escrituras de operación.
+Publicación y comprobaciones posteriores en curso.

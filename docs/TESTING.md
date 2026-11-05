@@ -788,3 +788,18 @@ píxeles, petición autenticada y
 conservación de la imagen ante errores. No se llama al proveedor real ni se
 insertan fixtures en operación. Evidencia y límite de revisión visual en
 [la ficha](flows/image-capture.md#verificación).
+
+
+## Intervalo programado de aplicaciones — RCF-041
+
+2026-11-05: 374 pruebas, tipos/build y checker aprobados. Siete pruebas nuevas
+cubren ejemplos de 5/16/5 días, ámbitos de origen/destinos/etapas, canceladas
+completas/parciales, mismo día, fechas UTC, cambios de mes/año, año bisiesto,
+revisión vigente y referencias fuera del filtro/página; datos originales intactos.
+
+QA demo de cinco/cero días, primera/cancelada, búsqueda con referencia oculta,
+abrir/cerrar con teclado o toque, enlace anterior, recarga y recalcular aprobado.
+Lector consulta sin escritura; móvil 375×812 px sin overflow global. Contraste
+corregido con variante existente; consola limpia y fecha ficticia restaurada.
+Autorrevisión de React/cálculo; sin revisión independiente ni nuevas pruebas
+SQL/HTTP/PDF. [Reglas y detalles](flows/application-schedule.md).

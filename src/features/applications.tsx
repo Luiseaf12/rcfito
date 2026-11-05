@@ -1,6 +1,8 @@
 import { buildImageAllocation, type ImageExtraction, type ImageTotalRow } from '@/domain/application-image'
 import { ImageProductEditor, ImageSourceDetails } from './image-capture-fields'
 import { sortDisplay } from '@/domain/list-order'
+import { buildScheduledIntervals } from '@/domain/application-schedule'
+import { ScheduledDate } from './application-schedule'
 import { businessToday, validDate, validateProducts, newProductRow, ProductMixtureEditor, MixtureReadOnly, TextField, type ProductDraft } from './application-fields'
 import { useId, useMemo, useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
@@ -124,6 +126,7 @@ export function ApplicationsPage() {
   const [page, setPage] = useState(1)
   const orders = useMemo(() => (data.applicationOrders ?? []).map(order => ({ ...order, ...currentOrderIndication(data, order) })), [data])
   const targets = data.applicationTargets ?? []
+  const scheduledIntervals = useMemo(() => buildScheduledIntervals(orders, targets), [orders, targets])
   const badRange = !!from && !!to && from > to
   const filtered = useMemo(() => {
     const search = normalizeSearch(query)
@@ -178,7 +181,7 @@ export function ApplicationsPage() {
             return <TableRow key={order.id}>
               <TableCell><div className="record-name">{order.folio}</div><div className="muted record-secondary">{order.project_name || data.projects.find(project => project.id === order.project_id)?.name}</div></TableCell>
               <TableCell><div>{order.field_name || recordName(data.catalogs.fields, order.field_id)}</div><div className="muted record-secondary">{order.crop_name || recordName(data.catalogs.crops, order.crop_id)}</div></TableCell>
-              <TableCell>{formatDate(order.scheduled_date)}</TableCell>
+              <TableCell><ScheduledDate key={`${order.id}:${order.scheduled_date}`} date={order.scheduled_date} interval={scheduledIntervals.get(order.id)} /></TableCell>
               <TableCell><strong>{orderTargets.length}</strong><div className="muted record-secondary">{formatArea(orderTargets.reduce((sum, target) => sum + Number(target.area_ha), 0))} ha</div></TableCell>
               <TableCell><TargetCounts targets={orderTargets} /></TableCell>
               <TableCell><Button asChild variant="outline"><Link to={`/aplicaciones/${order.id}`} aria-label={`Ver orden ${order.folio}`}><Eye data-icon="inline-start" />Ver</Link></Button></TableCell>

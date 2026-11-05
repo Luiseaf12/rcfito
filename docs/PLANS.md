@@ -1,6 +1,6 @@
 # Pendientes de RCFito
 
-Fecha de revisión: 2026-11-04.
+Fecha de revisión: 2026-11-05.
 
 El estado **descartada** indica cancelación por el Propietario; no acredita
 verificaciones sin realizar ni revierte mejoras ya publicadas.
@@ -214,3 +214,10 @@ La evidencia de publicación está en OPERATIONS.
 | ID | Trabajo | Estado | Responsable | Próxima acción | Fuente |
 | --- | --- | --- | --- | --- | --- |
 | RCF-040 | Interpretar imagen con cantidades totales y repartir por hectáreas seleccionadas. | cerrada | Agente principal y subagentes | Fuente b61d336 en GitHub, Docker healthy y Sites 40. 367 pruebas, tipos/build/checker y controles SQL/HTTP aislados aprobados; ledger 12/0 con respaldo. Entrada y 38 recursos exactos por destino y nueve controles publicados aprobados. QA visual en navegador no comprobada; límite registrado en la ficha. | [Flujo, contrato y evidencia](flows/image-capture.md) |
+
+
+## Intervalo entre fechas programadas — RCF-041
+
+| ID | Trabajo | Estado | Responsable | Próxima acción | Fuente |
+| --- | --- | --- | --- | --- | --- |
+| RCF-041 | Mostrar días entre la fecha programada de una receta y su anterior comparable. | en curso | Agente principal | 374 pruebas, tipos/build/checker y QA de escritorio/móvil/lector aprobados. Publicar y verificar recursos/conexión; sin migraciones ni datos operativos modificados. | [Reglas y evidencia](flows/application-schedule.md) |
