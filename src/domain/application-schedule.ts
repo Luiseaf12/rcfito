@@ -1,9 +1,16 @@
 import type { ApplicationOrder, ApplicationTarget } from './model'
+import { sortDisplay } from './list-order'
 
-type PreviousSchedule = Pick<ApplicationOrder, 'id' | 'folio' | 'scheduled_date'>
-export type ScheduledInterval =
-  | { kind: 'interval'; days: number; previous: PreviousSchedule }
+type PreviousApplication = Pick<ApplicationOrder, 'id' | 'folio'> & { actual_date: string | null }
+export type ActualInterval =
+  | { kind: 'interval'; days: number; previous: PreviousApplication & { actual_date: string } }
+  | { kind: 'missing-date'; previous?: PreviousApplication }
   | { kind: 'first' | 'cancelled' | 'unavailable' }
+export type TargetApplicationDate = { target: ApplicationTarget; date: string | null; interval: ActualInterval }
+export type ApplicationDates = {
+  entries: TargetApplicationDate[]; dates: string[];
+  pendingCount: number; performedCount: number; cancelledCount: number;
+}
 
 const folios = new Intl.Collator('es-MX', { numeric: true })
 /** Ascending recipe sequence, independent of scheduled dates. */
@@ -11,7 +18,7 @@ export function compareRecipeSequence(a: Pick<ApplicationOrder, 'folio' | 'id'>,
   return folios.compare(a.folio, b.folio) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)
 }
 
-export function scheduledIntervalLabel(days: number): string {
+export function applicationIntervalLabel(days: number): string {
   const count = Math.abs(days)
   return `${count} ${count === 1 ? 'día' : 'días'} ${days < 0 ? 'antes de la anterior' : 'desde la anterior'}`
 }
@@ -34,31 +41,64 @@ function context(order: ApplicationOrder, targets: readonly ApplicationTarget[])
     origin === 'group' ? order.source_group_id : null, stages])
 }
 
-/** Use ALL authorized orders, with their latest indicated scheduled_date. */
-export function buildScheduledIntervals(orders: readonly ApplicationOrder[], targets: readonly ApplicationTarget[]): Map<string, ScheduledInterval> {
+function actualDate(target: ApplicationTarget): string | null {
+  return target.status === 'performed' && target.actual_date && day(target.actual_date) !== undefined ? target.actual_date : null
+}
+
+/** Use ALL authorized recipes and the current performance of each historical target. */
+export function buildApplicationDates(orders: readonly ApplicationOrder[], targets: readonly ApplicationTarget[]): Map<string, ApplicationDates> {
   const byOrder = new Map<string, ApplicationTarget[]>()
   for (const target of targets) {
     const group = byOrder.get(target.order_id) ?? []
     group.push(target); byOrder.set(target.order_id, group)
   }
-  const last = new Map<string, PreviousSchedule>()
-  const result = new Map<string, ScheduledInterval>()
+  const last = new Map<string, { order: ApplicationOrder; targets: Map<string, ApplicationTarget> }>()
+  const result = new Map<string, ApplicationDates>()
   const sequence = [...orders].sort(compareRecipeSequence)
   for (const order of sequence) {
     const destinations = byOrder.get(order.id) ?? []
-    if (destinations.length && destinations.every(target => target.status === 'cancelled')) {
-      result.set(order.id, { kind: 'cancelled' }); continue
-    }
-    const currentDay = day(order.scheduled_date)
     const key = context(order, destinations)
-    if (currentDay === undefined || !key) {
-      result.set(order.id, { kind: 'unavailable' }); continue
+    const previous = key ? last.get(key) : undefined
+    const entries = sortDisplay(destinations, target => `${target.lot_name} ${target.subdivision_name}`, target => target.id).map((target): TargetApplicationDate => {
+      const date = actualDate(target)
+      const priorTarget = previous?.targets.get(target.stage_id)
+      const priorDate = priorTarget ? actualDate(priorTarget) : null
+      const reference = previous ? { id: previous.order.id, folio: previous.order.folio, actual_date: priorDate } : undefined
+      let interval: ActualInterval
+      if (target.status === 'cancelled') interval = { kind: 'cancelled' }
+      else if (!key) interval = { kind: 'unavailable' }
+      else if (!date) interval = { kind: 'missing-date', ...(reference ? { previous: reference } : {}) }
+      else if (!previous) interval = { kind: 'first' }
+      else if (!priorDate) interval = { kind: 'missing-date', previous: reference! }
+      else interval = { kind: 'interval', days: day(date)! - day(priorDate)!, previous: { ...reference!, actual_date: priorDate } }
+      return { target, date, interval }
+    })
+    result.set(order.id, {
+      entries, dates: [...new Set(entries.flatMap(entry => entry.date ? [entry.date] : []))].sort(),
+      pendingCount: destinations.filter(target => target.status === 'indicated').length,
+      performedCount: destinations.filter(target => target.status === 'performed').length,
+      cancelledCount: destinations.filter(target => target.status === 'cancelled').length,
+    })
+    // Missing dates and partially cancelled recipes still occupy their sequence position.
+    if (key && !destinations.every(target => target.status === 'cancelled')) {
+      last.set(key, { order, targets: new Map(destinations.map(target => [target.stage_id, target])) })
     }
-    const previous = last.get(key)
-    result.set(order.id, previous
-      ? { kind: 'interval', days: currentDay - day(previous.scheduled_date)!, previous }
-      : { kind: 'first' })
-    last.set(key, { id: order.id, folio: order.folio, scheduled_date: order.scheduled_date })
   }
   return result
+}
+
+/** A date range matches one actual performance within BOTH bounds, never the schedule. */
+export function matchesApplicationDate(summary: ApplicationDates | undefined, from: string, to: string): boolean {
+  if (!from && !to) return true
+  if (from && to && from > to) return false
+  return summary?.dates.some(date => (!from || date >= from) && (!to || date <= to)) ?? false
+}
+
+/** Only combine intervals when all non-cancelled destinations have the same dates/reference. */
+export function commonApplicationInterval(summary: ApplicationDates): ActualInterval | undefined {
+  if (summary.dates.length > 1) return
+  const intervals = summary.entries.filter(entry => entry.target.status !== 'cancelled').map(entry => entry.interval)
+  const first = intervals[0]
+  if (!first) return
+  return intervals.every(interval => JSON.stringify(interval) === JSON.stringify(first)) ? first : undefined
 }

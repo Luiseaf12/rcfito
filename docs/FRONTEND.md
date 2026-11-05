@@ -298,6 +298,8 @@ y se enumeran antes del botón. Recorrido en [la ficha](flows/image-capture.md).
 
 ## Intervalo programado de aplicaciones — RCF-041
 
+Entrega histórica, sustituida en el listado por RCF-043, descrito abajo.
+
 La celda de fecha programada conserva su fecha y añade una segunda línea con el
 intervalo anterior. Button/Collapsible permiten abrir la fecha y folio de referencia
 por teclado o toque, con Link al detalle. La coordinación usa todo el historial
@@ -309,3 +311,12 @@ RCF-042 corrige el listado de Aplicaciones: folio numérico de mayor a menor ant
 de paginar. La referencia del intervalo sigue el folio anterior comparable; la
 fecha programada solo determina la diferencia de días, incluidos retrocesos con
 texto «N días antes de la anterior». [Decisión](flows/application-schedule.md#corrección-de-secuencia--rcf-042).
+
+## Fecha real de aplicación — RCF-043
+
+El listado conserva folios descendentes y muestra la realización vigente por
+destino. Una fecha común se resume; distintas fechas y aplicaciones parciales
+ofrecen el detalle A–Z de lotes/subdivisiones con Button/Collapsible y enlaces a
+la receta anterior. Sin fecha real no se usa la programación como reemplazo ni
+se salta una receta. Los filtros Aplicada desde/hasta usan realizaciones.
+[Reglas, estados y evidencia](flows/application-performance-dates.md).

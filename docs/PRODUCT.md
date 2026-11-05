@@ -276,7 +276,7 @@ cuando se registra la realización de otros destinos de la orden.
 La captura de diferencias pertenece a la misma aplicación del destino; no genera
 una aplicación adicional en el conteo de la etapa. Las consultas de lo aplicado
 utilizarán los datos de realización conservando identificable la indicación.
-El rango de fechas sigue usando la fecha programada por defecto, con las
+En el reporte, el rango de fechas sigue usando la fecha programada por defecto, con las
 alternativas de fecha de indicación y de realización ya definidas.
 
 Esta regla está implementada y se verificó en dominio, backend aislado y demo.
@@ -519,3 +519,11 @@ reparten entre las hectáreas de las etapas seleccionadas, con revisión explíc
 de productos, unidades y dosis antes de aprobar. Contrato vigente y límites en
 [el flujo de imagen](flows/image-capture.md). La imagen no se conserva; quedan
 texto, totales revisados y superficie original para consulta histórica.
+
+## Fecha real en el listado de aplicaciones — RCF-043
+
+Aplicaciones presenta fechas reales e intervalos por destino entre recetas
+consecutivas de su ámbito histórico, conservando el orden descendente por folio.
+Los filtros del listado usan fecha real; la programación permanece en el detalle.
+Pendientes, canceladas, aplicaciones parciales y fechas distintas tienen estados
+explícitos. [Contrato vigente](flows/application-performance-dates.md).

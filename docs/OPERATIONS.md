@@ -1025,3 +1025,13 @@ Sites confirmó `succeeded`, versión
 despliegue `appgdep_6aece69f4be0819195c3131a4bd28fc9` en
 [RCFito](https://rcfito.paxxa.chatgpt.site). Audiencia pública, R2 y revisión de
 entorno 1 conservados. Cambios ajenos del workspace excluidos de la entrega.
+
+## Fecha real e intervalo de aplicaciones — RCF-043
+
+2026-11-05: el listado muestra fechas reales y compara el mismo destino con la
+receta anterior por folio. Contempla fechas distintas, parcial, pendiente y
+cancelación sin usar la programación como reemplazo. Filtros por realización;
+folios descendentes conservados. [Contrato](flows/application-performance-dates.md).
+383 pruebas, tipos/build y QA demo de teclado, móvil y recarga aprobados.
+Sin migraciones, dependencias, permisos nuevos ni escrituras de operación.
+Publicación de RCF-043 y comprobaciones posteriores en curso.

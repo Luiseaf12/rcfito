@@ -828,3 +828,15 @@ Fuente `eddc923` publicada en GitHub, Docker healthy y Sites 42. Tipos/build y
 checker aprobados. Entrada y 38 recursos estáticos exactos con la corrección,
 Auth y rechazo anónimo comprobados en ambos destinos. Nueve controles HTTPS
 aprobados y ledger 12/0 conservado; sin escrituras ni cuentas de prueba en operación.
+
+## Fecha real e intervalo de aplicaciones — RCF-043
+
+2026-11-05: 383 pruebas aprobadas, incluidas 16 de calendario, ámbitos, secuencia
+de folios, realizaciones por destino, cancelación total/parcial, fechas inválidas,
+correcciones y rangos reales inclusivos. Tipos y build aprobados. Autorrevisión
+de dominio/React; sin revisión independiente ni nuevas suites de backend/PDF.
+QA demo de fecha común, varias fechas, parcial, pendiente/cancelada, corrección,
+recálculo, filtros, referencia fuera del filtro, teclado, enlace y recarga aprobados.
+Móvil 375×812 px sin overflow global (documento 360 px); detalle táctil y consola
+limpia. Las escrituras ficticias permanecen solo en demo; no se tocó operación.
+[Contrato y evidencia](flows/application-performance-dates.md).

@@ -1,5 +1,9 @@
 # Intervalo entre fechas programadas — RCF-041
 
+Registro histórico de RCF-041/042. El listado y sus intervalos usan ahora
+[fechas reales por destino — RCF-043](application-performance-dates.md).
+Las reglas siguientes documentan la entrega anterior y sus comprobaciones.
+
 Estado: cerrada el 2026-11-05, con implementación, QA y publicación verificadas.
 Solicitado y autorizado por el Propietario el 2026-11-05, con commit, push y
 publicación condicionados a que las comprobaciones aprueben.

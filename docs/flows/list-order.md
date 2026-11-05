@@ -25,7 +25,7 @@ El bundle compartido se conserva intacto; esta ampliación pertenece a RCFito.
 
 | Elemento | Orden específico y fuente |
 | --- | --- |
-| Aplicaciones | Número de receta (folio natural) descendente, antes de paginar; [corrección RCF-042](application-schedule.md#corrección-de-secuencia--rcf-042). |
+| Aplicaciones | Número de receta (folio natural) descendente, antes de paginar; [intervalos reales RCF-043](application-performance-dates.md). |
 | Última receta y búsqueda de anteriores | Indicación más reciente primero, solo activas del ámbito/etapa; [RCF-030](recipe-creation.md). El selector de bases usa el orden suministrado por ese recorrido. |
 | Historiales | Fecha/versión descendente; [edición](application-editing.md) y [corrección de malla](lot-corrections.md). |
 | Etapas | Número ascendente dentro de la subdivisión; [proyectos](sowing-projects.md). |

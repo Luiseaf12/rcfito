@@ -1,8 +1,8 @@
 import { buildImageAllocation, type ImageExtraction, type ImageTotalRow } from '@/domain/application-image'
 import { ImageProductEditor, ImageSourceDetails } from './image-capture-fields'
 import { sortDisplay } from '@/domain/list-order'
-import { buildScheduledIntervals, compareRecipeSequence } from '@/domain/application-schedule'
-import { ScheduledDate } from './application-schedule'
+import { buildApplicationDates, compareRecipeSequence, matchesApplicationDate } from '@/domain/application-schedule'
+import { ApplicationDate } from './application-schedule'
 import { businessToday, validDate, validateProducts, newProductRow, ProductMixtureEditor, MixtureReadOnly, TextField, type ProductDraft } from './application-fields'
 import { useId, useMemo, useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
@@ -126,7 +126,7 @@ export function ApplicationsPage() {
   const [page, setPage] = useState(1)
   const orders = useMemo(() => (data.applicationOrders ?? []).map(order => ({ ...order, ...currentOrderIndication(data, order) })), [data])
   const targets = data.applicationTargets ?? []
-  const scheduledIntervals = useMemo(() => buildScheduledIntervals(orders, targets), [orders, targets])
+  const applicationDates = useMemo(() => buildApplicationDates(orders, targets), [orders, targets])
   const badRange = !!from && !!to && from > to
   const filtered = useMemo(() => {
     const search = normalizeSearch(query)
@@ -138,11 +138,10 @@ export function ApplicationsPage() {
         && (fieldId === 'all' || order.field_id === fieldId)
         && (cropId === 'all' || order.crop_id === cropId)
         && (status === 'all' || destinations.some(target => target.status === status))
-        && (!from || order.scheduled_date >= from)
-        && (!to || order.scheduled_date <= to)
+        && matchesApplicationDate(applicationDates.get(order.id), from, to)
         && normalizeSearch(`${order.folio} ${order.project_name || project?.name || ''} ${order.field_name || recordName(data.catalogs.fields, order.field_id)} ${order.crop_name || recordName(data.catalogs.crops, order.crop_id)} ${order.observations} ${destinations.map(target => `${target.lot_name} ${target.subdivision_name}`).join(' ')}`).includes(search)
     }).sort((a, b) => compareRecipeSequence(b, a))
-  }, [orders, targets, data.projects, data.catalogs, query, unitId, fieldId, cropId, status, from, to, badRange])
+  }, [orders, targets, applicationDates, data.projects, data.catalogs, query, unitId, fieldId, cropId, status, from, to, badRange])
   const filteredIds = new Set(filtered.map(order => order.id))
   const filteredTargets = targets.filter(target => filteredIds.has(target.order_id))
   const pageCount = Math.max(1, Math.ceil(filtered.length / 8))
@@ -169,19 +168,19 @@ export function ApplicationsPage() {
             <FormSelect label="Campo" value={fieldId} onChange={value => setFilter(setFieldId, value)} options={[{ pinned: true, value: 'all', label: 'Todos los campos' }, ...data.catalogs.fields.filter(field => unitId === 'all' || field.agricultural_unit_id === unitId).map(field => ({ value: field.id, label: field.name }))]} />
             <FormSelect label="Cultivo" value={cropId} onChange={value => setFilter(setCropId, value)} options={[{ pinned: true, value: 'all', label: 'Todos los cultivos' }, ...data.catalogs.crops.map(crop => ({ value: crop.id, label: crop.name }))]} />
             <FormSelect order="provided" label="Estado de los destinos" value={status} onChange={value => setFilter(setStatus, value)} options={[{ pinned: true, value: 'all', label: 'Todos los estados' }, { value: 'indicated', label: 'Indicadas' }, { value: 'performed', label: 'Realizadas' }, { value: 'cancelled', label: 'Canceladas' }]} />
-            <FormInput label="Programada desde" type="date" value={from} onChange={value => setFilter(setFrom, value)} />
-            <FormInput label="Programada hasta" type="date" value={to} onChange={value => setFilter(setTo, value)} error={badRange ? 'La fecha final debe ser igual o posterior a la inicial.' : undefined} />
+            <FormInput label="Aplicada desde" type="date" value={from} onChange={value => setFilter(setFrom, value)} />
+            <FormInput label="Aplicada hasta" type="date" value={to} onChange={value => setFilter(setTo, value)} error={badRange ? 'La fecha final debe ser igual o posterior a la inicial.' : undefined} />
           </div>
           {(query || unitId !== 'all' || fieldId !== 'all' || cropId !== 'all' || status !== 'all' || from || to) && <div><Button type="button" variant="ghost" onClick={() => { setQuery(''); setUnitId('all'); setFieldId('all'); setCropId('all'); setStatus('all'); setFrom(''); setTo(''); setPage(1) }}><X data-icon="inline-start" />Limpiar filtros</Button></div>}
         </div>
         {visible.length ? <div className="table-wrap"><Table>
-          <TableHeader><TableRow><TableHead>Orden</TableHead><TableHead>Campo y cultivo</TableHead><TableHead>Fecha programada</TableHead><TableHead>Destinos</TableHead><TableHead>Seguimiento</TableHead><TableHead>Acción</TableHead></TableRow></TableHeader>
+          <TableHeader><TableRow><TableHead>Orden</TableHead><TableHead>Campo y cultivo</TableHead><TableHead>Fecha real de aplicación</TableHead><TableHead>Destinos</TableHead><TableHead>Seguimiento</TableHead><TableHead>Acción</TableHead></TableRow></TableHeader>
           <TableBody>{visible.map(order => {
             const orderTargets = targets.filter(target => target.order_id === order.id)
             return <TableRow key={order.id}>
               <TableCell><div className="record-name">{order.folio}</div><div className="muted record-secondary">{order.project_name || data.projects.find(project => project.id === order.project_id)?.name}</div></TableCell>
               <TableCell><div>{order.field_name || recordName(data.catalogs.fields, order.field_id)}</div><div className="muted record-secondary">{order.crop_name || recordName(data.catalogs.crops, order.crop_id)}</div></TableCell>
-              <TableCell><ScheduledDate key={`${order.id}:${order.scheduled_date}`} date={order.scheduled_date} interval={scheduledIntervals.get(order.id)} /></TableCell>
+              <TableCell className="whitespace-normal"><ApplicationDate summary={applicationDates.get(order.id)} /></TableCell>
               <TableCell><strong>{orderTargets.length}</strong><div className="muted record-secondary">{formatArea(orderTargets.reduce((sum, target) => sum + Number(target.area_ha), 0))} ha</div></TableCell>
               <TableCell><TargetCounts targets={orderTargets} /></TableCell>
               <TableCell><Button asChild variant="outline"><Link to={`/aplicaciones/${order.id}`} aria-label={`Ver orden ${order.folio}`}><Eye data-icon="inline-start" />Ver</Link></Button></TableCell>
