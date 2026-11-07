@@ -331,3 +331,12 @@ reclasificar medios usados o cambiar la vía guardada; revisión y receta base
 comprueban la vía. Agua null solo en riego, con estado de realización explícito.
 No se amplían RLS, menús ni agrícolas. Regresión SQL/HTTP, advisors y conservación
 del historial aprobados. [Contrato](flows/application-routes.md).
+
+## Preferencia personal de apariencia
+
+`user_preferences` exige RLS de cuenta activa y propietario para SELECT,
+INSERT y UPDATE. No hay permiso DELETE ni acceso anónimo; la preferencia no
+permite editar perfiles, roles, menús o agrícolas. Los lectores pueden guardar
+su propia apariencia sin acceso a Conexión ni privilegios de administración.
+SQL y HTTP aislados comprueban que ni un administrador escribe preferencias
+ajenas. [Contrato y evidencia](flows/appearance.md).

@@ -257,3 +257,11 @@ encapsula lectura/transporte y `domain/application-image` valida y calcula con
 enteros decimales exactos. El endpoint y Worker embeben `server/application-image`
 para validar binarios. La migración `20261104171758` incorpora source_capture
 y valida el reparto dentro de create_application_order. [Contrato](docs/flows/image-capture.md).
+
+## Apariencia por cuenta
+
+`AppearanceProvider`, dentro del contexto de sesión, aplica los tokens y escucha
+la preferencia del sistema sin desmontar rutas. El adaptador de apariencia usa
+el mismo cliente Auth y la tabla propia `user_preferences`, protegida por RLS.
+La opción de Sistema se resuelve en cada dispositivo; antes de conocer la cuenta
+se usa Sistema. [Flujo y verificación](docs/flows/appearance.md).

@@ -1,0 +1,24 @@
+-- Runs only appended to the isolated application fixture transaction.
+insert into public.user_preferences(user_id,theme) values(auth.uid(),'dark');
+select pg_temp.assert_true((select theme='dark' from public.user_preferences where user_id=auth.uid()),'apariencia admin propia');
+select pg_temp.expect_error($q$insert into public.user_preferences values('10000000-0000-4000-8000-000000000002','light')$q$,'row-level security','admin no escribe preferencia ajena');
+select pg_temp.expect_error($q$update public.user_preferences set theme='inventado' where user_id=auth.uid()$q$,'check constraint','tema desconocido rechazado');
+set local request.jwt.claim.sub='10000000-0000-4000-8000-000000000002';
+select pg_temp.assert_true((select count(*)=0 from public.user_preferences),'lector no lee admin');
+insert into public.user_preferences(user_id,theme) values(auth.uid(),'light') on conflict(user_id) do update set theme=excluded.theme;
+select pg_temp.assert_true((select theme='light' from public.user_preferences where user_id=auth.uid()),'lector guarda su apariencia sin privilegios admin');
+update public.user_preferences set theme='system' where user_id=auth.uid();
+select pg_temp.assert_true((select theme='system' from public.user_preferences where user_id=auth.uid()),'lector puede volver a Sistema');
+update public.user_preferences set theme='light' where user_id='10000000-0000-4000-8000-000000000001';
+reset role;
+select pg_temp.assert_true((select theme='dark' from public.user_preferences where user_id='10000000-0000-4000-8000-000000000001'),'update ajeno no altera admin');
+update public.profiles set active=false where id='10000000-0000-4000-8000-000000000002';
+set local role authenticated;
+select pg_temp.assert_true((select count(*)=0 from public.user_preferences),'inactivo no consulta preferencias');
+select pg_temp.expect_error($q$insert into public.user_preferences(user_id,theme) values(auth.uid(),'dark') on conflict(user_id) do update set theme=excluded.theme$q$,'row-level security','inactivo no guarda');
+reset role;
+set local role anon;
+select pg_temp.expect_error($q$select * from public.user_preferences$q$,'permission denied','anon no consulta');
+select pg_temp.expect_error($q$insert into public.user_preferences values('10000000-0000-4000-8000-000000000002','dark')$q$,'permission denied','anon no escribe');
+reset role;
+rollback;

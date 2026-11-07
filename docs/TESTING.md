@@ -876,3 +876,12 @@ Fuente `f44b09a` publicada en GitHub, Docker healthy y Sites 45. Entrada y 38
 recursos estáticos exactos, Auth y rechazo anónimo aprobados en ambos destinos;
 nueve controles del Site y veinte del túnel HTTPS aprobados, sin cuentas ni datos
 de prueba en operación. Ledger final 14/0; checker válido.
+
+## Apariencia por usuario
+
+2026-11-07: 402 pruebas, tipos/build y 38 comprobaciones de contraste aprobados.
+Regresión PostgreSQL aislada y once comprobaciones SQL nuevas aprobadas;
+once HTTP nuevas con Auth real, RLS y relectura. Advisors sin WARN/ERROR y
+entornos ficticios retirados. No se probaron formularios en navegador porque
+Computer Use está deshabilitado en Work; esa cobertura continúa pendiente.
+[Casos y límites](flows/appearance.md#evidencia-y-límites).

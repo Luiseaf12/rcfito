@@ -201,6 +201,7 @@ try {
   sql(readFileSync(resolve(root, 'supabase/tests/product-synonyms.sql'), 'utf8'));
   sql(applicationTests.slice(0, applicationTests.indexOf('-- Captura asistida:')) + readFileSync(resolve(root, 'supabase/tests/menu-permissions.sql'), 'utf8'));
   sql(applicationTests.slice(0, applicationTests.indexOf('-- Captura asistida:')) + readFileSync(resolve(root, 'supabase/tests/application-routes.sql'), 'utf8'));
+  sql(applicationTests.slice(0, applicationTests.indexOf('-- Captura asistida:')) + readFileSync(resolve(root, 'supabase/tests/appearance.sql'), 'utf8'));
   console.log(`Backend aplicaciones verificado: ${migrations.length} migración(es), fixtures aislados y controles de RLS/integridad. Auth es un stub de prueba; REST/Auth reales requieren integración aparte.`);
 } finally {
   if (started) removeOwnedContainer();

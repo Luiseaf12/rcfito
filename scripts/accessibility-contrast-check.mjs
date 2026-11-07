@@ -3,8 +3,10 @@ import { readFileSync } from 'node:fs';
 
 // WCAG relative luminance, measured against the current light-theme tokens.
 const css = readFileSync(new URL('../src/index.css', import.meta.url), 'utf8');
-const token = name => {
-  const values = [...css.matchAll(new RegExp(`--${name}:\\s*(#[0-9a-f]{6})\\s*;`, 'gi'))];
+const light = [...css.matchAll(/:root\s*\{([^}]+)\}/g)].at(-1)[1];
+const dark = [...css.matchAll(/\.dark\s*\{([^}]+)\}/g)].at(-1)[1];
+const token = (name, source = light) => {
+  const values = [...source.matchAll(new RegExp(`--${name}:\\s*(#[0-9a-f]{6})\\s*;`, 'gi'))];
   assert.ok(values.length, `Falta el token ${name}`);
   return values.at(-1)[1];
 };
@@ -51,3 +53,9 @@ for (const [name, foreground, background, minimum] of pairs) {
 const oldFocus = rgb(token('ring')).map((value, index) => value * .5 + rgb(token('card'))[index] * .5);
 console.log(`Referencia de foco anterior al 50 %: ${contrast(oldFocus, rgb(token('card'))).toFixed(3)}:1. El foco actual usa contorno opaco.`);
 console.log(`${pairs.length} pares del tema claro verificados; complementar con estilos renderizados y recorrido de teclado.`);
+
+for (const [name,foreground,background,minimum] of pairs.slice(0,-2)) {
+  const ratio=contrast(rgb(token(foreground,dark)),rgb(token(background,dark)));
+  console.log(`${ratio>=minimum?'OK':'ERROR'} Oscuro ${name}: ${ratio.toFixed(3)}:1`);
+  assert.ok(ratio>=minimum,`Contraste oscuro insuficiente: ${name}`);
+}

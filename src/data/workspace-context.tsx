@@ -12,10 +12,13 @@ import { askApplicationChat, executeApplicationQuery as executeQuery, transcribe
 import type { ExtractedApplication } from '@/domain/application-import'
 import { readAiSettings, testAiConnection, persistAiSettings, type AiSettingsStatus, type AiSettingsInput, type AiSettingsTestResult, type AiSettingsSaveInput } from './ai-settings'
 
+import { loadAppearance, saveAppearance } from './appearance'
+import { readAppearance, isAppearance, type Appearance } from '@/domain/appearance'
+
 const demoKey='rcfito.demo.v1'
 type CreateUserInput={email:string;password:string;display_name:string;role:'viewer'|'admin';agricultural_unit_ids:string[];menu_permissions?:MenuKey[]}
 const initialDemo=()=>{try {const parsed=JSON.parse(localStorage.getItem(demoKey)??'null'); if(parsed?.catalogs&&parsed?.projects&&parsed?.profiles)return {...emptyWorkspace(),...parsed,catalogs:completeCatalogs(parsed.catalogs),applicationOrders:parsed.applicationOrders??[],applicationTargets:parsed.applicationTargets??[],applicationChanges:parsed.applicationChanges??[],sowingGroups:parsed.sowingGroups??[]} as WorkspaceData}catch{/* Start fresh after invalid demo data. */}return createDemoData()}
-type WorkspaceContextValue={data:WorkspaceData;profile:UserProfile;isAdmin:boolean;mode:'demo'|'supabase';loading:boolean;error:string|null;warning:string|null;authenticated:boolean;connection:Connection|null;mutate:(c:WorkspaceCommand)=>Promise<void>;refresh:()=>Promise<void>;configure:(c:Connection|null)=>void;signIn:(email:string,password:string)=>Promise<void>;signOut:()=>Promise<void>;setDemoRole:(role:'admin'|'reader')=>void;resetDemo:()=>void;createUser:(input:CreateUserInput)=>Promise<void>;interpretApplication:(message:string,signal?:AbortSignal)=>Promise<ExtractedApplication>;interpretImage:(message:string,image:CaptureImage,signal?:AbortSignal)=>Promise<ImageExtraction>;loadAiSettings:(signal?:AbortSignal)=>Promise<AiSettingsStatus>;testAiSettings:(input:AiSettingsInput,signal?:AbortSignal)=>Promise<AiSettingsTestResult>;saveAiSettings:(input:AiSettingsSaveInput,signal?:AbortSignal)=>Promise<AiSettingsStatus>}
+type WorkspaceContextValue={loadAppearance:()=>Promise<Appearance>;saveAppearance:(theme:Appearance)=>Promise<Appearance>;data:WorkspaceData;profile:UserProfile;isAdmin:boolean;mode:'demo'|'supabase';loading:boolean;error:string|null;warning:string|null;authenticated:boolean;connection:Connection|null;mutate:(c:WorkspaceCommand)=>Promise<void>;refresh:()=>Promise<void>;configure:(c:Connection|null)=>void;signIn:(email:string,password:string)=>Promise<void>;signOut:()=>Promise<void>;setDemoRole:(role:'admin'|'reader')=>void;resetDemo:()=>void;createUser:(input:CreateUserInput)=>Promise<void>;interpretApplication:(message:string,signal?:AbortSignal)=>Promise<ExtractedApplication>;interpretImage:(message:string,image:CaptureImage,signal?:AbortSignal)=>Promise<ImageExtraction>;loadAiSettings:(signal?:AbortSignal)=>Promise<AiSettingsStatus>;testAiSettings:(input:AiSettingsInput,signal?:AbortSignal)=>Promise<AiSettingsTestResult>;saveAiSettings:(input:AiSettingsSaveInput,signal?:AbortSignal)=>Promise<AiSettingsStatus>}
 type ChatWorkspaceContextValue = WorkspaceContextValue & {
   queryApplications: (message: string, context?: ApplicationQueryFilters, previousQuery?: ApplicationQueryFilters | null, signal?: AbortSignal) => Promise<ApplicationChatResponse>
   executeApplicationQuery: (query: ApplicationQueryFilters, signal?: AbortSignal, options?: ApplicationQueryOptions) => Promise<ApplicationChatResponse>
@@ -97,7 +100,21 @@ export function WorkspaceProvider({children}:{children:ReactNode}) {
   const queryApplications=useCallback(async(message:string,context:ApplicationQueryFilters={},previousQuery?:ApplicationQueryFilters|null,signal?:AbortSignal)=>askApplicationChat(message,await queryToken(),context,previousQuery,signal),[queryToken])
   const transcribeApplicationAudio=useCallback(async(file:File,signal?:AbortSignal)=>transcribeAudio(file,await queryToken(),signal),[queryToken])
   const executeApplicationQuery=useCallback(async(query:ApplicationQueryFilters,signal?:AbortSignal,options?:ApplicationQueryOptions)=>executeQuery(query,await queryToken(),signal,options),[queryToken])
-  const value:ChatWorkspaceContextValue={data:client?data:scopeWorkspace(data,profile),profile,isAdmin:profile.role==='admin'&&profile.active!==false,mode:client?'supabase':'demo',loading,error,warning,authenticated:client?Boolean(session):true,connection,mutate,refresh,configure,signIn,signOut,setDemoRole,resetDemo,createUser,interpretApplication,interpretImage,loadAiSettings,testAiSettings,saveAiSettings,queryApplications,transcribeApplicationAudio,executeApplicationQuery}
+  const loadUserAppearance=useCallback(async()=>{
+    const userId=client?session?.user.id:profile.id
+    if(!userId)return 'system' as const
+    if(client)return loadAppearance(client,userId)
+    try{return readAppearance(localStorage.getItem(`rcfito.demo.appearance.${userId}`))}catch{return 'system' as const}
+  },[client,session?.user.id,profile.id])
+  const saveUserAppearance=useCallback(async(theme:Appearance)=>{
+    if(!isAppearance(theme))throw new Error('Selecciona Sistema, Claro u Oscuro.')
+    const userId=client?session?.user.id:profile.id
+    if(!userId)throw new Error('Inicia sesión para guardar tu apariencia.')
+    if(client)return saveAppearance(client,userId,theme)
+    localStorage.setItem(`rcfito.demo.appearance.${userId}`,theme)
+    return theme
+  },[client,session?.user.id,profile.id])
+  const value:ChatWorkspaceContextValue={loadAppearance:loadUserAppearance,saveAppearance:saveUserAppearance,data:client?data:scopeWorkspace(data,profile),profile,isAdmin:profile.role==='admin'&&profile.active!==false,mode:client?'supabase':'demo',loading,error,warning,authenticated:client?Boolean(session):true,connection,mutate,refresh,configure,signIn,signOut,setDemoRole,resetDemo,createUser,interpretApplication,interpretImage,loadAiSettings,testAiSettings,saveAiSettings,queryApplications,transcribeApplicationAudio,executeApplicationQuery}
   return <Context.Provider value={value}>{children}</Context.Provider>
 }
 export function useWorkspace(){const c=useContext(Context);if(!c)throw new Error('Falta WorkspaceProvider.');return c}

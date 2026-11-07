@@ -1,3 +1,4 @@
+import { verifyThemePreferences } from './backend-theme-http-checks.mjs';
 import { verifyApplicationRoutes } from './backend-route-http-checks.mjs';
 import { verifyMenuPermissions } from './backend-menu-http-checks.mjs';
 import { spawnSync } from 'node:child_process';
@@ -589,6 +590,7 @@ try {
   await verifyApplicationImage(adminToken,readerToken,noAccessToken,reader.id);
   await verifyApplicationRoutes({request,check,adminToken,readerToken});
   await verifyMenuPermissions({request,check,adminToken,readerToken,readerId:reader.id,unitA:ids.unitA,base,publicKey});
+  await verifyThemePreferences({request,check,adminToken,readerToken,adminId:admin.id,readerId:reader.id});
   sql(`update public.profiles set active=false where id='${reader.id}';`);
   const revoked = await request('/rest/v1/agricultural_units?select=id', readerToken);
   assert(revoked.status === 200 && revoked.data.length === 0, 'Desactivación bloquea JWT de lector ya emitido');

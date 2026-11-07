@@ -486,12 +486,12 @@ implementación, instalación, publicación o verificación técnica de esa expo
 
 ## Combinación de colores configurable
 
-RCF-034, solicitado el 2026-11-02. Pendiente de permitir configurar la
-combinación de colores o tema de la aplicación. Por defecto debe seguir la
-preferencia de apariencia del equipo o sistema; el usuario podrá elegir una
-configuración explícita. Antes de desarrollar se plantearán las dudas sobre
-las opciones disponibles y el alcance de la preferencia conforme a AGENTS.
-Este registro no modifica el tema actualmente implementado.
+RCF-034: el Propietario confirmó el 2026-11-07 las opciones Sistema (predeterminada),
+Claro y Oscuro, guardadas por usuario. La opción Sistema sigue la apariencia de
+cada equipo; una elección explícita Claro/Oscuro se conserva en la cuenta y
+prevalece sobre el sistema. La identidad verde del producto se mantiene.
+Implementación y pruebas descritas en [Apariencia](flows/appearance.md); revisión
+visual pendiente por navegador deshabilitado. Estado vigente en PLANS.
 
 ## Origen histórico de aplicaciones
 

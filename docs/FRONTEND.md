@@ -15,7 +15,9 @@ El tema canónico está en [index.css](../src/index.css): fondo cálido `#f6f7f2
 texto `#233a30`, superficies blancas, sidebar `#173e33` y acción principal lima
 `#d2e9a0` con texto oscuro. Los tokens semánticos comparten superficie, borde,
 foco, acción y estado. Lectura base 16/24 px y controles de al menos 44 px.
-Esta entrega ofrece tema claro; no hay selector de tema oscuro acreditado.
+RCF-034 incorpora Sistema, Claro y Oscuro con preferencia por usuario y tokens
+oscuros verdes. El selector de Apariencia está en la barra superior.
+[Contrato, pruebas y límite de revisión visual](flows/appearance.md).
 
 ## Composición y flujos
 

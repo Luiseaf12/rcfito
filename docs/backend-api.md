@@ -356,3 +356,12 @@ ocultos; no habilita su lectura completa. Las RPC `application_query`,
 Worker verifica el mismo permiso antes de consumir IA/audio. No se conceden
 permisos por metadata del usuario ni por almacenamiento local.
 [Claves, dependencias y compatibilidad](flows/menu-permissions.md).
+
+## Preferencias personales
+
+`user_preferences(user_id uuid primary key, theme text)` permite únicamente
+`system`, `light` y `dark`. Perfil ausente de preferencias equivale a Sistema.
+SELECT propio y UPSERT por `user_id`, con JWT del mismo usuario activo; no
+requiere rol administrador ni abre los permisos de catálogos o datos agrícolas.
+La FK referencia `profiles`, con baja en cascada al retirar un perfil. No hay
+acceso anónimo ni edición de cuentas ajenas. Cliente: `src/data/appearance.ts`.
