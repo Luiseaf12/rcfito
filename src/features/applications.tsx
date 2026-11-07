@@ -1,3 +1,4 @@
+import { applicationRoute, methodRoute, routeLabel, waterInput, waterText } from '@/domain/application-routes'
 import { buildImageAllocation, type ImageExtraction, type ImageTotalRow } from '@/domain/application-image'
 import { ImageProductEditor, ImageSourceDetails } from './image-capture-fields'
 import { sortDisplay } from '@/domain/list-order'
@@ -178,7 +179,7 @@ export function ApplicationsPage() {
           <TableBody>{visible.map(order => {
             const orderTargets = targets.filter(target => target.order_id === order.id)
             return <TableRow key={order.id}>
-              <TableCell><div className="record-name">{order.folio}</div><div className="muted record-secondary">{order.project_name || data.projects.find(project => project.id === order.project_id)?.name}</div></TableCell>
+              <TableCell><div className="record-name">{order.folio}</div><div className="record-secondary">{routeLabel(applicationRoute(order))}</div><div className="muted record-secondary">{order.project_name || data.projects.find(project => project.id === order.project_id)?.name}</div></TableCell>
               <TableCell><div>{order.field_name || recordName(data.catalogs.fields, order.field_id)}</div><div className="muted record-secondary">{order.crop_name || recordName(data.catalogs.crops, order.crop_id)}</div></TableCell>
               <TableCell className="whitespace-normal"><ApplicationDate summary={applicationDates.get(order.id)} /></TableCell>
               <TableCell><strong>{orderTargets.length}</strong><div className="muted record-secondary">{formatArea(orderTargets.reduce((sum, target) => sum + Number(target.area_ha), 0))} ha</div></TableCell>
@@ -233,7 +234,7 @@ export function NewApplicationDialog({ close, imported, onSaved }: { close: () =
   const pdfIssues = draftPdfIssues(form, draftIssues)
   const visibleIssues = imported || submitted ? lastAttempt === 'pdf' ? pdfIssues : draftIssues : []
   const issueFor = (field: string) => visibleIssues.find(issue => issue.field === field)?.message
-  const unusualNumbers = form.application_number && !draftIssues.some(issue => issue.field === 'application_number') ? chosenOptions.filter(option => nextStageApplicationNumber(data, option.stage.id) !== Number(form.application_number)) : []
+  const unusualNumbers = form.application_number && !draftIssues.some(issue => issue.field === 'application_number') ? chosenOptions.filter(option => nextStageApplicationNumber(data, option.stage.id, methodRoute(data, form.method_id)) !== Number(form.application_number)) : []
   const importIncomplete = !!imported && draftIssues.length > 0
   const groups = (data.sowingGroups ?? []).filter(group => group.active && group.project_id === form.project_id && group.field_id === form.field_id && group.crop_id === form.crop_id)
   const currentGroup = groups.find(group => group.id === groupId)
@@ -274,7 +275,7 @@ export function NewApplicationDialog({ close, imported, onSaved }: { close: () =
     setBusy(true)
     try {
       const { application_number, ...values } = form
-      await mutate({ type: 'create_application_order', record: { ...values, id: orderId, ...(groupId !== 'manual' ? { source_group_id: groupId } : {}), ...(application_number.trim() ? { application_number: Number(application_number) } : {}), ...(imported ? { source_text: imported.source_text } : {}), ...(imageAllocation?.source_capture ? {source_capture:imageAllocation.source_capture} : {}), water_l_ha: Number(form.water_l_ha), stage_ids: chosen.map(option => option.stage.id), products: rows.map(row => ({ product_id: row.product_id, dose: Number(row.dose) })) } })
+      await mutate({ type: 'create_application_order', record: { ...values, id: orderId, ...(groupId !== 'manual' ? { source_group_id: groupId } : {}), ...(application_number.trim() ? { application_number: Number(application_number) } : {}), ...(imported ? { source_text: imported.source_text } : {}), ...(imageAllocation?.source_capture ? {source_capture:imageAllocation.source_capture} : {}), water_l_ha: waterInput(form.water_l_ha), stage_ids: chosen.map(option => option.stage.id), products: rows.map(row => ({ product_id: row.product_id, dose: Number(row.dose) })) } })
       onSaved?.()
       close()
       navigate(`/aplicaciones/${orderId}`, { state: { notice: 'La indicación se guardó correctamente.' } })
@@ -309,7 +310,7 @@ export function NewApplicationDialog({ close, imported, onSaved }: { close: () =
           {!!importContext?.unresolvedDestinations.length && <Field orientation="horizontal"><Checkbox id={`${orderId}-destinations-reviewed`} checked={destinationsReviewed} onCheckedChange={checked => setDestinationsReviewed(checked === true)} /><FieldLabel htmlFor={`${orderId}-destinations-reviewed`}>Revisé {importContext.unresolvedDestinations.join(', ')} y confirmé que la selección incluye todos los destinos del mensaje.</FieldLabel></Field>}
           <FieldGroup>
             <FormInput label="Número de aplicación en la etapa" value={form.application_number} onChange={value => update('application_number', value)} type="number" min="1" max="2147483647" step="1" required={!!imported} error={issueFor('application_number')} help={imported ? 'Número del mensaje, independiente del folio de la orden.' : 'Vacío: asigna el siguiente número disponible en cada etapa.'} />
-            {!!chosenOptions.length && <p className="muted">{chosenOptions.map(option => `${option.lot.name} · Etapa ${option.stage.stage_number}: siguiente ${nextStageApplicationNumber(data, option.stage.id)}`).join('; ')}</p>}
+            {!!chosenOptions.length && <p className="muted">{chosenOptions.map(option => `${option.lot.name} · Etapa ${option.stage.stage_number}: siguiente ${nextStageApplicationNumber(data, option.stage.id, methodRoute(data, form.method_id))}`).join('; ')}</p>}
             {!!unusualNumbers.length && <Field orientation="horizontal"><Checkbox id={`${orderId}-number-reviewed`} checked={numberReviewed} onCheckedChange={checked => setNumberReviewed(checked === true)} /><FieldLabel htmlFor={`${orderId}-number-reviewed`}>Revisé el historial y confirmo el número {form.application_number} para estas etapas, aunque difiera del siguiente disponible. Los conteos conservarán solo las aplicaciones registradas.</FieldLabel></Field>}
           </FieldGroup>
           <Separator />
@@ -319,7 +320,7 @@ export function NewApplicationDialog({ close, imported, onSaved }: { close: () =
               <Field orientation="horizontal"><Checkbox id={`${orderId}-allocation-reviewed`} checked={allocationReviewed===allocationKey} onCheckedChange={checked=>setAllocationReviewed(checked===true?allocationKey:'')} disabled={imageAllocation.errors.length>0} /><FieldLabel htmlFor={`${orderId}-allocation-reviewed`}>Revisé las cantidades totales, las hectáreas y las dosis calculadas, incluidas las diferencias por redondeo.</FieldLabel></Field>
             </> : <ProductMixtureEditor rows={rows} onChange={next => { setError(null); setRows(next) }} products={data.catalogs.products} activeIngredients={data.catalogs.active_ingredients} error={issueFor('products')} imported={!!imported} issues={visibleIssues} />}
             <FieldGroup className="field-grid">
-              <FormInput label="Gasto de agua (L/ha)" value={form.water_l_ha} onChange={value => update('water_l_ha', value)} type="number" min="0.0001" step="any" required error={issueFor('water_l_ha')} />
+              <FormInput label="Gasto de agua (L/ha)" value={form.water_l_ha} onChange={value => update('water_l_ha', value)} type="number" min="0.0001" step="any" required={methodRoute(data, form.method_id) === 'foliar'} help={methodRoute(data, form.method_id) === 'irrigation' ? 'Opcional en riego, expresado en L/ha.' : 'Obligatorio en aplicación foliar.'} error={issueFor('water_l_ha')} />
               <FormInput label="Fecha de indicación" type="date" value={form.indicated_date} onChange={value => update('indicated_date', value)} required error={issueFor('indicated_date')} />
               <FormInput label="Fecha programada" help="Obligatoria para guardar. En el PDF puede quedar por confirmar." type="date" value={form.scheduled_date} onChange={value => update('scheduled_date', value)} min={form.indicated_date} required error={issueFor('scheduled_date')} />
             </FieldGroup>
@@ -383,6 +384,7 @@ export function ApplicationDetailPage() {
           { label: 'Origen de la aplicación', value: applicationOriginLabel(order) },
           ...(order.recipe_source ? [{ label: 'Receta base', value: <Link to={`/aplicaciones/${order.recipe_source.order_id}`}>{data.applicationOrders.find(item => item.id === order.recipe_source!.order_id)?.folio ?? 'Consultar receta'} · Versión {order.recipe_source.revision}</Link> }] : []),
           { label: 'Destinos al indicar', value: `${targets.length} ${targets.length === 1 ? 'destino' : 'destinos'} · ${lotCount} ${lotCount === 1 ? 'lote' : 'lotes'}` },
+          { label: 'Vía de aplicación', value: routeLabel(applicationRoute(order)) },
           { label: 'Medio de aplicación', value: indication.method_name || recordName(data.catalogs.application_methods, indication.method_id) },
           { label: 'Fecha de indicación', value: formatDate(indication.indicated_date) },
           { label: 'Fecha programada', value: formatDate(indication.scheduled_date) },
@@ -407,7 +409,7 @@ export function ApplicationDetailPage() {
           <TableHeader><TableRow>{isAdmin && <TableHead>Seleccionar</TableHead>}<TableHead>Destino</TableHead><TableHead>Superficie</TableHead><TableHead>Estado</TableHead><TableHead>Realización</TableHead><TableHead>Acción</TableHead></TableRow></TableHeader>
           <TableBody>{targets.map(target => <TableRow key={target.id}>
             {isAdmin && <TableCell>{target.status === 'indicated' ? <Checkbox className="application-target-check" aria-label={`Seleccionar ${targetLabel(target)}`} checked={selected.includes(target.id)} onCheckedChange={checked => setSelected(current => checked === true ? [...current, target.id] : current.filter(id => id !== target.id))} /> : <span className="muted">—</span>}</TableCell>}
-            <TableCell><strong>{target.lot_name}</strong><div>{target.subdivision_name} · Etapa {target.stage_number}</div><div>Aplicación {stageApplicationNumber(data, target)}</div><div className="muted record-secondary">{targetGroupMembershipLabel(target)}</div><div className="muted record-secondary">{target.crop_name} / {target.variety_name}</div><div className="muted record-secondary">Indicación: revisión {target.indication_change_id ? data.applicationChanges.find(change=>change.id===target.indication_change_id)?.version : 0}</div></TableCell>
+            <TableCell><strong>{target.lot_name}</strong><div>{target.subdivision_name} · Etapa {target.stage_number}</div><div>{routeLabel(applicationRoute(order))} {stageApplicationNumber(data, target)}</div><div className="muted record-secondary">{targetGroupMembershipLabel(target)}</div><div className="muted record-secondary">{target.crop_name} / {target.variety_name}</div><div className="muted record-secondary">Indicación: revisión {target.indication_change_id ? data.applicationChanges.find(change=>change.id===target.indication_change_id)?.version : 0}</div></TableCell>
             <TableCell>{formatArea(target.area_ha)} ha{target.area_correction_id && <div className="record-secondary muted">Superficie corregida · <Link to={`/proyectos/${order.project_id}`}>Ver historial en el proyecto</Link></div>}</TableCell>
             <TableCell><TargetStatus status={target.status} /></TableCell>
             <TableCell>{target.actual_date ? formatDate(target.actual_date) : target.status === 'cancelled' ? 'No se realizó' : 'Pendiente'}{target.status === 'performed' && <div className="muted record-secondary">{target.has_changes ? 'Con cambios registrados' : 'Conforme a lo indicado'}</div>}</TableCell>
@@ -434,7 +436,7 @@ function PerformDialog({ order, targets, close, completed }: { order: Applicatio
   const [initial] = useState(() => ({ actual_date: businessToday(), equipment: '', applicator: '', observations: '' }))
   const [form, setForm] = useState(initial)
   const [changed, setChanged] = useState(false)
-  const [water, setWater] = useState(String(indication.water_l_ha))
+  const [water, setWater] = useState(waterText(indication.water_l_ha))
   const [rows, setRows] = useState<ProductDraft[]>(() => indication.products.map(product => ({ key: crypto.randomUUID(), product_id: product.product_id, dose: String(product.dose) })))
   const [error, setError] = useState<string | null>(null)
   const [productError, setProductError] = useState('')
@@ -456,11 +458,11 @@ function PerformDialog({ order, targets, close, completed }: { order: Applicatio
       const mixtureError = validateProducts(rows)
       setProductError(mixtureError)
       if (mixtureError) { setError('Revisa la mezcla realmente aplicada.'); return }
-      if (!water.trim() || !Number.isFinite(Number(water)) || Number(water) <= 0) { setError('El gasto de agua real debe ser mayor que cero.'); return }
+      if (!(applicationRoute(order) === 'irrigation' && !water.trim()) && (!water.trim() || !Number.isFinite(Number(water)) || Number(water) <= 0)) { setError('El gasto de agua real debe ser mayor que cero.'); return }
     }
     setBusy(true)
     try {
-      await mutate({ type: 'perform_application_targets', order_id: order.id, target_ids: targets.map(target => target.id), data: { ...form, expected_revision:expectedRevision, changed, ...(changed ? { water_l_ha: Number(water), products: rows.map(row => ({ product_id: row.product_id, dose: Number(row.dose) })) } : {}) } })
+      await mutate({ type: 'perform_application_targets', order_id: order.id, target_ids: targets.map(target => target.id), data: { ...form, expected_revision:expectedRevision, changed, ...(changed ? { water_l_ha: waterInput(water), products: rows.map(row => ({ product_id: row.product_id, dose: Number(row.dose) })) } : {}) } })
       completed()
     } catch (cause) { setError(errorMessage(cause)) } finally { setBusy(false) }
   }
@@ -479,7 +481,7 @@ function PerformDialog({ order, targets, close, completed }: { order: Applicatio
             </FieldGroup>
             <TextField label="Observaciones de la realización" value={form.observations} onChange={value => update('observations', value)} />
             <Field orientation="horizontal"><Checkbox id={changedId} checked={changed} onCheckedChange={value => setChanged(value === true)} /><div><FieldLabel htmlFor={changedId}>Hubo cambios en productos, dosis o agua</FieldLabel><FieldDescription>Activa esta opción solo si lo aplicado fue diferente. La indicación original siempre se conserva.</FieldDescription></div></Field>
-            {changed ? <FieldSet className="flex flex-col gap-5"><FieldLegend>Lo realmente aplicado</FieldLegend><FieldDescription>Estos valores se guardarán para todos los destinos seleccionados.</FieldDescription><ProductMixtureEditor rows={rows} onChange={setRows} products={data.catalogs.products} activeIngredients={data.catalogs.active_ingredients} original={indication.products} error={productError} /><FormInput label="Gasto de agua real (L/ha)" type="number" value={water} onChange={setWater} min="0.0001" step="any" required /></FieldSet> : <Alert><AlertTitle>Confirmación de lo indicado</AlertTitle><AlertDescription>Al registrar la realización, confirmas que se aplicaron exactamente los productos, dosis y gasto de agua mostrados arriba.</AlertDescription></Alert>}
+            {changed ? <FieldSet className="flex flex-col gap-5"><FieldLegend>Lo realmente aplicado</FieldLegend><FieldDescription>Estos valores se guardarán para todos los destinos seleccionados.</FieldDescription><ProductMixtureEditor rows={rows} onChange={setRows} products={data.catalogs.products} activeIngredients={data.catalogs.active_ingredients} original={indication.products} error={productError} /><FormInput label="Gasto de agua real (L/ha)" type="number" value={water} onChange={setWater} min="0.0001" step="any" required={applicationRoute(order) === 'foliar'} help={applicationRoute(order) === 'irrigation' ? 'Opcional en riego.' : undefined} /></FieldSet> : <Alert><AlertTitle>Confirmación de lo indicado</AlertTitle><AlertDescription>Al registrar la realización, confirmas que se aplicaron exactamente los productos, dosis y gasto de agua mostrados arriba.</AlertDescription></Alert>}
           </FieldGroup>
         </fieldset>
         <div className="dialog-actions"><Button type="button" variant="outline" onClick={dismissal.requestClose} disabled={busy}>Volver</Button><SaveButton busy={busy}>Confirmar realización</SaveButton></div>
@@ -532,7 +534,7 @@ function TargetDetailsDialog({ order, target, close }: { order: ApplicationOrder
     ]} />
     <div className="application-comparison">
       <MixtureReadOnly products={indication.products} water={indication.water_l_ha} />
-      {target.status === 'performed' && target.actual_water_l_ha !== null && <MixtureReadOnly title="Mezcla aplicada" products={target.actual_products} water={target.actual_water_l_ha} />}
+      {target.status === 'performed' && <MixtureReadOnly title="Mezcla aplicada" products={target.actual_products} water={target.actual_water_l_ha} />}
     </div>
     {target.status === 'performed' && <>
       <Alert><AlertTitle>{target.has_changes ? 'Se registraron cambios respecto a la indicación' : 'Se aplicó conforme a lo indicado'}</AlertTitle></Alert>

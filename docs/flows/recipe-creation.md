@@ -1,5 +1,8 @@
 # Nueva indicación desde cero o una receta anterior
 
+Desde RCF-045 la numeración, sugerencia y búsqueda de bases se limitan a la vía
+derivada del medio. El agua solo es opcional en Riego. [Contrato vigente](application-routes.md).
+
 RCF-030. Diseño presentado y desarrollo autorizado por el Propietario el
 2026-11-02. Primera entrega publicada en Sites 30. La ampliación de captura unificada fue
 autorizada el mismo día tras revisar la propuesta interactiva: una entrada

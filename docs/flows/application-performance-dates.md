@@ -21,7 +21,7 @@ y acceder a la receta anterior. La fecha programada sigue disponible en el detal
   **Cancelada**. Un destino realizado sin fecha válida muestra la ausencia,
   sin sustituirla por la fecha programada ni inventar un intervalo.
 - La receta anterior se elige por folio dentro del mismo proyecto/campo/cultivo,
-  origen y selección histórica de etapas. Las totalmente canceladas se excluyen;
+  vía, origen y selección histórica de etapas. Las totalmente canceladas se excluyen;
   las parciales conservan todos sus destinos históricos.
 - Los días comparan fechas reales del mismo destino/etapa entre ambas recetas.
   Una receta pendiente, parcialmente cancelada o con fecha inválida sigue siendo

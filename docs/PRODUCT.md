@@ -539,3 +539,11 @@ conserva todas las secciones y al menos una cuenta activa; Captura con IA,
 usuarios y configuración requieren ese rol. Consultas con IA conserva permiso
 propio. Referencias mínimas para filtros no habilitan catálogos completos.
 [Contrato, navegación y evidencia](flows/menu-permissions.md).
+
+## Vías de aplicación y consecutivos — RCF-045
+
+Cada medio determina una única vía Foliar/Riego. Cada etapa lleva series
+independientes; receta anterior e intervalos se limitan a su vía. En riego el
+agua es opcional y las dosis siguen por hectárea. La vía guardada no cambia:
+puede corregirse el medio dentro de ella, o crear otra receta para otra vía.
+Historia existente confirmada Foliar sin renumerar. [Contrato vigente](flows/application-routes.md).

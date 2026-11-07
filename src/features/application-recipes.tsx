@@ -1,3 +1,4 @@
+import { applicationRoute, methodRoute, routeLabel, waterInput, waterText } from '@/domain/application-routes'
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { Link, useBlocker, useNavigate, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, ChevronDown, Search } from 'lucide-react'
@@ -66,11 +67,12 @@ export function ApplicationCreationPage() {
   const expectedIds = destinations.filter(item => selection.kind === 'manual' ? stageIds.includes(item.stage.id) : selection.kind === 'lot' ? item.lot.id === selection.id : group && eligibleGroupStages(data, group).includes(item.stage.id)).map(item => item.stage.id).sort()
   const chosen = destinations.filter(item => stageIds.includes(item.stage.id))
   const destinationsChanged = (!!selection.id || stageIds.length > 0) && JSON.stringify([...stageIds].sort()) !== JSON.stringify(expectedIds)
-  const candidates = useMemo(() => recipeCandidates(data, stageIds, selection.kind === 'group' ? selection.id : undefined), [data, stageIds, selection.kind, selection.id])
-  const history = useMemo(() => recipeHistory(data, stageIds, selection.kind === 'group' ? selection.id : undefined), [data, stageIds, selection.kind, selection.id])
+  const route = methodRoute(data, form.method_id)
+  const candidates = useMemo(() => recipeCandidates(data, stageIds, selection.kind === 'group' ? selection.id : undefined, route), [data, stageIds, selection.kind, selection.id, route])
+  const history = useMemo(() => recipeHistory(data, stageIds, selection.kind === 'group' ? selection.id : undefined, route), [data, stageIds, selection.kind, selection.id, route])
   const sourceOrder = data.applicationOrders.find(item => item.id === base?.candidate.order_id)
   const source = base ? recipeSource(base.candidate, group?.id) : undefined
-  const record: ApplicationOrderInput = { ...form, project_id: selection.project_id, field_id: selection.field_id, crop_id: selection.crop_id, id: orderId, stage_ids: stageIds, products: rows.map(row => ({ product_id: row.product_id, dose: Number(row.dose) })), water_l_ha: Number(form.water_l_ha), application_number: form.application_number.trim() ? Number(form.application_number) : undefined, ...(group ? { source_group_id: group.id } : {}), ...(source ? { recipe_source: source } : {}) }
+  const record: ApplicationOrderInput = { ...form, project_id: selection.project_id, field_id: selection.field_id, crop_id: selection.crop_id, id: orderId, stage_ids: stageIds, products: rows.map(row => ({ product_id: row.product_id, dose: Number(row.dose) })), water_l_ha: waterInput(form.water_l_ha), application_number: form.application_number.trim() ? Number(form.application_number) : undefined, ...(group ? { source_group_id: group.id } : {}), ...(source ? { recipe_source: source } : {}) }
   let stale = ''
   try { validateRecipeSource(data, record) } catch (err) { stale = errorMessage(err) }
   const issues = applicationDraftIssues(data, { ...form, ...selection }, rows, stageIds, { imported: false, unresolvedDestinations: [], destinationsReviewed: true, numberReviewed })
@@ -80,7 +82,7 @@ export function ApplicationCreationPage() {
   const pdfIssues = draftPdfIssues(form, issues)
   const visibleIssues = lastAttempt === 'pdf' ? pdfIssues : issues
   const issue = (field: string) => attempted ? visibleIssues.find(item => item.field === field)?.message : undefined
-  const unusualNumber = form.application_number.trim() && Number.isInteger(Number(form.application_number)) && Number(form.application_number) > 0 && !issues.some(item => item.field === 'application_number') && chosen.some(item => nextStageApplicationNumber(data, item.stage.id) !== Number(form.application_number))
+  const unusualNumber = form.application_number.trim() && Number.isInteger(Number(form.application_number)) && Number(form.application_number) > 0 && !issues.some(item => item.field === 'application_number') && chosen.some(item => nextStageApplicationNumber(data, item.stage.id, route) !== Number(form.application_number))
   const dirty = edited || datesEdited
   const blocker = useBlocker(({ currentLocation, nextLocation }) => !saving.current && (dirty || pdf.busy) && (currentLocation.pathname !== nextLocation.pathname || currentLocation.search !== nextLocation.search))
   const request = (action: () => void, leaving = false) => {
@@ -101,20 +103,21 @@ export function ApplicationCreationPage() {
     const indication = order ? structuredClone(currentOrderIndication(data, order)) : null
     setBase(candidate && indication ? { candidate, indication } : null)
     setRows(indication ? indication.products.map(product => ({ key: crypto.randomUUID(), product_id: product.product_id, dose: String(product.dose) })) : [newProductRow()])
-    setForm(previous => ({ ...previous, method_id: indication?.method_id ?? '', water_l_ha: indication ? String(indication.water_l_ha) : '', observations: indication?.observations ?? '' }))
+    setForm(previous => ({ ...previous, method_id: indication?.method_id ?? previous.method_id, water_l_ha: indication ? waterText(indication.water_l_ha) : '', observations: indication?.observations ?? '' }))
     setEdited(false); setError(''); setAttempted(false)
   }
   function change(next: Selection) {
     const options = currentApplicationDestinations(data, next.project_id, next.field_id, next.crop_id)
     const selected = next.kind === 'manual' ? next.stage_ids.filter(id => options.some(item => item.stage.id === id)) : next.kind === 'lot' ? options.filter(item => item.lot.id === next.id).map(item => item.stage.id) : (data.sowingGroups.find(item => item.id === next.id) ? eligibleGroupStages(data, data.sowingGroups.find(item => item.id === next.id)!) : [])
     setSelection({ ...next, stage_ids: selected }); setNumberReviewed(false)
-    const bases = recipeCandidates(data, selected, next.kind === 'group' ? next.id : undefined)
+    const bases = recipeCandidates(data, selected, next.kind === 'group' ? next.id : undefined, route)
     load(mode === 'previous' && bases.length === 1 ? bases[0] : undefined)
   }
   function changeMode(next: 'previous' | 'blank') {
     request(() => { setMode(next); load(next === 'previous' && candidates.length === 1 ? candidates[0] : undefined) })
   }
   function update(field: keyof ApplicationDraftForm, value: string) {
+    if (field === 'method_id' && methodRoute(data, value) !== route) { setBase(null); setMode('blank'); setNumberReviewed(false); setForm(previous => ({ ...previous, [field]: value, application_number: '' })); setEdited(true); return }
     setForm(previous => ({ ...previous, [field]: value }))
     if (field === 'application_number') setNumberReviewed(false)
     if (field === 'indicated_date' || field === 'scheduled_date' || field === 'application_number') setDatesEdited(true)
@@ -158,7 +161,9 @@ export function ApplicationCreationPage() {
           {selection.kind !== 'manual' && <FormSelect label={selection.kind === 'lot' ? 'Lote' : 'Grupo de siembra'} value={selection.id} required disabled={!selection.crop_id} options={(selection.kind === 'lot' ? lots : groups).map(item => ({ value: item.id, label: item.name }))} onChange={id => request(() => change({ ...selection, id }))} help={selection.kind === 'group' && !groups.length && selection.crop_id ? 'No hay grupos activos con destinos vigentes en este contexto.' : undefined} error={issue('destinations')} />}
           {selection.kind === 'manual' && <StageDestinationPicker options={eligibleDestinations(data, selection.project_id, selection.field_id, selection.crop_id).filter(() => !!selection.project_id && !!selection.field_id && !!selection.crop_id)} selected={stageIds} onChange={ids => request(() => change({ ...selection, stage_ids: ids }))} error={issue('destinations')} />}
           {group && [...new Set([...group.stage_ids, ...(group.historical_stage_ids ?? [])])].some(id => !stageIds.includes(id)) && <p className="muted">Las etapas retiradas o cerradas permanecen en el historial del grupo y no reciben esta nueva indicación.</p>}
-          {chosen.length > 0 && <div className="flex flex-col gap-3" aria-label="Destinos y numeración">{chosen.map(({ stage, lot, subdivision }) => <div key={stage.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border p-3"><div><strong>{lot.name} · {subdivision.name}</strong><p className="muted">Etapa {stage.stage_number} · {stage.variety_name_snapshot || recordName(data.catalogs.varieties, stage.variety_id)} · {formatArea(stage.area_ha)} ha</p></div><strong>Siguiente #{nextStageApplicationNumber(data, stage.id)}</strong></div>)}<p className="muted">{chosen.length} destinos · {formatArea(chosen.reduce((sum, item) => sum + item.stage.area_ha, 0))} ha. El número definitivo se asigna al guardar.</p></div>}
+          <FieldGroup className="field-grid"><FormSelect label="Medio de aplicación" value={form.method_id} onChange={value => update('method_id', value)} options={methods.map(method => ({ value: method.id, label: `${method.name} · ${routeLabel(applicationRoute(method))}${method.active ? '' : ' (inactivo; reemplazar)'}`, disabled: !method.active }))} required error={issue('method_id')} /></FieldGroup>
+          <p className="muted">Vía: {routeLabel(route)}. Al cambiar de vía, revisa la mezcla conservada o elige una receta anterior de esta vía.</p>
+          {chosen.length > 0 && <div className="flex flex-col gap-3" aria-label="Destinos y numeración">{chosen.map(({ stage, lot, subdivision }) => <div key={stage.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border p-3"><div><strong>{lot.name} · {subdivision.name}</strong><p className="muted">Etapa {stage.stage_number} · {stage.variety_name_snapshot || recordName(data.catalogs.varieties, stage.variety_id)} · {formatArea(stage.area_ha)} ha</p></div><strong>{routeLabel(route)} · Siguiente #{nextStageApplicationNumber(data, stage.id, route)}</strong></div>)}<p className="muted">{chosen.length} destinos · {formatArea(chosen.reduce((sum, item) => sum + item.stage.area_ha, 0))} ha. El número definitivo se asigna al guardar.</p></div>}
         </CardContent></Card>
         <Card><CardHeader><CardTitle>¿Cómo quieres comenzar?</CardTitle><CardDescription>La última receta activa se propone por defecto; puedes elegir otra o capturar desde cero.</CardDescription></CardHeader><CardContent>
           <ToggleGroup type="single" variant="outline" value={mode} aria-label="Cómo iniciar la indicación" className="w-full flex-col items-stretch sm:w-fit sm:flex-row" onValueChange={value => { if (value) changeMode(value as 'previous' | 'blank') }}><ToggleGroupItem value="previous" className="min-h-11">Usar receta anterior</ToggleGroupItem><ToggleGroupItem value="blank" className="min-h-11">Empezar desde cero</ToggleGroupItem></ToggleGroup>
@@ -176,8 +181,7 @@ export function ApplicationCreationPage() {
           <FieldGroup className="field-grid [container-type:normal]">
             <FormInput label="Fecha de indicación" type="date" value={form.indicated_date} onChange={value => update('indicated_date', value)} required error={issue('indicated_date')} />
             <FormInput label="Fecha programada" help="Obligatoria para guardar. En el PDF puede quedar por confirmar." type="date" value={form.scheduled_date} onChange={value => update('scheduled_date', value)} required error={issue('scheduled_date')} />
-            <FormSelect label="Medio de aplicación" value={form.method_id} onChange={value => update('method_id', value)} options={methods.map(method => ({ value: method.id, label: `${method.name}${method.active ? '' : ' (inactivo; reemplazar)'}`, disabled: !method.active }))} required error={issue('method_id')} />
-            <FormInput label="Gasto de agua (L/ha)" type="number" min="0.0001" step="any" value={form.water_l_ha} onChange={value => update('water_l_ha', value)} required error={issue('water_l_ha')} />
+            <FormInput label="Gasto de agua (L/ha)" type="number" min="0.0001" step="any" value={form.water_l_ha} onChange={value => update('water_l_ha', value)} required={route === 'foliar'} help={route === 'irrigation' ? 'Opcional en riego. Si lo capturas, usa litros por hectárea.' : 'Obligatorio en aplicación foliar.'} error={issue('water_l_ha')} />
           </FieldGroup>
           <ProductMixtureEditor rows={rows} onChange={value => { setRows(value); setEdited(true) }} products={data.catalogs.products} activeIngredients={data.catalogs.active_ingredients} original={base?.indication.products} issues={attempted ? visibleIssues : []} error={issue('products')} />
           <TextField label="Nota de la aplicación" value={form.observations} onChange={value => update('observations', value)} error={issue('observations')} />

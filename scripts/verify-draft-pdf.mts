@@ -24,10 +24,10 @@ long.targets = Array.from({ length: 28 }, (_, index) => ({ ...small.targets[0], 
 long.products = Array.from({ length: 8 }, (_, index) => ({ ...small.products[index % 2], product_id: `fictitious-product-${index}`, code: `QA-${index + 1}`, name: `Producto ficticio ${index + 1} para revisión de nombres comerciales largos y dosis precisas`, dose: index === 0 ? .000001 : 2.123456 + index }))
 long.observations = Array.from({ length: 40 }, (_, index) => `Nota ficticia ${index + 1}: revisar los lotes y productos de esta propuesta, sin modificar la receta anterior.`).join('\n')
 mkdirSync(output, { recursive: true })
-for (const [name, snapshot] of [['borrador-simple', small], ['borrador-extenso', long]] as const) {
+for (const [name, snapshot] of [['borrador-simple', small], ['borrador-extenso', long], ['borrador-riego', {...small, application_route:'irrigation', method:'Sistema de riego', water_l_ha:null}]] as const) {
   const result = await createDraftRecipePdf(snapshot, fonts)
   const pages = result.doc.getNumberOfPages()
-  if (name === 'borrador-simple') assert.equal(pages, 1)
+  if (name === 'borrador-simple' || name === 'borrador-riego') assert.equal(pages, 1)
   else assert.ok(pages >= 3)
   writeFileSync(resolve(output, `${name}.pdf`), new Uint8Array(result.doc.output('arraybuffer')))
   console.log(`${name}: ${pages} página(s), ${result.reference}`)

@@ -95,3 +95,12 @@ test('una sesión malformada o almacenamiento bloqueado no rompen la elección d
   assert.equal(migrateManagedSession(blocked, legacy, managed), false)
   assert.deepEqual(resolveConnection(legacy, managed), managed)
 })
+
+test('RCF-045: el adaptador conserva la vía configurada al crear y editar medios', async () => {
+  const {writeCommand}=await import('../src/data/supabase.ts')
+  const captures: {table:string;values:unknown;id?:string}[]=[]
+  const client={from:(table:string)=>({insert:async(values:unknown)=>{captures.push({table,values});return {error:null}},update:(values:unknown)=>({eq:(_key:string,id:string)=>({select:()=>({single:async()=>{captures.push({table,values,id});return {data:{id},error:null}}})})})})}
+  await writeCommand(client as unknown as Parameters<typeof writeCommand>[0],{type:'save_catalog',kind:'application_methods',record:{name:'Riego ficticio',active:true,application_route:'irrigation'}})
+  await writeCommand(client as unknown as Parameters<typeof writeCommand>[0],{type:'save_catalog',kind:'application_methods',record:{id:'medio-ficticio',name:'Riego corregido',active:true,application_route:'irrigation'}})
+  assert.deepEqual(captures,[{table:'application_methods',values:{name:'Riego ficticio',active:true,application_route:'irrigation',code:'Riego ficticio'}},{table:'application_methods',id:'medio-ficticio',values:{name:'Riego corregido',active:true,application_route:'irrigation',code:'Riego corregido'}}])
+})

@@ -241,3 +241,9 @@ La evidencia de publicación está en OPERATIONS.
 | ID | Trabajo | Estado | Responsable | Próxima acción | Fuente |
 | --- | --- | --- | --- | --- | --- |
 | RCF-044 | Permisos de menú por usuario con copia, plantillas, historial y validación de servidor. | cerrada | Agente principal | Fuente 1ffb49b en GitHub, Docker healthy y Sites 44. 391 pruebas, 640 SQL, 268 HTTP, QA demo/móvil y advisors aprobados; 90 controles publicados y 20 HTTPS. Respaldo/migración 13/0 y función de alta confirmados; roles y agrícolas conservados. | [Contrato y evidencia](flows/menu-permissions.md) |
+
+## Vías y numeración por etapa — RCF-045
+
+| ID | Trabajo | Estado | Responsable | Próxima acción | Fuente |
+| --- | --- | --- | --- | --- | --- |
+| RCF-045 | Separar Foliar/Riego por medio, numeración y antecedentes; agua opcional en riego. | en verificación | Agente principal | 399 pruebas, 535 SQL, 288 HTTP, tipos/build y PDF aprobados; migración con respaldo, historial conservado y ledger 14/0. Publicar frontend. Navegador/móvil sin comprobar por control deshabilitado en Work. | [Reglas y aceptación](flows/application-routes.md) |

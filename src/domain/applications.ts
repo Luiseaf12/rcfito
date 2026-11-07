@@ -3,6 +3,7 @@ import { applyApplicationEditing, indicationForTarget } from './application-edit
 import { applicationGroupOrigin, groupMembershipsAtCreation } from './application-groups.ts'
 import { validateRecipeSource } from './application-recipes.ts'
 import { imageSourceCaptureKey, validateImageOrderSourceCapture, validateImageSourceCapture } from './application-image.ts'
+import { applicationRoute, methodRoute, targetRoute, validateApplicationWater } from './application-routes.ts'
 
 const fail = (message: string): never => { throw new Error(message) }
 const validDate = (value: string) => /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(`${value}T12:00:00Z`)) && new Date(`${value}T12:00:00Z`).toISOString().slice(0, 10) === value
@@ -21,8 +22,8 @@ export function stageApplicationNumber(data: WorkspaceData, target: ApplicationT
   return target.application_number ?? data.applicationTargets.filter(item => item.stage_id === target.stage_id).findIndex(item => item.id === target.id) + 1
 }
 
-export function nextStageApplicationNumber(data: WorkspaceData, stageId: string): number {
-  return Math.max(0, ...data.applicationTargets.filter(target => target.stage_id === stageId).map(target => stageApplicationNumber(data, target))) + 1
+export function nextStageApplicationNumber(data: WorkspaceData, stageId: string, route: import('./model').ApplicationRoute = 'foliar'): number {
+  return Math.max(0, ...data.applicationTargets.filter(target => target.stage_id === stageId && targetRoute(data, target) === route).map(target => stageApplicationNumber(data, target))) + 1
 }
 
 function destinations(data: WorkspaceData, stageIds: string[], projectId: string, fieldId: string, cropId: string): SowingStage[] {
@@ -81,7 +82,7 @@ function performance(data: WorkspaceData, command: Extract<WorkspaceCommand, { t
   const historical = target.status === 'performed' ? firstPerformance(data, target).products : []
   const products = values.changed ? productLines(data, values.products ?? [], [...historical, ...indication.products]) : structuredClone(indication.products)
   const water = values.changed ? values.water_l_ha! : indication.water_l_ha
-  positive(water, 'El gasto de agua')
+  validateApplicationWater(water, applicationRoute(order))
   return { order, actual_date: values.actual_date, actual_products: products, actual_water_l_ha: water, equipment: trim(values.equipment), applicator: trim(values.applicator), actual_observations: trim(values.observations), has_changes: water !== indication.water_l_ha || mixtureKey(products) !== mixtureKey(indication.products) }
 }
 
@@ -108,22 +109,23 @@ export function applyApplicationCommand(data: WorkspaceData, command: WorkspaceC
       validateRecipeSource(data, record)
       if (!validDate(record.indicated_date) || !validDate(record.scheduled_date) || record.scheduled_date < record.indicated_date) fail('La fecha programada debe ser igual o posterior a la indicación.')
       if (stages.some(stage => !stage.actual_sowing_date || record.indicated_date < stage.actual_sowing_date)) fail('La indicación no puede ser anterior a la siembra real de sus destinos.')
-      positive(record.water_l_ha, 'El gasto de agua')
+      const route = methodRoute(data, record.method_id)
+      validateApplicationWater(record.water_l_ha, route)
       const method = data.catalogs.application_methods.find(m => m.id === record.method_id && m.active) ?? fail('Selecciona un medio de aplicación activo.')
       const products = productLines(data, record.products)
-      const applicationNumbers = new Map(stages.map(stage => [stage.id, record.application_number ?? nextStageApplicationNumber(data, stage.id)]))
+      const applicationNumbers = new Map(stages.map(stage => [stage.id, record.application_number ?? nextStageApplicationNumber(data, stage.id, route)]))
       for (const stage of stages) {
         const number = applicationNumbers.get(stage.id)!
         if (number > 2147483647) fail('La numeración de esta etapa alcanzó su límite.')
-        if (data.applicationTargets.some(target => target.stage_id === stage.id && stageApplicationNumber(data, target) === number)) fail(`La aplicación ${number} ya está registrada en una de las etapas seleccionadas.`)
+        if (data.applicationTargets.some(target => target.stage_id === stage.id && targetRoute(data, target) === route && stageApplicationNumber(data, target) === number)) fail(`La aplicación ${number} ya está registrada en una de las etapas seleccionadas.`)
       }
       const nextNumber = Math.max(0, ...data.applicationOrders.map(o => Number(o.folio.replace(/^APL-/, '')) || 0)) + 1
       const { stage_ids: _stageIds, ...order } = record
-      data.applicationOrders.push({ ...order, source_capture: structuredClone(sourceCapture), ...groupOrigin, products, revision: 0, folio: `APL-${String(nextNumber).padStart(6, '0')}`, project_name: data.projects.find(p => p.id === record.project_id)!.name, field_name: data.catalogs.fields.find(f => f.id === record.field_id)!.name, crop_name: data.catalogs.crops.find(c => c.id === record.crop_id)!.name, method_name: method.name })
+      data.applicationOrders.push({ ...order, application_route: route, source_capture: structuredClone(sourceCapture), ...groupOrigin, products, revision: 0, folio: `APL-${String(nextNumber).padStart(6, '0')}`, project_name: data.projects.find(p => p.id === record.project_id)!.name, field_name: data.catalogs.fields.find(f => f.id === record.field_id)!.name, crop_name: data.catalogs.crops.find(c => c.id === record.crop_id)!.name, method_name: method.name })
       for (const stage of stages) {
         const sub = data.subdivisions.find(s => s.id === stage.subdivision_id)!
         const lot = data.lots.find(l => l.id === sub.lot_id)!
-        data.applicationTargets.push({ id: crypto.randomUUID(), order_id: record.id, stage_id: stage.id, group_memberships_snapshot: groupMembershipsAtCreation(data, record, stage.id), application_number: applicationNumbers.get(stage.id)!, indication_change_id: null, correction_version: 0, status: 'indicated', lot_name: lot.name, subdivision_name: sub.name, stage_number: stage.stage_number, crop_name: stage.crop_name_snapshot ?? data.catalogs.crops.find(c => c.id === stage.crop_id)!.name, variety_name: stage.variety_name_snapshot ?? data.catalogs.varieties.find(v => v.id === stage.variety_id)!.name, area_ha: stage.area_ha, actual_date: null, actual_water_l_ha: null, actual_products: [], equipment: '', applicator: '', actual_observations: '', cancellation_reason: '', has_changes: false })
+        data.applicationTargets.push({ application_route: route, id: crypto.randomUUID(), order_id: record.id, stage_id: stage.id, group_memberships_snapshot: groupMembershipsAtCreation(data, record, stage.id), application_number: applicationNumbers.get(stage.id)!, indication_change_id: null, correction_version: 0, status: 'indicated', lot_name: lot.name, subdivision_name: sub.name, stage_number: stage.stage_number, crop_name: stage.crop_name_snapshot ?? data.catalogs.crops.find(c => c.id === stage.crop_id)!.name, variety_name: stage.variety_name_snapshot ?? data.catalogs.varieties.find(v => v.id === stage.variety_id)!.name, area_ha: stage.area_ha, actual_date: null, actual_water_l_ha: null, actual_products: [], equipment: '', applicator: '', actual_observations: '', cancellation_reason: '', has_changes: false })
       }
       return true
     }

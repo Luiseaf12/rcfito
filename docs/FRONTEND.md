@@ -329,3 +329,14 @@ plantillas y editor. Se retiran grupos vacíos, se protege URL directa y se usa
 el primer destino autorizado. Cero menús tiene un estado explícito. Formulario
 con FieldSet, Checkbox, FormSelect y RecordDialog; historial y descarte.
 [Contrato y evidencia](flows/menu-permissions.md).
+
+## Vías Foliar y Riego — RCF-045
+
+Medios de aplicación configura la vía en el editor existente. La captura elige
+medio y muestra vía derivada, sin otro selector. Numeración y búsqueda de bases
+se actualizan por vía antes de elegir la receta anterior; cambiarla conserva la
+mezcla para revisión y retira la referencia anterior incompatible. En riego el
+agua es opcional, sin cero artificial. Detalle, lista y PDF identifican la vía;
+la corrección solo ofrece medios de la misma vía. [Contrato y evidencia](flows/application-routes.md).
+Verificación automática y PDF aprobadas; navegador/móvil sin comprobar porque
+el control local está deshabilitado en Work.

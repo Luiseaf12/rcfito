@@ -1,3 +1,4 @@
+import { applicationRoute } from './application-routes'
 import type { ApplicationOrder, ApplicationTarget } from './model'
 import { sortDisplay } from './list-order'
 
@@ -37,7 +38,7 @@ function context(order: ApplicationOrder, targets: readonly ApplicationTarget[])
   if (stages.length !== targets.length || stages.some(id => !id)) return
   // Stage identity also retains the lot/subdivision and sowing season. Do not
   // infer a group from its current membership or compare different selections.
-  return JSON.stringify([order.project_id, order.field_id, order.crop_id, origin,
+  return JSON.stringify([order.project_id, order.field_id, order.crop_id, applicationRoute(order), origin,
     origin === 'group' ? order.source_group_id : null, stages])
 }
 

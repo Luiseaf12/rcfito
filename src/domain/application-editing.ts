@@ -1,3 +1,4 @@
+import { applicationRoute, methodRoute, validateApplicationWater } from './application-routes.ts'
 import type {
   ApplicationActualSnapshot, ApplicationChange, ApplicationCorrectionInput, ApplicationIndicationSnapshot,
   ApplicationOrder, ApplicationProductInput, ApplicationRevisionInput, ApplicationTarget, ProductLine,
@@ -76,7 +77,7 @@ export function currentOrderIndication(data: WorkspaceData, order: ApplicationOr
 }
 
 function actualSnapshot(target: ApplicationTarget): ApplicationActualSnapshot {
-  if (!target.actual_date || target.actual_water_l_ha == null) fail('El destino realizado no tiene una captura real completa. Actualiza la información antes de corregir.')
+  if (!target.actual_date) fail('El destino realizado no tiene una captura real completa. Actualiza la información antes de corregir.')
   return structuredClone({ actual_date: target.actual_date, water_l_ha: target.actual_water_l_ha, equipment: target.equipment, applicator: target.applicator, observations: target.actual_observations, products: target.actual_products, has_changes: target.has_changes })
 }
 function revisionKey(record: ApplicationRevisionInput) {
@@ -106,7 +107,7 @@ export function applyApplicationEditing(data: WorkspaceData, profile: UserProfil
   identity(record.id)
   const changeReason = reason(record.reason)
   text(record.observations, 'La nota de la aplicación')
-  amount(record.water_l_ha, 'El gasto de agua', 4)
+  if (record.water_l_ha != null) amount(record.water_l_ha, 'El gasto de agua', 4)
   productInputs(record.products)
   const changes = data.applicationChanges ?? []
   const existing = changes.find(change => change.id === record.id)
@@ -137,6 +138,8 @@ export function applyApplicationEditing(data: WorkspaceData, profile: UserProfil
     const before = currentOrderIndication(data, order)
     const method = revision.method_id === before.method_id ? { id: before.method_id, name: before.method_name } : data.catalogs.application_methods.find(item => item.id === revision.method_id && item.active)
     if (!method) fail('Selecciona un medio de aplicación nuevo activo o conserva el medio indicado.')
+    if (revision.method_id !== before.method_id && methodRoute(data, revision.method_id) !== applicationRoute(order)) fail('La vía no se puede cambiar. Crea una nueva receta para otra vía.')
+    validateApplicationWater(revision.water_l_ha, applicationRoute(order))
     const after: ApplicationIndicationSnapshot = { method_id: method.id, method_name: method.name, indicated_date: revision.indicated_date, scheduled_date: revision.scheduled_date, water_l_ha: revision.water_l_ha, observations: revision.observations, products: snapshots(data, revision.products, before.products) }
     const change: ApplicationChange = { id: revision.id, order_id: order.id, target_id: null, kind: 'indication', version: revision.expected_revision + 1, target_ids: [...revision.target_ids].sort(), reason: changeReason, changed_by: profile.id, changed_by_name: profile.full_name, changed_at: new Date().toISOString(), before, after }
     data.applicationChanges ??= []
@@ -159,6 +162,7 @@ export function applyApplicationEditing(data: WorkspaceData, profile: UserProfil
   if (target.status !== 'performed') fail('Solo se pueden corregir destinos realizados; las indicaciones y cancelaciones conservan su estado.')
   if ((target.correction_version ?? 0) !== correction.expected_version) fail('La realización cambió desde que abriste la corrección. Actualiza y vuelve a revisar.')
   const order = data.applicationOrders.find(item => item.id === target.order_id) ?? fail('No se encontró la orden de este destino.')
+  validateApplicationWater(correction.water_l_ha, applicationRoute(order))
   const indication = indicationForTarget(data, order, target)
   const stage = data.stages.find(item => item.id === target.stage_id)
   if (!stage?.actual_sowing_date || !date(stage.actual_sowing_date)) fail('No se encontró una fecha real de siembra válida para corregir este destino.')

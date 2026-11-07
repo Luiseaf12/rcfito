@@ -1,17 +1,19 @@
+import { applicationRoute } from './application-routes'
 import { sortNamed } from './list-order.ts'
 import type { CatalogKind, CatalogRecord, WorkspaceData } from './model'
 import { compactProductTerm, validateProductSynonyms } from './product-synonyms.ts'
 
 // Applications may not be installed yet. Both editions use the same catalog rules.
 type CatalogEditContext = Pick<WorkspaceData, 'catalogs' | 'lots' | 'stages'> & {
-  applicationOrders?: readonly { products: readonly { product_id: string }[] }[]
+  applicationOrders?: readonly { method_id?: string; products: readonly { product_id: string }[] }[]
   applicationTargets?: readonly { actual_products: readonly { product_id: string }[] }[]
-  applicationChanges?: readonly { before: { products: readonly { product_id: string }[] }; after: { products: readonly { product_id: string }[] } }[]
+  applicationChanges?: readonly { before: { method_id?: string; products: readonly { product_id: string }[] }; after: { method_id?: string; products: readonly { product_id: string }[] } }[]
 }
-type LockedField = 'agricultural_unit_id' | 'crop_id' | 'unit'
+type LockedField = 'agricultural_unit_id' | 'crop_id' | 'unit' | 'application_route'
 
 export function catalogEditLocks(data: CatalogEditContext, kind: CatalogKind, record?: CatalogRecord): Partial<Record<LockedField, string>> {
   if (!record) return {}
+  if (kind === 'application_methods' && (data.applicationOrders?.some(order => order.method_id === record.id) || data.applicationChanges?.some(change => [change.before, change.after].some(snapshot => snapshot.method_id === record.id)))) return { application_route: 'La vía no puede cambiar porque este medio ya se utilizó en recetas. Crea otro medio para una vía diferente.' }
   if (kind === 'fields' && data.lots.some(lot => lot.field_id === record.id)) {
     return { agricultural_unit_id: 'La agrícola no puede cambiar porque este campo ya tiene lotes relacionados. Puedes editar su nombre, clave y estado.' }
   }
@@ -48,13 +50,14 @@ export function validateCatalogEdit(data: CatalogEditContext, kind: CatalogKind,
     (kind !== 'varieties' || record.crop_id === row.crop_id))) errors.name = 'Ya existe un registro con ese nombre en este ámbito.'
 
   const locks = catalogEditLocks(data, kind, existing)
-  for (const field of ['agricultural_unit_id', 'crop_id', 'unit'] as const) {
-    if (locks[field] && row[field] !== existing?.[field]) errors[field] = locks[field]!
+  for (const field of ['agricultural_unit_id', 'crop_id', 'unit', 'application_route'] as const) {
+    if (locks[field] && (field === 'application_route' ? applicationRoute(row) !== applicationRoute(existing) : row[field] !== existing?.[field])) errors[field] = locks[field]!
   }
   const relation = (catalog: CatalogKind, id: string | null | undefined, previous: string | null | undefined, field: string, label: string) => {
     const record = data.catalogs[catalog].find(item => item.id === id)
     if (!record || (!record.active && id !== previous)) errors[field] ??= `Selecciona ${label} disponible. Una referencia inactiva existente puede conservarse.`
   }
+  if (kind === 'application_methods' && row.application_route != null && !['foliar', 'irrigation'].includes(row.application_route)) errors.application_route = 'Selecciona Foliar o Riego.'
   if (kind === 'fields') relation('agricultural_units', row.agricultural_unit_id, existing?.agricultural_unit_id, 'agricultural_unit_id', 'una agrícola activa')
   if (kind === 'varieties') relation('crops', row.crop_id, existing?.crop_id, 'crop_id', 'un cultivo activo')
   if (kind === 'active_ingredients' && row.classification_id) relation('ingredient_classifications', row.classification_id, existing?.classification_id, 'classification_id', 'una clasificación activa')

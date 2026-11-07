@@ -419,3 +419,86 @@ test('el ámbito del lector filtra órdenes, destinos y grupos de agrícolas no 
   assert.deepEqual(scoped.sowingGroups.map(row => row.id), [localGroup.group.id])
   assert.equal(withRemoteGroup.applicationOrders.length, 2, 'filtrar no modifica el origen')
 })
+
+import { recipeHistory } from '../src/domain/application-recipes.ts'
+import { buildApplicationDates, commonApplicationInterval } from '../src/domain/application-schedule.ts'
+import { snapshotSavedRecipe } from '../src/domain/saved-recipe-document.ts'
+
+test('RCF-045: foliar y riego intercalados numeran por etapa sin liberar cancelados', () => {
+  const { data, admin } = fixture()
+  let current = data
+  for (const [method, expected] of [['method-dron',1],['method-riego',1],['method-tractor',2],['method-riego',2]] as const) {
+    const created = indicate(current, admin, input({ method_id: method, water_l_ha: method === 'method-riego' ? null : 100 }))
+    assert.ok(created.targets.every(target => target.application_number === expected))
+    assert.equal(created.order.application_route, method === 'method-riego' ? 'irrigation' : 'foliar')
+    current = created.data
+    if (method === 'method-riego' && expected === 2) current = applyCommand(current, {type:'cancel_application_targets',order_id:created.order.id,target_ids:created.targets.map(target=>target.id),reason:'Prueba ficticia'},admin)
+  }
+  assert.equal(nextStageApplicationNumber(current,'stage-1','irrigation'),3)
+  assert.equal(nextStageApplicationNumber(current,'stage-1','foliar'),3)
+  assert.equal(nextStageApplicationNumber(current,'otra-etapa','irrigation'),1)
+  assert.equal(nextStageApplicationNumber(current,'otra-etapa','foliar'),1)
+})
+
+test('RCF-045: agua omitida de riego sobrevive realización, corrección, PDF y recarga', () => {
+  const { data, admin } = fixture()
+  const created = indicate(data,admin,input({method_id:'method-riego',water_l_ha:null}))
+  const performed = applyCommand(created.data, perform(created.order.id, created.targets.map(target=>target.id)),admin)
+  assert.ok(performed.applicationTargets.every(target=>target.actual_water_l_ha===null))
+  const corrected=applyCommand(performed,{type:'correct_application_target',record:{id:crypto.randomUUID(),target_id:created.targets[0].id,expected_version:0,actual_date:'2026-10-13',water_l_ha:null,equipment:'Otro equipo ficticio',applicator:'',observations:'',reason:'Prueba de corrección sin agua',products:created.order.products.map(product=>({product_id:product.product_id,dose:product.dose}))}},admin)
+  const reloaded=JSON.parse(JSON.stringify(corrected)) as WorkspaceData
+  assert.equal(reloaded.applicationChanges[0].after.water_l_ha,null)
+  const snapshot=snapshotSavedRecipe(reloaded,admin,created.order.id,'2026-11-01T12:00:00Z')
+  assert.equal(snapshot.water_l_ha,null)
+  assert.equal(snapshot.application_route,'irrigation')
+  assert.equal(reloaded.applicationTargets[0].actual_water_l_ha,null)
+})
+
+test('RCF-045: foliar exige agua, riego rechaza cero y conserva cantidades capturadas', () => {
+  const {data,admin}=fixture()
+  assert.throws(()=>indicate(data,admin,input({water_l_ha:null})),/agua/)
+  assert.throws(()=>indicate(data,admin,input({method_id:'method-riego',water_l_ha:0})),/agua/)
+  const created=indicate(data,admin,input({method_id:'method-riego',water_l_ha:2345.6789}))
+  assert.equal(created.order.water_l_ha,2345.6789)
+  const result=applyCommand(created.data,perform(created.order.id,created.targets.map(target=>target.id),{changed:true,water_l_ha:null,products:created.record.products}),admin)
+  assert.ok(result.applicationTargets.every(target=>target.actual_water_l_ha===null&&target.has_changes))
+})
+
+test('RCF-045: selección de receta e intervalos aíslan la vía, sin renumerar folios', () => {
+  const {data,admin}=fixture()
+  const first=indicate(data,admin,input())
+  const middle=indicate(first.data,admin,input({method_id:'method-riego',water_l_ha:null}))
+  const last=indicate(middle.data,admin,input({indicated_date:'2026-10-11'}))
+  let performed=applyCommand(last.data,perform(first.order.id,first.targets.map(target=>target.id),{actual_date:'2026-10-12'}),admin)
+  performed=applyCommand(performed,perform(middle.order.id,middle.targets.map(target=>target.id),{actual_date:'2026-10-14'}),admin)
+  performed=applyCommand(performed,perform(last.order.id,last.targets.map(target=>target.id),{actual_date:'2026-10-17'}),admin)
+  assert.deepEqual(recipeHistory(performed,['stage-1','stage-2'],undefined,'irrigation').map(item=>item.order_id),[middle.order.id])
+  const dates=buildApplicationDates(performed.applicationOrders,performed.applicationTargets)
+  const interval=commonApplicationInterval(dates.get(last.order.id)!)
+  assert.equal(interval?.kind==='interval'&&interval.days,5)
+  assert.equal(interval?.kind==='interval'&&interval.previous.id,first.order.id)
+  assert.equal(commonApplicationInterval(dates.get(middle.order.id)!)?.kind,'first')
+  assert.equal(last.order.folio,'APL-000003')
+  assert.throws(()=>indicate(performed,admin,input({method_id:'method-riego',water_l_ha:null,recipe_source:{order_id:first.order.id,revision:0,stage_id:'stage-1'}})),/misma vía/)
+})
+
+test('RCF-045: receta guardada permite otro medio de la misma vía y rechaza cambiarla', () => {
+  const {data,admin}=fixture()
+  const created=indicate(data,admin,input())
+  const record={id:crypto.randomUUID(),order_id:created.order.id,expected_revision:0,target_ids:created.targets.map(target=>target.id),method_id:'method-riego',indicated_date:'2026-10-10',scheduled_date:'2026-10-12',water_l_ha:100,observations:'',reason:'Cambio ficticio',products:created.record.products}
+  assert.throws(()=>applyCommand(created.data,{type:'revise_application_order',record},admin),/vía/)
+  const revised=applyCommand(created.data,{type:'revise_application_order',record:{...record,method_id:'method-tractor'}},admin)
+  assert.equal(revised.applicationOrders[0].application_route,'foliar')
+  assert.equal('method_id' in revised.applicationChanges[0].after && revised.applicationChanges[0].after.method_id,'method-tractor')
+  assert.ok(revised.applicationTargets.every(target=>target.application_number===1))
+})
+
+test('RCF-045: medio utilizado no cambia de vía y lectores no configuran medios', () => {
+  const {data,admin,reader}=fixture()
+  const created=indicate(data,admin,input())
+  const method=created.data.catalogs.application_methods.find(item=>item.id==='method-dron')!
+  assert.throws(()=>applyCommand(created.data,{type:'save_catalog',kind:'application_methods',record:{...method,application_route:'irrigation'}},admin),/vía/)
+  assert.throws(()=>applyCommand(data,{type:'save_catalog',kind:'application_methods',record:{name:'Riego ficticio',active:true,application_route:'irrigation'}},reader),/administración|permisos/)
+  const changed=applyCommand(created.data,{type:'save_catalog',kind:'application_methods',record:{...method,name:'Dron renombrado'}},admin)
+  assert.equal(changed.applicationOrders[0].method_name,'Dron')
+})

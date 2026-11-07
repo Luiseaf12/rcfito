@@ -80,7 +80,7 @@ export function ProductMixtureEditor({ rows, onChange, products, activeIngredien
   )
 }
 
-export function MixtureReadOnly({ products, water, title = 'Mezcla indicada' }: { products: ProductLine[]; water: number; title?: string }) {
+export function MixtureReadOnly({ products, water, title = 'Mezcla indicada' }: { products: ProductLine[]; water: number | null; title?: string }) {
   return (
     <section className="flex flex-col gap-3" aria-label={title}>
       <h3 className="section-title">{title}</h3>
@@ -90,7 +90,7 @@ export function MixtureReadOnly({ products, water, title = 'Mezcla indicada' }: 
           <TableBody>{sortDisplay(products, product => product.product_name ?? '', product => product.product_id).map((product, index) => <TableRow key={`${product.product_id}-${index}`}><TableCell>{product.product_name}</TableCell><TableCell>{dosage(product.dose)} {product.unit}/ha</TableCell></TableRow>)}</TableBody>
         </Table>
       </div>
-      <p className="application-water"><Droplets aria-hidden="true" /><strong>Gasto de agua: {dosage(water)} L/ha</strong></p>
+      <p className="application-water"><Droplets aria-hidden="true" /><strong>Gasto de agua: {water == null ? 'No especificado' : `${dosage(water)} L/ha`}</strong></p>
     </section>
   )
 }

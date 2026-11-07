@@ -83,3 +83,15 @@ test('referencia identifica cambios de contenido y mantiene la misma receta entr
   assert.notEqual((await draftRecipeReference({ ...snapshot, scheduled_date: '2026-11-03' })).reference, first.reference)
   assert.notEqual((await draftRecipeReference({ ...snapshot, products: [{ ...snapshot.products[0], dose: 2 }] })).reference, first.reference)
 })
+
+test('RCF-045: borrador de riego permite agua ausente y no reserva ningún número', () => {
+  const {data,input}=fixture(), before=structuredClone(data)
+  input.form.method_id='method-riego';input.form.water_l_ha=''
+  const snapshot=snapshotDraftRecipe(data,input)
+  assert.equal(snapshot.application_route,'irrigation')
+  assert.equal(snapshot.water_l_ha,null)
+  assert.equal(snapshot.products[0].dose,.123456)
+  assert.deepEqual(data,before)
+  input.form.method_id='method-dron'
+  assert.throws(()=>snapshotDraftRecipe(data,input),/agua/)
+})

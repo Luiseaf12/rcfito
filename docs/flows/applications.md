@@ -1,5 +1,9 @@
 # Aplicaciones: indicar, realizar y conservar diferencias
 
+La ampliación [Foliar/Riego — RCF-045](application-routes.md) fija la vía por
+medio, separa consecutivos y antecedentes por etapa/vía y permite agua opcional
+en riego, conservando los demás contratos de este flujo.
+
 Fecha: 2026-10-31. Estado: ficha previa a UI, dominio/SQL/HTTP aislados aprobados
 y recorridos demo comprobados; Docker actualizado y Sites versión 8 publicados.
 Fuente de negocio: [PRODUCT](../PRODUCT.md#aplicaciones-alcance-confirmado).

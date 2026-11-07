@@ -1,8 +1,9 @@
 import type { MenuKey } from './menu-permissions'
 export type CatalogKind = 'agricultural_units' | 'fields' | 'crops' | 'varieties' | 'products' | 'active_ingredients' | 'ingredient_classifications' | 'brands' | 'product_families' | 'infrastructure_types' | 'application_methods'
+export type ApplicationRoute = 'foliar' | 'irrigation'
 export type ProductIngredient = { ingredient_id: string; concentration: string | null }
 export type CatalogRecord = {
-  id: string; name: string; code?: string; active: boolean;
+  id: string; name: string; code?: string; active: boolean; application_route?: ApplicationRoute;
   agricultural_unit_id?: string; crop_id?: string; brand_id?: string | null;
   classification_id?: string | null; family_id?: string | null; unit?: 'g' | 'ml'; default_dose?: number;
   ingredients?: ProductIngredient[]; created_at?: string; unit_locked?: boolean; synonyms?: string[];
@@ -21,15 +22,15 @@ export type ApplicationRecipeSource = { order_id: string; revision: number; stag
 export type ImageTotalUnit = 'g' | 'kg' | 'ml' | 'L'
 export type ApplicationSourceCapture = { kind: 'image_totals'; area_ha: number; products: { product_id: string; source_name: string; presentation: string; quantity: number; unit: ImageTotalUnit }[] }
 export type ApplicationOrder = {
-  id: string; folio: string; project_id: string; field_id: string; crop_id: string; method_id: string;
-  indicated_date: string; scheduled_date: string; water_l_ha: number; observations: string;
+  id: string; folio: string; project_id: string; field_id: string; crop_id: string; method_id: string; application_route?: ApplicationRoute;
+  indicated_date: string; scheduled_date: string; water_l_ha: number | null; observations: string;
   source_text?: string; source_capture?: ApplicationSourceCapture | null; application_number?: number; recipe_source?: ApplicationRecipeSource | null;
   selection_origin?: ApplicationSelectionOrigin; source_group_id?: string | null; source_group_name?: string | null;
   products: ProductLine[]; project_name?: string; field_name?: string; crop_name?: string; method_name?: string; revision?: number;
 }
 export type ApplicationTarget = {
   id: string; order_id: string; stage_id: string; status: 'indicated' | 'performed' | 'cancelled';
-  application_number?: number;
+  application_number?: number; application_route?: ApplicationRoute;
   group_memberships_snapshot?: ApplicationGroupSnapshot[] | null;
   lot_name: string; subdivision_name: string; stage_number: number; crop_name: string; variety_name: string; area_ha: number;
   actual_date: string | null; actual_water_l_ha: number | null; actual_products: ProductLine[];
@@ -37,8 +38,8 @@ export type ApplicationTarget = {
   indication_change_id?: string | null; correction_version?: number;
   area_correction_id?: string | null;
 }
-export type ApplicationIndicationSnapshot = { method_id: string; method_name: string; indicated_date: string; scheduled_date: string; water_l_ha: number; observations: string; products: ProductLine[] }
-export type ApplicationActualSnapshot = { actual_date: string; water_l_ha: number; equipment: string; applicator: string; observations: string; products: ProductLine[]; has_changes: boolean }
+export type ApplicationIndicationSnapshot = { method_id: string; method_name: string; indicated_date: string; scheduled_date: string; water_l_ha: number | null; observations: string; products: ProductLine[] }
+export type ApplicationActualSnapshot = { actual_date: string; water_l_ha: number | null; equipment: string; applicator: string; observations: string; products: ProductLine[]; has_changes: boolean }
 export type ApplicationChange = {
   id: string; order_id: string; target_id: string | null; kind: 'indication' | 'performance'; version: number; target_ids: string[];
   reason: string; changed_by: string; changed_by_name: string; changed_at: string;
@@ -46,9 +47,9 @@ export type ApplicationChange = {
 }
 export type SowingGroup = { id: string; project_id: string; field_id: string; crop_id: string; name: string; active: boolean; stage_ids: string[]; historical_stage_ids?: string[] }
 export type ApplicationOrderInput = Pick<ApplicationOrder, 'id' | 'project_id' | 'field_id' | 'crop_id' | 'method_id' | 'indicated_date' | 'scheduled_date' | 'water_l_ha' | 'observations' | 'source_text' | 'source_capture' | 'application_number' | 'source_group_id' | 'recipe_source'> & { stage_ids: string[]; products: ApplicationProductInput[] }
-export type ApplicationPerformanceInput = { actual_date: string; equipment: string; applicator: string; observations: string; changed: boolean; water_l_ha?: number; products?: ApplicationProductInput[]; expected_revision?: number }
-export type ApplicationRevisionInput = { id: string; order_id: string; expected_revision: number; target_ids: string[]; method_id: string; indicated_date: string; scheduled_date: string; water_l_ha: number; observations: string; reason: string; products: ApplicationProductInput[] }
-export type ApplicationCorrectionInput = { id: string; target_id: string; expected_version: number; actual_date: string; water_l_ha: number; equipment: string; applicator: string; observations: string; reason: string; products: ApplicationProductInput[] }
+export type ApplicationPerformanceInput = { actual_date: string; equipment: string; applicator: string; observations: string; changed: boolean; water_l_ha?: number | null; products?: ApplicationProductInput[]; expected_revision?: number }
+export type ApplicationRevisionInput = { id: string; order_id: string; expected_revision: number; target_ids: string[]; method_id: string; indicated_date: string; scheduled_date: string; water_l_ha: number | null; observations: string; reason: string; products: ApplicationProductInput[] }
+export type ApplicationCorrectionInput = { id: string; target_id: string; expected_version: number; actual_date: string; water_l_ha: number | null; equipment: string; applicator: string; observations: string; reason: string; products: ApplicationProductInput[] }
 export type SowingGroupInput = Omit<SowingGroup, 'id' | 'historical_stage_ids'> & { id?: string }
 export type LotCorrectionInput = { id: string; lot_id: string; expected_version: number; name: string; area_ha?: number; stage_id?: string; planned_sowing_date?: string; actual_sowing_date?: string; reason: string }
 export type LotCorrectionSnapshot = {

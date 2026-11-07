@@ -170,6 +170,20 @@ try {
         rollback;
       `);
     }
+    if (file.endsWith('_application_routes.sql')) {
+      const setupEnd = applicationTests.indexOf('-- Captura asistida:');
+      sql(`${applicationTests.slice(0,setupEnd)}
+        select public.create_application_order(pg_temp.order_data(),pg_temp.stages(),pg_temp.mixture());
+        select public.perform_application_targets('90000000-0000-4000-8000-000000000001',pg_temp.target_ids('90000000-0000-4000-8000-000000000001'),'{"changed":false,"actual_date":"2026-01-04"}');
+        reset role;
+        create temp table before_routes as select (select jsonb_agg(to_jsonb(o) order by id) from public.application_orders o) orders,(select jsonb_agg(to_jsonb(t) order by id) from public.application_targets t) targets;
+        ${migrationBody(source)}
+        select pg_temp.assert_true((select bool_and(application_route='foliar') from public.application_orders),'vías: backfill foliar confirmado');
+        select pg_temp.assert_true((select jsonb_agg(to_jsonb(o)-'application_route' order by id) from public.application_orders o)=(select orders from before_routes),'vías: conserva órdenes, firmas y agua');
+        select pg_temp.assert_true((select jsonb_agg(to_jsonb(t)-'application_route' order by id) from public.application_targets t)=(select targets from before_routes),'vías: conserva números, estados y destinos');
+        rollback;
+      `);
+    }
     sql(source);
   }
   sql(readFileSync(resolve(root, 'supabase/tests/catalogs-and-sowing.sql'), 'utf8'));
@@ -186,6 +200,7 @@ try {
   sql(applicationTests.slice(0, editingSetupEnd) + readFileSync(resolve(root, 'supabase/tests/application-image.sql'), 'utf8'));
   sql(readFileSync(resolve(root, 'supabase/tests/product-synonyms.sql'), 'utf8'));
   sql(applicationTests.slice(0, applicationTests.indexOf('-- Captura asistida:')) + readFileSync(resolve(root, 'supabase/tests/menu-permissions.sql'), 'utf8'));
+  sql(applicationTests.slice(0, applicationTests.indexOf('-- Captura asistida:')) + readFileSync(resolve(root, 'supabase/tests/application-routes.sql'), 'utf8'));
   console.log(`Backend aplicaciones verificado: ${migrations.length} migración(es), fixtures aislados y controles de RLS/integridad. Auth es un stub de prueba; REST/Auth reales requieren integración aparte.`);
 } finally {
   if (started) removeOwnedContainer();

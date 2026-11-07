@@ -322,3 +322,12 @@ IA. Escritura de perfiles/asignaciones solo por RPC auditada; se conserva últim
 administrador. Referencias mínimas no abren catálogos. Datos operativos
 compartidos siguen el alcance de sus pantallas autorizadas.
 [Contrato y evidencia](flows/menu-permissions.md).
+
+## Vías de aplicación — RCF-045
+
+El servidor deriva y congela la vía del medio; unicidad por etapa/vía y bloqueos
+de etapas protegen los consecutivos incluso en concurrencia. Triggers impiden
+reclasificar medios usados o cambiar la vía guardada; revisión y receta base
+comprueban la vía. Agua null solo en riego, con estado de realización explícito.
+No se amplían RLS, menús ni agrícolas. Regresión SQL/HTTP, advisors y conservación
+del historial aprobados. [Contrato](flows/application-routes.md).

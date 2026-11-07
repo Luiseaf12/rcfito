@@ -860,3 +860,14 @@ Cierre RCF-044: fuente 1ffb49b, Docker healthy y Sites 44; entrada y 38 recursos
 exactos por destino, 90 controles posteriores y 20 HTTPS aprobados. Ledger 13/0,
 respaldo validado y comparación privada de negocio/roles/asignaciones intacta.
 [Publicación](OPERATIONS.md#permisos-de-menú-por-usuario--rcf-044).
+
+## Vías Foliar/Riego — RCF-045
+
+399 pruebas, tipos/build, 535 comprobaciones SQL y 288 HTTP con Auth/REST/RPC/RLS
+reales aprobados. Incluyen dos series por etapa, concurrencia, idempotencia, agua
+opcional, vía inmutable, recetas base e intervalos separados y permisos de menú.
+Advisors sin WARN/ERROR; stack aislado retirado al terminar. Ocho casos PDF
+aprobados y páginas de riego renderizadas e inspeccionadas. Navegador y móvil
+no comprobados: control local deshabilitado en Work. Autorrevisión, sin revisión
+independiente. Respaldo y migración 14/0 con comparación privada de conservación
+del historial aprobados. [Contrato y evidencia](flows/application-routes.md).

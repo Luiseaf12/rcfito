@@ -80,7 +80,7 @@ select pg_temp.expect_error($q$select public.create_application_order(pg_temp.or
 reset role;
 select pg_temp.expect_error($q$update public.application_targets set application_number=99 where order_id='90000000-0000-4000-8000-000000000021'$q$,'histórico','guarda conserva número histórico también frente a escritura privilegiada');
 select pg_temp.assert_true((select pg_get_functiondef('rcfito_private.create_application_order(jsonb,uuid[],jsonb)'::regprocedure) ~ 'order by id for update'),'RPC bloquea etapas ordenadas antes de asignar números');
-select pg_temp.assert_true(exists(select 1 from pg_constraint where conrelid='public.application_targets'::regclass and conname='application_targets_stage_number_unique' and contype='u'),'restricción única protege carreras por etapa y número');
+select pg_temp.assert_true(exists(select 1 from pg_constraint where conrelid='public.application_targets'::regclass and conname='application_targets_stage_route_number_unique' and contype='u' and pg_get_constraintdef(oid) like '%stage_id, application_route, application_number%'),'restricción única protege carreras por etapa, vía y número');
 rollback to capture_numbering;
 release savepoint capture_numbering;
 

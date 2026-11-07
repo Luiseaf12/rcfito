@@ -1,3 +1,4 @@
+import { applicationRoute, routeLabel } from '../domain/application-routes'
 import { draftRecipeReference, type DraftRecipeDocument } from '../domain/application-draft-document.ts'
 import { reportNumber } from '../lib/report-format.ts'
 import { recipePdfLayout, pdfText as text, pdfDate as date, pdfLabel as label, type RecipePdfFonts } from './recipe-pdf-layout.ts'
@@ -13,7 +14,7 @@ export async function createDraftRecipePdf(snapshot: DraftRecipeDocument, fonts:
   table({ theme: 'plain', styles: { cellPadding: 4, fontSize: 8.5 }, columnStyles: { 0: { cellWidth: 66 }, 1: { cellWidth: 196 }, 2: { cellWidth: 72 }, 3: { cellWidth: 198 } }, body: [
     [label('Agrícola'), text(snapshot.agricultural_unit), label('Temporada'), text(snapshot.season)],
     [label('Proyecto'), text(snapshot.project), label('Campo'), text(snapshot.field)],
-    [label('Cultivo'), text(snapshot.crop), label('Medio'), text(snapshot.method)],
+    [label('Cultivo'), text(snapshot.crop), label('Medio'), `${routeLabel(applicationRoute(snapshot))} / ${text(snapshot.method)}`],
     [label('Indicación'), date(snapshot.indicated_date), label('Aplicación'), snapshot.scheduled_date ? date(snapshot.scheduled_date) : 'Fecha programada por confirmar'],
     [label('Destinos'), text(snapshot.selection), label('Preparó'), text(snapshot.prepared_by)],
     [label('Receta base'), { content: snapshot.source ? `${text(snapshot.source.folio)} - versión ${snapshot.source.revision}` : 'Captura desde cero', colSpan: 3 }],
@@ -24,7 +25,7 @@ export async function createDraftRecipePdf(snapshot: DraftRecipeDocument, fonts:
   section('Productos, dosis y agua por hectárea')
   table({ head: [['Código', 'Producto / agua', 'Dosis / gasto', 'Unidad']], columnStyles: { 0: { cellWidth: 78 }, 1: { cellWidth: 284 }, 2: { cellWidth: 98, halign: 'right' }, 3: { cellWidth: 72 } }, body: [
     ...snapshot.products.map(product => [text(product.code) || '-', text(product.name), dose.format(product.dose), `${product.unit}/ha`]),
-    ['AGUA', 'Gasto de agua', water.format(snapshot.water_l_ha), 'L/ha'],
+    ['AGUA', 'Gasto de agua', snapshot.water_l_ha == null ? 'No especificado' : water.format(snapshot.water_l_ha), 'L/ha'],
   ] })
   note('Nota de la aplicación', snapshot.observations)
   return { doc: finish(), reference, filename: `rcfito-borrador-${snapshot.indicated_date}-${reference}.pdf` }

@@ -1079,3 +1079,19 @@ revisión 1 conservados. Se comprobaron entrada y 38 recursos estáticos exactos
 por destino, configuración del mismo origen, Auth 200 y rechazo anónimo 401 de
 referencias, sello, alta e historial (90 controles en total). Otros 20 controles
 HTTPS del túnel aprobaron sin crear cuentas ni registros de operación.
+
+## Vías y numeración por etapa — RCF-045
+
+2026-11-06: dos series por etapa, vía derivada del medio y fija en la receta,
+antecedentes e intervalos separados y agua opcional por hectárea en Riego.
+[Contrato y evidencia](flows/application-routes.md). 399 pruebas, 535 SQL, 288 HTTP,
+tipos/build, ocho casos PDF y advisors aprobados. Navegador/móvil no comprobados
+porque el control local está deshabilitado en Work. Autorrevisión.
+
+Respaldo privado custom de 636,480 bytes validado por listado y SHA-256 antes de
+20261106233000_application_routes; ledger 14/0. Comparación privada conserva
+exactamente órdenes, destinos, números, estados, mezclas, firmas y cambios.
+Se añade Foliar a la historia confirmada por el Propietario y el medio Sistema
+de riego para comenzar; no se insertaron recetas ni realizaciones ficticias.
+Secretos, volúmenes, roles, agrícolas y permisos de menú conservados.
+Publicación de RCF-045 y controles posteriores en curso.

@@ -1,3 +1,4 @@
+import { methodRoute, targetRoute } from './application-routes.ts'
 import { nextStageApplicationNumber, stageApplicationNumber } from './applications.ts'
 import type { SowingStage, WorkspaceData } from './model'
 
@@ -73,7 +74,8 @@ export function applicationDraftIssues(data: WorkspaceData, form: ApplicationDra
   else if (!scheduledIsValid) add('scheduled_date', 'La fecha programada no es una fecha de calendario válida.')
   if (indicatedIsValid && scheduledIsValid && form.scheduled_date < form.indicated_date) add('scheduled_date', 'La fecha programada debe ser igual o posterior a la fecha de indicación.')
 
-  const waterIssue = amountIssue(form.water_l_ha, 4, 'el gasto de agua en L/ha')
+  const route = methodRoute(data, form.method_id)
+  const waterIssue = route === 'irrigation' && !form.water_l_ha.trim() ? null : amountIssue(form.water_l_ha, 4, 'el gasto de agua en L/ha')
   if (waterIssue) add('water_l_ha', waterIssue)
   if (form.observations.length > 4000) add('observations', `La Nota de la aplicación tiene ${form.observations.length.toLocaleString('es-MX')} caracteres; el máximo es 4,000.`)
   if (form.observations.includes('\u0000')) add('observations', 'La Nota de la aplicación contiene un carácter nulo que no puede guardarse. Retíralo del texto.')
@@ -130,14 +132,14 @@ export function applicationDraftIssues(data: WorkspaceData, form: ApplicationDra
   if (!rawNumber && review.imported) add('application_number', 'Completa el número de aplicación dentro de la etapa de siembra.')
   else if (rawNumber && !validNumber) add('application_number', 'El número de aplicación debe ser un entero entre 1 y 2,147,483,647.')
   if (validNumber) {
-    const duplicates = numberReferences.filter(reference => data.applicationTargets.some(target => target.stage_id === reference.id && stageApplicationNumber(data, target) === requestedNumber))
+    const duplicates = numberReferences.filter(reference => data.applicationTargets.some(target => target.stage_id === reference.id && targetRoute(data, target) === route && stageApplicationNumber(data, target) === requestedNumber))
     if (duplicates.length) add('application_number', `La aplicación ${requestedNumber} ya está registrada en ${duplicates.map(destination => destination.label).join('; ')}. Revisa el historial; ese número no se puede repetir, aunque esté cancelado.`)
     else {
-      const unusual = validDestinations.filter(({ stage }) => nextStageApplicationNumber(data, stage.id) !== requestedNumber)
-      if (unusual.length && !review.numberReviewed) add('number_review', `Revisa y confirma la aplicación ${requestedNumber} en estas etapas: ${unusual.map(({ stage, label }) => `${label} (siguiente disponible: ${nextStageApplicationNumber(data, stage.id)})`).join('; ')}.`)
+      const unusual = validDestinations.filter(({ stage }) => nextStageApplicationNumber(data, stage.id, route) !== requestedNumber)
+      if (unusual.length && !review.numberReviewed) add('number_review', `Revisa y confirma la aplicación ${requestedNumber} en estas etapas: ${unusual.map(({ stage, label }) => `${label} (siguiente disponible: ${nextStageApplicationNumber(data, stage.id, route)})`).join('; ')}.`)
     }
   } else if (!rawNumber && !review.imported) {
-    const exhausted = validDestinations.filter(({ stage }) => nextStageApplicationNumber(data, stage.id) > 2_147_483_647)
+    const exhausted = validDestinations.filter(({ stage }) => nextStageApplicationNumber(data, stage.id, route) > 2_147_483_647)
     if (exhausted.length) add('application_number', `La numeración automática alcanzó su límite en ${exhausted.map(destination => destination.label).join('; ')}. Revisa el historial antes de guardar.`)
   }
   return issues

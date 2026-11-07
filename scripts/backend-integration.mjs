@@ -1,3 +1,4 @@
+import { verifyApplicationRoutes } from './backend-route-http-checks.mjs';
 import { verifyMenuPermissions } from './backend-menu-http-checks.mjs';
 import { spawnSync } from 'node:child_process';
 import { randomUUID, randomBytes } from 'node:crypto';
@@ -586,6 +587,7 @@ try {
 
   await verifyLotCorrections({ request, check, adminToken, readerToken, noAccessToken, readerId: reader.id });
   await verifyApplicationImage(adminToken,readerToken,noAccessToken,reader.id);
+  await verifyApplicationRoutes({request,check,adminToken,readerToken});
   await verifyMenuPermissions({request,check,adminToken,readerToken,readerId:reader.id,unitA:ids.unitA,base,publicKey});
   sql(`update public.profiles set active=false where id='${reader.id}';`);
   const revoked = await request('/rest/v1/agricultural_units?select=id', readerToken);

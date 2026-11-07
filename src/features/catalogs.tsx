@@ -1,3 +1,4 @@
+import { applicationRoute, routeLabel } from '@/domain/application-routes'
 import { compareNamed, sortDisplay } from '@/domain/list-order'
 import { useMemo, useState, type FormEvent } from 'react'
 import { ArrowDown, ArrowUp, ChevronLeft, ChevronRight, Eye, Pencil, Plus, Trash2, X } from 'lucide-react'
@@ -72,7 +73,7 @@ function CatalogDetails({ kind, record, close, edit }: { kind: CatalogKind; reco
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const extra = kind === 'fields' ? [{ label: 'Agrícola', value: recordName(data.catalogs.agricultural_units, record.agricultural_unit_id) }] : kind === 'varieties' ? [{ label: 'Cultivo', value: recordName(data.catalogs.crops, record.crop_id) }] : kind === 'active_ingredients' ? [{ label: 'Clasificación principal', value: record.classification_id ? recordName(data.catalogs.ingredient_classifications, record.classification_id) : 'Sin clasificación' }] : kind === 'products' ? [{ label: 'Unidad fija', value: record.unit === 'g' ? 'Gramos (g)' : 'Mililitros (ml)' }, { label: 'Dosis predeterminada', value: `${record.default_dose ?? 0} ${record.unit}/ha` }, { label: 'Marca', value: recordName(data.catalogs.brands, record.brand_id) }, { label: 'Familia', value: recordName(data.catalogs.product_families, record.family_id) }] : []
+  const extra = kind === 'application_methods' ? [{label:'Vía de aplicación',value:routeLabel(applicationRoute(record))}] : kind === 'fields' ? [{ label: 'Agrícola', value: recordName(data.catalogs.agricultural_units, record.agricultural_unit_id) }] : kind === 'varieties' ? [{ label: 'Cultivo', value: recordName(data.catalogs.crops, record.crop_id) }] : kind === 'active_ingredients' ? [{ label: 'Clasificación principal', value: record.classification_id ? recordName(data.catalogs.ingredient_classifications, record.classification_id) : 'Sin clasificación' }] : kind === 'products' ? [{ label: 'Unidad fija', value: record.unit === 'g' ? 'Gramos (g)' : 'Mililitros (ml)' }, { label: 'Dosis predeterminada', value: `${record.default_dose ?? 0} ${record.unit}/ha` }, { label: 'Marca', value: recordName(data.catalogs.brands, record.brand_id) }, { label: 'Familia', value: recordName(data.catalogs.product_families, record.family_id) }] : []
   async function remove() {
     setBusy(true); setError(null)
     try { await mutate({ type: 'delete_catalog', kind, id: record.id }); close() } catch (failure) { setError(errorMessage(failure)); setConfirmDelete(false) } finally { setBusy(false) }
@@ -82,7 +83,7 @@ function CatalogDetails({ kind, record, close, edit }: { kind: CatalogKind; reco
 
 function CatalogEditor({ kind, record, close, saved }: { kind: CatalogKind; record?: CatalogRecord; close: () => void; saved: () => void }) {
   const { data, mutate, isAdmin } = useWorkspace()
-  const [initial] = useState(() => ({ name: record?.name ?? '', code: record?.code ?? '', active: record?.active ?? true, agricultural_unit_id: record?.agricultural_unit_id ?? '', crop_id: record?.crop_id ?? '', classification_id: record?.classification_id ?? '__none', brand_id: record?.brand_id ?? '__none', family_id: record?.family_id ?? '__none', unit: record?.unit ?? 'g', default_dose: String(record?.default_dose ?? 0), synonyms: [...(record?.synonyms ?? [])], ingredients: (record?.ingredients ?? []).map(item => ({ ...item })) }))
+  const [initial] = useState(() => ({ application_route: applicationRoute(record), name: record?.name ?? '', code: record?.code ?? '', active: record?.active ?? true, agricultural_unit_id: record?.agricultural_unit_id ?? '', crop_id: record?.crop_id ?? '', classification_id: record?.classification_id ?? '__none', brand_id: record?.brand_id ?? '__none', family_id: record?.family_id ?? '__none', unit: record?.unit ?? 'g', default_dose: String(record?.default_dose ?? 0), synonyms: [...(record?.synonyms ?? [])], ingredients: (record?.ingredients ?? []).map(item => ({ ...item })) }))
   const [form, setForm] = useState(initial)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [error, setError] = useState<string | null>(null)
@@ -100,6 +101,7 @@ function CatalogEditor({ kind, record, close, saved }: { kind: CatalogKind; reco
       ...(record ? { id: record.id, code: record.code } : {}), name: form.name.trim(), active: form.active,
     }
     if (kind === 'agricultural_units' || kind === 'fields') values.code = form.code.trim()
+    if (kind === 'application_methods') values.application_route = form.application_route
     if (kind === 'fields') values.agricultural_unit_id = form.agricultural_unit_id
     if (kind === 'varieties') values.crop_id = form.crop_id
     if (kind === 'active_ingredients') values.classification_id = form.classification_id === '__none' ? null : form.classification_id
@@ -131,6 +133,7 @@ function CatalogEditor({ kind, record, close, saved }: { kind: CatalogKind; reco
             {kind === 'fields' && <FormSelect label="Agrícola" value={form.agricultural_unit_id} onChange={value => update('agricultural_unit_id', value)} options={options('agricultural_units', record?.agricultural_unit_id ? [record.agricultural_unit_id] : [])} error={errors.agricultural_unit_id} required disabled={busy || !!locks.agricultural_unit_id} help={locks.agricultural_unit_id ?? 'Puedes cambiarla mientras el campo no tenga lotes relacionados.'} />}
             {kind === 'varieties' && <FormSelect label="Cultivo" value={form.crop_id} onChange={value => update('crop_id', value)} options={options('crops', record?.crop_id ? [record.crop_id] : [])} error={errors.crop_id} required disabled={busy || !!locks.crop_id} help={locks.crop_id ?? 'Puedes cambiarlo mientras la variedad no se utilice en etapas de siembra.'} />}
             {kind === 'active_ingredients' && <FormSelect label="Clasificación principal (opcional)" value={form.classification_id} onChange={value => update('classification_id', value)} options={[{ pinned: true, value: '__none', label: 'Sin clasificación' }, ...options('ingredient_classifications', record?.classification_id ? [record.classification_id] : [])]} error={errors.classification_id} disabled={busy} help="Elige su uso principal. Puedes mantener las opciones en el catálogo Usos de ingredientes. Una clasificación inactiva existente puede conservarse." />}
+            {kind === 'application_methods' && <FormSelect label="Vía de aplicación" value={form.application_route} onChange={value => update('application_route', value as 'foliar' | 'irrigation')} options={[{value:'foliar',label:'Foliar'},{value:'irrigation',label:'Riego'}]} required disabled={busy || !!locks.application_route} error={errors.application_route} help={locks.application_route ?? 'Este medio pertenece a una sola vía. La receta la toma automáticamente.'} />}
             {kind === 'products' && <>
               <FormSelect label="Unidad fija del producto" value={form.unit} onChange={value => update('unit', value as 'g' | 'ml')} options={[{ value: 'g', label: 'Gramos (g)' }, { value: 'ml', label: 'Mililitros (ml)' }]} error={errors.unit} required disabled={busy || !!locks.unit} help={locks.unit ?? 'Puedes cambiarla mientras el producto no se utilice en aplicaciones.'} />
               <FormInput label={`Dosis predeterminada (${form.unit}/ha)`} value={form.default_dose} onChange={value => update('default_dose', value)} type="number" min={0} step="any" error={errors.default_dose} required disabled={busy} help="Se usará como referencia en nuevas aplicaciones; las dosis ya registradas se conservan." />

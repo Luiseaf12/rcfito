@@ -1,0 +1,54 @@
+import { randomUUID } from 'node:crypto';
+
+/** Fictitious HTTP fixtures; invoked only by the isolated integration runner. */
+export async function verifyApplicationRoutes({ request, check, adminToken, readerToken }) {
+  const id = Object.fromEntries(['unit','field','crop','variety','infra','foliar','irrigation','product','stage'].map(key=>[key,randomUUID()]));
+  const suffix=randomUUID().slice(0,8);
+  const insert=async(table,data)=>{const response=await request(`/rest/v1/${table}`,adminToken,{code:`QA-VIA-${randomUUID()}`,...data});if(response.status!==201)throw new Error(`Vías: fixture ${table} no creado (${response.status}: ${JSON.stringify(response.data)})`);};
+  await insert('agricultural_units',{id:id.unit,code:`VR-${suffix}`,name:`Agrícola vías ficticia ${suffix}`});
+  await insert('fields',{id:id.field,agricultural_unit_id:id.unit,code:`VRF-${suffix}`,name:`Campo vías ficticio ${suffix}`});
+  await insert('crops',{id:id.crop,name:`Cultivo vías ficticio ${suffix}`});
+  await insert('varieties',{id:id.variety,crop_id:id.crop,name:`Variedad vías ficticia ${suffix}`});
+  await insert('infrastructure_types',{id:id.infra,name:`Infraestructura vías ficticia ${suffix}`});
+  await insert('application_methods',{id:id.foliar,name:`Bomba vías ficticia ${suffix}`,application_route:'foliar'});
+  await insert('application_methods',{id:id.irrigation,name:`Riego vías ficticio ${suffix}`,application_route:'irrigation'});
+  await insert('products',{id:id.product,name:`Producto vías ficticio ${suffix}`,unit:'ml',default_dose:1});
+  const ok=response=>response.status>=200&&response.status<300;
+  const rpc=(name,body,token=adminToken)=>request(`/rest/v1/rpc/${name}`,token,body);
+  const project=await rpc('create_sowing_project',{p_data:{agricultural_unit_id:id.unit,name:`Ciclo vías ficticio ${suffix}`,season:'2026'}});
+  check(project.status===200,'Vías: proyecto de QA creado');
+  check((await request(`/rest/v1/sowing_projects?id=eq.${project.data}`,adminToken,{status:'active'},'PATCH')).status===204,'Vías: proyecto activo');
+  const lot=await rpc('create_project_lot',{p_data:{project_id:project.data,field_id:id.field,name:`Lote vías ficticio ${suffix}`,code:`QA-LO-${suffix}`,area_ha:3,infrastructure_type_id:id.infra}});
+  const subdivision=await request(`/rest/v1/lot_subdivisions?lot_id=eq.${lot.data}&select=id`,adminToken);
+  check(ok(await rpc('save_sowing_stage',{p_data:{id:id.stage,subdivision_id:subdivision.data[0].id,crop_id:id.crop,variety_id:id.variety,area_ha:3,planned_sowing_date:'2026-01-01'}})),'Vías: etapa ficticia creada');
+  check(ok(await rpc('transition_sowing_stage',{p_stage_id:id.stage,p_status:'planted',p_date:'2026-01-02'})),'Vías: etapa sembrada');
+  const body=(method,water=null)=>({p_data:{id:randomUUID(),project_id:project.data,field_id:id.field,crop_id:id.crop,method_id:method,indicated_date:'2026-01-03',scheduled_date:'2026-01-06',water_l_ha:water,observations:'Prueba ficticia de vías'},p_stage_ids:[id.stage],p_products:[{product_id:id.product,dose:2}]});
+  const f=body(id.foliar,100),r1=body(id.irrigation),r2=body(id.irrigation);
+  const created=await Promise.all([rpc('create_application_order',f),rpc('create_application_order',r1),rpc('create_application_order',r2)]);
+  check(created.every(response=>response.status===200),'Vías: creaciones simultáneas de ambas vías');
+  const targets=await request(`/rest/v1/application_targets?stage_id=eq.${id.stage}&select=id,order_id,application_number,application_route,status,actual_water_l_ha`,adminToken);
+  check(targets.data.filter(t=>t.application_route==='foliar').map(t=>t.application_number).join(',')==='1','Vías: Foliar comienza en 1');
+  check(targets.data.filter(t=>t.application_route==='irrigation').map(t=>t.application_number).sort().join(',')==='1,2','Vías: concurrencia asigna Riego 1 y 2 sin duplicar');
+  const ir=targets.data.find(t=>t.order_id===r1.p_data.id);
+  const duplicate=body(id.irrigation);duplicate.p_data.application_number=ir.application_number;
+  check((await rpc('create_application_order',duplicate)).status>=400,'Vías: repetición dentro de misma serie rechazada');
+  check((await rpc('create_application_order',{...f,p_data:{...f.p_data,id:randomUUID(),water_l_ha:null}})).status>=400,'Vías: foliar sin agua rechazado por API');
+  const retry=await Promise.all([rpc('create_application_order',r1),rpc('create_application_order',r1)]);
+  check(retry.every(response=>response.status===200&&response.data===r1.p_data.id),'Vías: reintentos simultáneos conservan UUID');
+  const revision={p_data:{id:randomUUID(),order_id:r1.p_data.id,expected_revision:0,target_ids:[ir.id],method_id:id.foliar,indicated_date:'2026-01-03',scheduled_date:'2026-01-07',water_l_ha:100,observations:'Revisión ficticia',reason:'Prueba de vía fija'},p_products:r1.p_products};
+  check((await rpc('revise_application_order',revision)).status>=400,'Vías: API impide cambiar vía al revisar');
+  revision.p_data={...revision.p_data,method_id:id.irrigation,water_l_ha:null};
+  check(ok(await rpc('revise_application_order',revision)),'Vías: revisión de riego admite agua ausente');
+  check(ok(await rpc('perform_application_targets',{p_order_id:r1.p_data.id,p_target_ids:[ir.id],p_data:{changed:false,actual_date:'2026-01-07',expected_revision:1}})),'Vías: realización sin agua confirmada');
+  const real=await request(`/rest/v1/application_targets?id=eq.${ir.id}&select=status,actual_water_l_ha,application_route`,adminToken);
+  check(real.data[0]?.status==='performed'&&real.data[0]?.actual_water_l_ha===null&&real.data[0]?.application_route==='irrigation','Vías: REST conserva null y vía realizada');
+  const correction={p_data:{id:randomUUID(),target_id:ir.id,expected_version:0,actual_date:'2026-01-08',water_l_ha:null,equipment:'Equipo ficticio corregido',applicator:'',observations:'',reason:'QA agua opcional'},p_products:r1.p_products};
+  check(ok(await rpc('correct_application_target',correction)),'Vías: corrección real con agua ausente');
+  const history=await request(`/rest/v1/application_changes?target_id=eq.${ir.id}&select=before,after`,adminToken);
+  check(history.data?.[0]?.before.water_l_ha===null&&history.data?.[0]?.after.water_l_ha===null,'Vías: historial conserva ambas ausencias');
+  check((await request(`/rest/v1/application_methods?id=eq.${id.irrigation}`,adminToken,{application_route:'foliar'},'PATCH')).status>=400,'Vías: catálogo utilizado impide reclasificación');
+  check((await rpc('create_application_order',body(id.irrigation),readerToken)).status>=400,'Vías: lector no crea recetas');
+  const invisible=await request(`/rest/v1/application_orders?project_id=eq.${project.data}&select=id`,readerToken);
+  check(invisible.status===200&&invisible.data.length===0,'Vías: RLS conserva agrícolas asignadas');
+  check((await request('/rest/v1/rpc/create_application_order',undefined,body(id.irrigation))).status>=400,'Vías: anónimo no crea recetas');
+}

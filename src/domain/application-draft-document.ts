@@ -1,3 +1,4 @@
+import { methodRoute, waterInput } from './application-routes.ts'
 import { applicationDraftIssues, type ApplicationDraftForm, type ApplicationDraftIssue, type ApplicationDraftProduct } from './application-draft.ts'
 import { applicationGroupOrigin } from './application-groups.ts'
 import { validateRecipeSource } from './application-recipes.ts'
@@ -12,11 +13,11 @@ export type DraftRecipeDocument = {
   season: string
   field: string
   crop: string
-  method: string
+  application_route?: import('./model').ApplicationRoute; method: string
   indicated_date: string
   scheduled_date: string
   observations: string
-  water_l_ha: number
+  water_l_ha: number | null
   requested_number: number | null
   selection: string
   source: { folio: string; revision: number } | null
@@ -49,7 +50,7 @@ export function snapshotDraftRecipe(data: WorkspaceData, input: DraftRecipeDocum
   if (!input.id || !Number.isFinite(Date.parse(input.generated_at))) throw new Error('No se pudo identificar la versión del borrador.')
   const record: ApplicationOrderInput = {
     ...input.form, id: input.id, stage_ids: [...input.stage_ids], source_group_id: input.source_group_id,
-    recipe_source: input.recipe_source, water_l_ha: Number(input.form.water_l_ha),
+    recipe_source: input.recipe_source, water_l_ha: waterInput(input.form.water_l_ha),
     application_number: input.form.application_number.trim() ? Number(input.form.application_number) : undefined,
     products: input.products.map(row => ({ product_id: row.product_id, dose: Number(row.dose) })),
   }
@@ -67,7 +68,7 @@ export function snapshotDraftRecipe(data: WorkspaceData, input: DraftRecipeDocum
   return {
     draft_id: input.id, generated_at: new Date(input.generated_at).toISOString(), prepared_by: input.profile.full_name,
     agricultural_unit: name('agricultural_units', project.agricultural_unit_id), project: project.name, season: project.season,
-    field: name('fields', input.form.field_id), crop: name('crops', input.form.crop_id), method: name('application_methods', input.form.method_id),
+    field: name('fields', input.form.field_id), crop: name('crops', input.form.crop_id), application_route: methodRoute(data, input.form.method_id), method: name('application_methods', input.form.method_id),
     indicated_date: input.form.indicated_date, scheduled_date: input.form.scheduled_date, observations: input.form.observations,
     water_l_ha: record.water_l_ha, requested_number: record.application_number ?? null,
     selection: origin.selection_origin === 'group' ? `Grupo: ${origin.source_group_name}` : origin.selection_origin === 'individual' ? 'Un lote' : 'Selección manual',

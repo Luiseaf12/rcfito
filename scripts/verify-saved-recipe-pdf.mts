@@ -24,7 +24,7 @@ mkdirSync(output, { recursive: true })
 const correctedData = applyCommand(data, { type: 'correct_lot', record: { id: 'pdf-correction-fictitious', lot_id: 'lot-1', expected_version: 0, name: 'Malla ficticia corregida', area_ha: 10, stage_id: 'stage-1', planned_sowing_date: '2026-10-01', actual_sowing_date: '2026-10-03', reason: 'Verificación ficticia de PDF corregido' } }, profile)
 const corrected = snapshotSavedRecipe(correctedData, profile, 'saved-pdf-fictitious', '2026-11-04T18:00:00Z')
 const correctedLong = { ...long, targets: long.targets.map(target => ({ ...target, area_correction: { version: 1, changed_at: corrected.targets[0].area_correction!.changed_at, previous_area_ha: target.area_ha + 1 } })) }
-for (const [name, snapshot] of [['receta-simple', small], ['receta-extensa', long], ['receta-corregida', corrected], ['receta-extensa-corregida', correctedLong]] as const) {
+for (const [name, snapshot] of [['receta-simple', small], ['receta-riego', {...small, application_route:'irrigation', method:'Sistema de riego', water_l_ha:null}], ['receta-extensa', long], ['receta-corregida', corrected], ['receta-extensa-corregida', correctedLong]] as const) {
   const result = await createSavedRecipePdf(snapshot, fonts)
   const pages = result.doc.getNumberOfPages()
   if (name === 'receta-simple') assert.equal(pages, 1)

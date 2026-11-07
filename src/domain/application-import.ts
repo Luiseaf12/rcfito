@@ -1,3 +1,4 @@
+import { applicationRoute, methodRoute } from './application-routes.ts'
 import { compareDisplayText, compareIdentity } from './list-order.ts'
 import type { ApplicationTarget, CatalogRecord, LotSubdivision, ProjectLot, SowingStage, WorkspaceData } from './model'
 import { compactProductTerm, compareProductsByName, similarProductTerms } from './product-synonyms.ts'
@@ -199,7 +200,7 @@ export function resolveImportContext(data: WorkspaceData, extracted: ExtractedAp
       const previous = data.applicationTargets.filter(target => {
         const order = orders.get(target.order_id)
         const applicationNumber = (target as ApplicationTarget & { application_number?: number }).application_number
-        return target.stage_id === destination.stage.id && target.status !== 'cancelled' && order?.project_id === projectId && (!extracted.application_number || !applicationNumber || applicationNumber < extracted.application_number) && (!extracted.indicated_date || order.indicated_date <= extracted.indicated_date)
+        return target.stage_id === destination.stage.id && target.status !== 'cancelled' && order?.project_id === projectId && applicationRoute(order) === methodRoute(data, methodId) && (!extracted.application_number || !applicationNumber || applicationNumber < extracted.application_number) && (!extracted.indicated_date || order.indicated_date <= extracted.indicated_date)
       }).sort((left, right) => {
         const leftNumber = (left as ApplicationTarget & { application_number?: number }).application_number
         const rightNumber = (right as ApplicationTarget & { application_number?: number }).application_number

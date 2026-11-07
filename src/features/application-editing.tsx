@@ -1,3 +1,4 @@
+import { applicationRoute, methodRoute, waterInput, waterText } from '@/domain/application-routes'
 import { sortDisplay } from '@/domain/list-order'
 import { useState, type FormEvent } from 'react'
 import { History, Pencil } from 'lucide-react'
@@ -28,7 +29,7 @@ export function EditApplicationDialog({ order, target, close, completed }: { ord
     return { id: crypto.randomUUID(), indication, products, revision: order.revision ?? 0, targetVersion: target?.correction_version ?? 0,
       targetIds: data.applicationTargets.filter(item => item.order_id === order.id && item.status === 'indicated').map(item => item.id).sort(),
       form: { method_id: indication.method_id, indicated_date: indication.indicated_date, scheduled_date: indication.scheduled_date,
-        actual_date: target?.actual_date ?? '', water_l_ha: String(target?.actual_water_l_ha ?? indication.water_l_ha),
+        actual_date: target?.actual_date ?? '', water_l_ha: waterText(target ? target.actual_water_l_ha : indication.water_l_ha),
         observations: target ? target.actual_observations : indication.observations, equipment: target?.equipment ?? '', applicator: target?.applicator ?? '', reason: '' } }
   })
   const [form, setForm] = useState(seed.form)
@@ -52,7 +53,7 @@ export function EditApplicationDialog({ order, target, close, completed }: { ord
     const doseError = amountError(row.dose, 6, `La dosis del renglón ${index + 1}`)
     if (doseError) issues[`dose:${index}`] = doseError
   }
-  const waterError = amountError(form.water_l_ha, 4, 'El gasto de agua')
+  const waterError = applicationRoute(order) === 'irrigation' && !form.water_l_ha.trim() ? '' : amountError(form.water_l_ha, 4, 'El gasto de agua')
   if (waterError) issues.water_l_ha = waterError
   const earliest = selectedTargets.reduce((value, item) => {
     const sowing = data.stages.find(stage => stage.id === item.stage_id)?.actual_sowing_date
@@ -79,8 +80,8 @@ export function EditApplicationDialog({ order, target, close, completed }: { ord
     setError(null); setBusy(true)
     const products = rows.map(row => ({ product_id: row.product_id, dose: Number(row.dose) }))
     try {
-      if (correcting) await mutate({ type: 'correct_application_target', record: { id: seed.id, target_id: target!.id, expected_version: seed.targetVersion, actual_date: form.actual_date, water_l_ha: Number(form.water_l_ha), equipment: form.equipment, applicator: form.applicator, observations: form.observations, reason: form.reason, products } })
-      else await mutate({ type: 'revise_application_order', record: { id: seed.id, order_id: order.id, expected_revision: seed.revision, target_ids: seed.targetIds, method_id: form.method_id, indicated_date: form.indicated_date, scheduled_date: form.scheduled_date, water_l_ha: Number(form.water_l_ha), observations: form.observations, reason: form.reason, products } })
+      if (correcting) await mutate({ type: 'correct_application_target', record: { id: seed.id, target_id: target!.id, expected_version: seed.targetVersion, actual_date: form.actual_date, water_l_ha: waterInput(form.water_l_ha), equipment: form.equipment, applicator: form.applicator, observations: form.observations, reason: form.reason, products } })
+      else await mutate({ type: 'revise_application_order', record: { id: seed.id, order_id: order.id, expected_revision: seed.revision, target_ids: seed.targetIds, method_id: form.method_id, indicated_date: form.indicated_date, scheduled_date: form.scheduled_date, water_l_ha: waterInput(form.water_l_ha), observations: form.observations, reason: form.reason, products } })
       completed()
     } catch (cause) { setError(errorMessage(cause)) } finally { setBusy(false) }
   }
@@ -92,7 +93,7 @@ export function EditApplicationDialog({ order, target, close, completed }: { ord
         {!correcting && <ul className="list-disc pl-5">{sortDisplay(selectedTargets, targetLabel, item => item.id).map(item => <li key={item.id}>{targetLabel(item)}</li>)}</ul>}
         <fieldset disabled={busy} className="min-w-0 flex flex-col gap-6">
           {!correcting && <FieldGroup className="field-grid">
-            <FormSelect label="Medio de aplicación" value={form.method_id} onChange={value => update('method_id', value)} required error={issues.method_id} options={data.catalogs.application_methods.filter(method => method.active || method.id === seed.indication.method_id).map(method => ({ value: method.id, label: `${method.name}${!method.active ? ' (inactivo, indicado)' : ''}` }))} />
+            <FormSelect label="Medio de aplicación" value={form.method_id} onChange={value => update('method_id', value)} required error={issues.method_id} options={data.catalogs.application_methods.filter(item => methodRoute(data, item.id) === applicationRoute(order)).filter(method => method.active || method.id === seed.indication.method_id).map(method => ({ value: method.id, label: `${method.name}${!method.active ? ' (inactivo, indicado)' : ''}` }))} />
             <FormInput label="Fecha de indicación" type="date" value={form.indicated_date} onChange={value => update('indicated_date', value)} required min={earliest} error={issues.indicated_date} />
             <FormInput label="Fecha programada" type="date" value={form.scheduled_date} onChange={value => update('scheduled_date', value)} required min={form.indicated_date} error={issues.scheduled_date} />
           </FieldGroup>}
@@ -103,7 +104,7 @@ export function EditApplicationDialog({ order, target, close, completed }: { ord
           </FieldGroup>}
           <ProductMixtureEditor rows={rows} onChange={next => { setError(null); setRows(next) }} products={data.catalogs.products} activeIngredients={data.catalogs.active_ingredients} original={seed.products} error={issues.products} issues={Object.entries(issues).map(([field,message])=>({field,message}))} />
           <FieldGroup>
-            <FormInput label={correcting ? 'Gasto de agua real (L/ha)' : 'Gasto de agua (L/ha)'} type="number" min="0.0001" step="any" value={form.water_l_ha} onChange={value => update('water_l_ha', value)} required error={issues.water_l_ha} />
+            <FormInput label={correcting ? 'Gasto de agua real (L/ha)' : 'Gasto de agua (L/ha)'} type="number" min="0.0001" step="any" value={form.water_l_ha} onChange={value => update('water_l_ha', value)} required={applicationRoute(order) === 'foliar'} help={applicationRoute(order) === 'irrigation' ? 'Opcional en riego. Su ausencia se conserva sin convertirla en cero.' : undefined} error={issues.water_l_ha} />
             <TextField label={correcting ? 'Observaciones de la realización' : 'Nota de la aplicación'} value={form.observations} onChange={value => update('observations', value)} error={issues.observations} help="Opcional, hasta 4,000 caracteres." />
             <TextField label="Motivo del cambio" value={form.reason} onChange={value => update('reason', value)} required error={issues.reason} help="Se guarda junto con autor, fecha y valores anteriores. Hasta 4,000 caracteres." />
           </FieldGroup>

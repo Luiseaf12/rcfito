@@ -7,6 +7,14 @@ solo para operar, sin perder precisión en persistencia.
 
 ## Tablas
 
+Ampliación RCF-045: `application_methods.application_route` es `foliar` o
+`irrigation`. Órdenes y destinos conservan su propia copia no nula e inmutable,
+derivada por el servidor. La unicidad del número es por etapa/vía; crear o revisar
+rechaza referencias de otra vía y reclasificar un medio utilizado. El agua indicada,
+real y de snapshots puede ser null solo en Riego; si se captura debe ser positiva
+y admitir hasta cuatro decimales. Se conservan las firmas y números anteriores.
+[Reglas y migración](flows/application-routes.md).
+
 - Catálogos `agricultural_units`, `crops`, `brands`, `product_families`,
   `active_ingredients`, `infrastructure_types`, `application_methods`:
   `id`, `code`, `name`, `active`, `created_at`.

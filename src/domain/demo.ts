@@ -10,7 +10,7 @@ export function createDemoData(): WorkspaceData {
   put('crops', [{id:'crop-pepino',name:'Pepino',code:'PEP'}, {id:'crop-tomate',name:'Tomate',code:'TOM'}, {id:'crop-pimiento',name:'Pimiento',code:'PIM'}])
   put('varieties', [{id:'var-pepino-persian',name:'Persa',crop_id:'crop-pepino'}, {id:'var-pepino-slicer',name:'Slicer',crop_id:'crop-pepino'}, {id:'var-tomate-saladette',name:'Saladette',crop_id:'crop-tomate'}, {id:'var-tomate-cherry',name:'Cherry',crop_id:'crop-tomate'}, {id:'var-pimiento-rojo',name:'Rojo',crop_id:'crop-pimiento'}])
   put('infrastructure_types', [{id:'infrastructure-malla',name:'Mallasombra'}, {id:'infrastructure-abierto',name:'Campo abierto'}, {id:'infrastructure-invernadero',name:'Invernadero'}])
-  put('application_methods', [{id:'method-dron',name:'Dron'}, {id:'method-tractor',name:'Tractor'}, {id:'method-manual',name:'Bomba manual'}])
+  put('application_methods', [{id:'method-riego',name:'Sistema de riego',application_route:'irrigation'}, {id:'method-dron',name:'Dron'}, {id:'method-tractor',name:'Tractor'}, {id:'method-manual',name:'Bomba manual'}])
   put('ingredient_classifications', [{id:'classification-demo',name:'Uso demostrativo'}])
   put('active_ingredients', [{id:'ingredient-a',name:'Ingrediente de ejemplo A',classification_id:'classification-demo'}, {id:'ingredient-b',name:'Ingrediente de ejemplo B'}, {id:'ingredient-c',name:'Ingrediente de ejemplo C'}])
   put('brands', [{id:'brand-demo',name:'Marca demostrativa'}])

@@ -1,3 +1,4 @@
+import { applicationRoute, routeLabel } from '../domain/application-routes'
 import { savedRecipeReference, type SavedRecipeDocument } from '../domain/saved-recipe-document.ts'
 import { reportNumber } from '../lib/report-format.ts'
 import { recipePdfLayout, pdfText as text, pdfDate as date, pdfLabel as label, type RecipePdfFonts } from './recipe-pdf-layout.ts'
@@ -13,7 +14,7 @@ export async function createSavedRecipePdf(snapshot: SavedRecipeDocument, fonts:
     [label('Folio'), text(snapshot.folio), label('Revisión'), String(snapshot.revision)],
     [label('Agrícola'), text(snapshot.agricultural_unit), label('Temporada'), text(snapshot.season)],
     [label('Proyecto'), text(snapshot.project), label('Campo'), text(snapshot.field)],
-    [label('Cultivo'), text(snapshot.crop), label('Medio'), text(snapshot.method)],
+    [label('Cultivo'), text(snapshot.crop), label('Medio'), `${routeLabel(applicationRoute(snapshot))} / ${text(snapshot.method)}`],
     [label('Indicación'), date(snapshot.indicated_date), label('Programada'), snapshot.scheduled_date ? date(snapshot.scheduled_date) : 'Fecha programada por confirmar'],
     [label('Origen'), text(snapshot.selection), label('Exportó'), text(snapshot.exported_by)],
     ...(snapshot.source ? [[label('Receta base'), { content: `${text(snapshot.source.folio)} - versión ${snapshot.source.revision}`, colSpan: 3 }]] : []),
@@ -29,7 +30,7 @@ export async function createSavedRecipePdf(snapshot: SavedRecipeDocument, fonts:
   section(`Mezcla indicada - revisión ${snapshot.revision}`)
   table({ head: [['Producto / agua', 'Dosis / gasto', 'Unidad']], columnStyles: { 0: { cellWidth: 362 }, 1: { cellWidth: 98, halign: 'right' }, 2: { cellWidth: 72 } }, body: [
     ...snapshot.products.map(product => [text(product.product_name), dose.format(product.dose), `${product.unit}/ha`]),
-    ['Gasto de agua', water.format(snapshot.water_l_ha), 'L/ha'],
+    ['Gasto de agua', snapshot.water_l_ha == null ? 'No especificado' : water.format(snapshot.water_l_ha), 'L/ha'],
   ] })
   note('Nota de la indicación', snapshot.observations)
   section('Seguimiento por destino al exportar')
