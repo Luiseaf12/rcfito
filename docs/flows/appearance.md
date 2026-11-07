@@ -49,4 +49,8 @@ se pudo consultar. Respuestas obsoletas se descartan al cambiar usuario o guarda
 - Operación: respaldo custom privado validado (640314 bytes) y migración aditiva
   aplicada; quince migraciones y cero pendientes. Sin fixtures en operación.
 
-Publicación y siguientes verificaciones se registran en OPERATIONS y PLANS.
+Docker actualizado y Sites versión 46 publicados con audiencia conservada;
+nueve controles de conexión posteriores aprobados. El paquete final usa el
+frontend compilado por Docker para igualar los archivos de ambos destinos.
+[Publicación y límites](../OPERATIONS.md#apariencia-por-usuario--rcf-034).
+El pendiente permanece en verificación hasta revisar la interfaz en navegador.

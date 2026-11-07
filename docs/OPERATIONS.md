@@ -1104,3 +1104,32 @@ Sites confirmó `succeeded`, versión
 despliegue `appgdep_6aee88e6235481919af6e8c852321a33` en
 [RCFito](https://rcfito.paxxa.chatgpt.site). Audiencia pública, R2 y revisión de
 entorno 1 conservados. Cambios ajenos del workspace excluidos de los commits.
+
+## Apariencia por usuario — RCF-034
+
+2026-11-07: opciones Sistema, Claro y Oscuro implementadas desde
+`f9b256e089849b79a40ad38c52cb759f50c97cd8`. La preferencia se guarda en
+`user_preferences` para la cuenta activa; un registro ausente equivale a Sistema.
+No requiere cambiar roles, claves, menús o aplicaciones registradas.
+
+Antes de la migración se validó un respaldo custom privado (640314 bytes).
+`backend-local.mjs migrate` aplicó una migración aditiva; ledger SHA-256:
+15 aplicadas/cero pendientes. No se insertaron preferencias ficticias en operación.
+SQL y once HTTP nuevas aisladas aprobaron propiedad, relectura, temas válidos y
+rechazos entre cuentas. Advisors sin WARN/ERROR. 402 pruebas y 38 contrastes,
+tipos/build/checker aprobados; autorrevisión.
+
+Docker sano con el montaje público original. Sites confirmó `succeeded`,
+versión 46 `appgprj_6ae67ae019e88191a7012093bb19c505~appgver_c6fec00dc8e48191b16756cb4cf6c0ad`,
+despliegue `appgdep_6aef63331a08819182ea759756e11d96`, a las
+`2026-11-07T17:43:21Z`, en [RCFito](https://rcfito.paxxa.chatgpt.site).
+Audiencia pública, R2 y entorno revisión 1 conservados. Nueve controles de
+conexión posteriores aprobados sin cambios de negocio. Para unificar la
+compilación entre Windows y Linux, el paquete final utiliza los archivos
+públicos construidos por Docker con `npm ci`; se comprobó la identidad del
+bundle con el contenedor. La configuración pública de operación se excluye del
+Worker y se conserva su configuración gestionada de Sites.
+
+Revisión visual pendiente: el navegador local está deshabilitado en Work.
+No se atribuyen recorridos UI a las pruebas de API/SQL/contraste. RCF-034 sigue
+en verificación por esa cobertura; sus funciones y publicación están disponibles.
