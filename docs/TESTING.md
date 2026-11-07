@@ -871,3 +871,8 @@ aprobados y páginas de riego renderizadas e inspeccionadas. Navegador y móvil
 no comprobados: control local deshabilitado en Work. Autorrevisión, sin revisión
 independiente. Respaldo y migración 14/0 con comparación privada de conservación
 del historial aprobados. [Contrato y evidencia](flows/application-routes.md).
+
+Fuente `f44b09a` publicada en GitHub, Docker healthy y Sites 45. Entrada y 38
+recursos estáticos exactos, Auth y rechazo anónimo aprobados en ambos destinos;
+nueve controles del Site y veinte del túnel HTTPS aprobados, sin cuentas ni datos
+de prueba en operación. Ledger final 14/0; checker válido.

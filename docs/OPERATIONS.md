@@ -1094,4 +1094,13 @@ exactamente órdenes, destinos, números, estados, mezclas, firmas y cambios.
 Se añade Foliar a la historia confirmada por el Propietario y el medio Sistema
 de riego para comenzar; no se insertaron recetas ni realizaciones ficticias.
 Secretos, volúmenes, roles, agrícolas y permisos de menú conservados.
-Publicación de RCF-045 y controles posteriores en curso.
+Fuente `f44b09aefc43ed459e1755d9fba6e8699584c7d3` publicada en GitHub, Docker healthy
+y Sites versión **45**, con entrada y 38 recursos estáticos exactos por destino.
+Auth y rechazo anónimo aprobados, nueve controles del Site y veinte HTTPS del
+túnel sin crear datos ni cuentas. Ledger final 14/0.
+
+Sites confirmó `succeeded`, versión
+`appgprj_6ae67ae019e88191a7012093bb19c505~appgver_1e8a42d931e08191bd400ebdd9295d0f`,
+despliegue `appgdep_6aee88e6235481919af6e8c852321a33` en
+[RCFito](https://rcfito.paxxa.chatgpt.site). Audiencia pública, R2 y revisión de
+entorno 1 conservados. Cambios ajenos del workspace excluidos de los commits.

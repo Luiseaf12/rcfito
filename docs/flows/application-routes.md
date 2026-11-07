@@ -1,7 +1,8 @@
 # Vías y numeración por etapa — RCF-045
 
-Estado: implementación y pruebas aprobadas; backend instalado, publicación del
-frontend en curso. El Propietario aprobó las reglas y autorizó desarrollo,
+Estado: cerrada y publicada en GitHub, frontend Docker y Sites 45 el 2026-11-06,
+con el límite de verificación de navegador indicado abajo.
+El Propietario aprobó las reglas y autorizó desarrollo,
 commit, push y publicación el 2026-11-06; no hay dudas de alcance.
 
 ## Contrato y recorrido
@@ -63,3 +64,8 @@ de aplicar `20261106233000_application_routes.sql`. Ledger 14/0. Comparación pr
 confirma órdenes, destinos, números, estados, firmas, mezclas e historial idénticos,
 con vía Foliar añadida según lo autorizado. Se incorpora únicamente el medio
 Sistema de riego; no se crearon recetas, realizaciones ni fixtures de operación.
+
+Fuente `f44b09a` publicada; Docker healthy, entrada y 38 recursos estáticos exactos
+por destino, Auth y rechazo anónimo aprobados. Nueve controles del Site y veinte
+HTTPS del túnel aprobados sin datos de prueba en operación. Audiencia y entorno
+conservados. [Publicación](../OPERATIONS.md#vías-y-numeración-por-etapa--rcf-045).

@@ -246,4 +246,4 @@ La evidencia de publicación está en OPERATIONS.
 
 | ID | Trabajo | Estado | Responsable | Próxima acción | Fuente |
 | --- | --- | --- | --- | --- | --- |
-| RCF-045 | Separar Foliar/Riego por medio, numeración y antecedentes; agua opcional en riego. | en verificación | Agente principal | 399 pruebas, 535 SQL, 288 HTTP, tipos/build y PDF aprobados; migración con respaldo, historial conservado y ledger 14/0. Publicar frontend. Navegador/móvil sin comprobar por control deshabilitado en Work. | [Reglas y aceptación](flows/application-routes.md) |
+| RCF-045 | Separar Foliar/Riego por medio, numeración y antecedentes; agua opcional en riego. | cerrada | Agente principal | Fuente f44b09a en GitHub, Docker healthy y Sites 45. 399 pruebas, 535 SQL, 288 HTTP, tipos/build/checker, ocho casos PDF y advisors aprobados; respaldo, historial conservado y ledger 14/0. Recursos exactos y controles Site/HTTPS aprobados. Navegador/móvil sin comprobar por control deshabilitado en Work; límite en la ficha. | [Reglas y aceptación](flows/application-routes.md) |
