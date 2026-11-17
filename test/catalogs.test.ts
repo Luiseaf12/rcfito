@@ -17,9 +17,10 @@ for (const kind of catalogKinds) {
     const command = { type: 'save_catalog' as const, kind, record: { ...record, name: `${record.name} corregido`, active: false } }
     assert.throws(() => applyCommand(data, command, reader), /consulta/)
     const next = applyCommand(data, command, admin)
-    assert.deepEqual(next.catalogs[kind][0], command.record)
+    assert.deepEqual(next.catalogs[kind][0], { ...command.record, ...(['products','active_ingredients'].includes(kind) ? {classification_ids: command.record.classification_id ? [command.record.classification_id] : []} : {}) })
     assert.deepEqual(next.catalogs[kind].slice(1), data.catalogs[kind].slice(1))
-    assert.deepEqual({ ...next, catalogs: data.catalogs }, data, 'editar no reescribe proyectos, lotes, etapas ni aplicaciones')
+    const {catalogMetadataChanges: _audit, ...rest} = next
+    assert.deepEqual({ ...rest, catalogs: data.catalogs }, data, 'editar no reescribe proyectos, lotes, etapas ni aplicaciones')
     assert.deepEqual(data, original)
   })
 }

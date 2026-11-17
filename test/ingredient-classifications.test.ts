@@ -23,7 +23,7 @@ test('administrador crea clasificación, relaciona ingrediente y puede cambiarla
   data = applyCommand(data, { type: 'save_catalog', kind: 'active_ingredients', record: { ...ingredient, classification_id: classification.id } }, admin)
   assert.equal(data.catalogs.active_ingredients[0].classification_id, classification.id)
   assert.throws(() => applyCommand(data, { type: 'delete_catalog', kind: 'ingredient_classifications', id: classification.id }, admin), /relacionado/)
-  data = applyCommand(data, { type: 'save_catalog', kind: 'active_ingredients', record: { ...ingredient, classification_id: null } }, admin)
+  data = applyCommand(data, { type: 'save_catalog', kind: 'active_ingredients', record: { ...ingredient, classification_ids: [], classification_id: null } }, admin)
   data = applyCommand(data, { type: 'delete_catalog', kind: 'ingredient_classifications', id: classification.id }, admin)
   assert.ok(!data.catalogs.ingredient_classifications.some(record => record.id === classification.id))
   assert.deepEqual(data.catalogs.products, initial.catalogs.products)

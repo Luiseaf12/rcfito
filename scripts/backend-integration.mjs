@@ -1,3 +1,4 @@
+import { verifyCatalogMetadata } from './backend-metadata-http-checks.mjs';
 import { verifyThemePreferences } from './backend-theme-http-checks.mjs';
 import { verifyApplicationRoutes } from './backend-route-http-checks.mjs';
 import { verifyMenuPermissions } from './backend-menu-http-checks.mjs';
@@ -583,9 +584,10 @@ try {
   check((await request(`/rest/v1/active_ingredients?id=eq.${classifiedIngredientId}`, adminToken, { name: `Ingrediente corregido ${suffix}`, classification_id: classificationId }, 'PATCH')).status === 204, 'Clasificaciones: edición conserva relación inactiva existente');
   check((await request('/rest/v1/active_ingredients', adminToken, { code: `QA-BAD-CLASS-${suffix}`, name: `Ingrediente no válido ${suffix}`, classification_id: classificationId })).status >= 400, 'Clasificaciones: otra relación con opción inactiva se rechaza');
   check((await request(`/rest/v1/ingredient_classifications?id=eq.${classificationId}`, adminToken, undefined, 'DELETE')).status === 409, 'Clasificaciones: FK protege eliminación relacionada');
-  check((await request(`/rest/v1/active_ingredients?id=eq.${classifiedIngredientId}`, adminToken, { classification_id: null }, 'PATCH')).status === 204, 'Clasificaciones: administrador puede retirar relación');
+  check((await request(`/rest/v1/active_ingredients?id=eq.${classifiedIngredientId}`, adminToken, { classification_id: null, classification_ids: [] }, 'PATCH')).status === 204, 'Clasificaciones: administrador puede retirar relación');
   check((await request(`/rest/v1/ingredient_classifications?id=eq.${classificationId}`, adminToken, undefined, 'DELETE')).status === 204, 'Clasificaciones: eliminación libre confirmada');
 
+  await verifyCatalogMetadata({request,check,adminToken,readerToken});
   await verifyLotCorrections({ request, check, adminToken, readerToken, noAccessToken, readerId: reader.id });
   await verifyApplicationImage(adminToken,readerToken,noAccessToken,reader.id);
   await verifyApplicationRoutes({request,check,adminToken,readerToken});

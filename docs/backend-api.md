@@ -365,3 +365,20 @@ SELECT propio y UPSERT por `user_id`, con JWT del mismo usuario activo; no
 requiere rol administrador ni abre los permisos de catálogos o datos agrícolas.
 La FK referencia `profiles`, con baja en cascada al retirar un perfil. No hay
 acceso anónimo ni edición de cuentas ajenas. Cliente: `src/data/appearance.ts`.
+
+
+## Clasificaciones múltiples y sinónimos de ingredientes
+
+Ingredientes y productos comparten el catálogo Clasificaciones de uso, con selección
+propia, principal opcional y búsqueda/filtro por todas. Ingredientes añade sinónimos
+controlados. Validación en servidor y auditoría con autor/fecha; snapshots previos
+conservados. [Contrato, compatibilidad y controles](flows/catalog-metadata.md).
+
+`classification_ids` es una lista UUID acotada (hasta 100) en ambos padres;
+`classification_id` es la principal nullable, perteneciente al conjunto. Guardar
+productos usa la RPC existente `save_product`, con ambos campos en p_data y
+rollback de nombre/composición/sinónimos/selección si cualquier validación falla.
+Ingredientes conserva REST con `synonyms` text[] y validación por trigger.
+`catalog_metadata_changes` es de lectura admin, sin DML de clientes ni acceso
+anónimo. Los triggers y la RPC escriben eventos antes/después por transacción;
+las funciones internas de auditoría no tienen EXECUTE para clientes.

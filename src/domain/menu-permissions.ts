@@ -1,7 +1,7 @@
 import { catalogKinds, type CatalogKind, type UserProfile } from './model'
 
 export type MenuKey = 'summary' | 'projects' | 'applications' | 'queries' | 'ai_capture' | 'groups' | 'users' | 'connection' | `catalog:${CatalogKind}`
-const catalogNames: Record<CatalogKind, string> = { agricultural_units: 'Agrícolas', fields: 'Campos', crops: 'Cultivos', varieties: 'Variedades', products: 'Productos', active_ingredients: 'Ingredientes activos', ingredient_classifications: 'Usos de ingredientes', brands: 'Marcas', product_families: 'Familias de productos', infrastructure_types: 'Infraestructura', application_methods: 'Medios de aplicación' }
+const catalogNames: Record<CatalogKind, string> = { agricultural_units: 'Agrícolas', fields: 'Campos', crops: 'Cultivos', varieties: 'Variedades', products: 'Productos', active_ingredients: 'Ingredientes activos', ingredient_classifications: 'Clasificaciones de uso', brands: 'Marcas', product_families: 'Familias de productos', infrastructure_types: 'Infraestructura', application_methods: 'Medios de aplicación' }
 export const menuDefinitions: { key: MenuKey; label: string; path: string; group: 'workspace' | 'catalogs' | 'administration'; adminOnly?: boolean }[] = [
   { key: 'summary', label: 'Resumen', path: '/', group: 'workspace' },
   { key: 'projects', label: 'Proyectos de siembra', path: '/proyectos', group: 'workspace' },

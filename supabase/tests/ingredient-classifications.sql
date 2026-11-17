@@ -59,6 +59,7 @@ update public.active_ingredients set classification_id='a3000000-0000-4000-8000-
 select pg_temp.assert_true((select classification_id='a3000000-0000-4000-8000-000000000002' from public.active_ingredients where code='CL-IA'),'administrador puede cambiar clasificación principal');
 update public.active_ingredients set classification_id=null where code='CL-IA';
 select pg_temp.assert_true((select classification_id is null from public.active_ingredients where code='CL-IA'),'administrador puede retirar clasificación sin borrar ingrediente');
+do $$ begin if exists(select 1 from pg_attribute where attrelid='public.active_ingredients'::regclass and attname='classification_ids') then execute $q$update public.active_ingredients set classification_ids='{}' where code='CL-IA'$q$; end if; end $$;
 delete from public.ingredient_classifications where code='CL-B';
 select pg_temp.assert_true((select count(*)=0 from public.ingredient_classifications where code='CL-B'),'clasificación sin relaciones se puede eliminar');
 reset role;

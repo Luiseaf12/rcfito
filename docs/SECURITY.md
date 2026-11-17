@@ -340,3 +340,11 @@ permite editar perfiles, roles, menús o agrícolas. Los lectores pueden guardar
 su propia apariencia sin acceso a Conexión ni privilegios de administración.
 SQL y HTTP aislados comprueban que ni un administrador escribe preferencias
 ajenas. [Contrato y evidencia](flows/appearance.md).
+
+
+## Clasificaciones múltiples y sinónimos de ingredientes
+
+Ingredientes y productos comparten el catálogo Clasificaciones de uso, con selección
+propia, principal opcional y búsqueda/filtro por todas. Ingredientes añade sinónimos
+controlados. Validación en servidor y auditoría con autor/fecha; snapshots previos
+conservados. [Contrato, compatibilidad y controles](flows/catalog-metadata.md).

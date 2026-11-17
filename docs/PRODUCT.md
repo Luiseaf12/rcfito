@@ -135,8 +135,8 @@ su configuración e historial propios.
 | Lotes, subdivisiones y etapas | Configuración propia de cada proyecto de temporada, con historial; los lotes pueden copiarse de un proyecto anterior como base. |
 | Cultivos y variedades | La variedad se relaciona con el cultivo de la siembra. |
 | Productos | Nombre, unidad fija en gramos o mililitros y dosis predeterminada modificable en cada aplicación. |
-| Usos de ingredientes | Catálogo configurable de clasificaciones para el uso principal de cada ingrediente; relación opcional única para conservar los registros actuales sin inventar su clasificación. |
-| Ingredientes activos | Clasificación principal opcional; mantenimiento en [ficha de clasificaciones](flows/ingredient-classifications.md). Un producto puede relacionarse con varios ingredientes activos. Al capturar cada relación se solicita su concentración como dato opcional, propio de ese ingrediente en ese producto. |
+| Usos de ingredientes | Catálogo configurable compartido por ingredientes y productos, con varias relaciones y principal opcional; [contrato vigente](flows/catalog-metadata.md). |
+| Ingredientes activos | Varias clasificaciones, principal opcional y sinónimos; [contrato vigente](flows/catalog-metadata.md). Un producto puede relacionarse con varios ingredientes activos. Al capturar cada relación se solicita su concentración como dato opcional, propio de ese ingrediente en ese producto. |
 | Marca y familia de producto | Datos opcionales del producto. |
 | Tipos de infraestructura | Catálogo ampliable: mallasombra, campo abierto, invernadero y otros; se asigna al lote completo. |
 | Medios de aplicación | Catálogo ampliable: dron, tractor, bomba manual y otros. |
@@ -547,3 +547,11 @@ independientes; receta anterior e intervalos se limitan a su vía. En riego el
 agua es opcional y las dosis siguen por hectárea. La vía guardada no cambia:
 puede corregirse el medio dentro de ella, o crear otra receta para otra vía.
 Historia existente confirmada Foliar sin renumerar. [Contrato vigente](flows/application-routes.md).
+
+
+## Clasificaciones múltiples y sinónimos de ingredientes
+
+Ingredientes y productos comparten el catálogo Clasificaciones de uso, con selección
+propia, principal opcional y búsqueda/filtro por todas. Ingredientes añade sinónimos
+controlados. Validación en servidor y auditoría con autor/fecha; snapshots previos
+conservados. [Contrato, compatibilidad y controles](flows/catalog-metadata.md).

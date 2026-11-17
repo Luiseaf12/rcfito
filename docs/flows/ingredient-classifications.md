@@ -5,6 +5,9 @@ catálogo y relacionarlos desde Ingredientes activos. Estado: implementado y
 publicado. Negocio: [PRODUCT](../PRODUCT.md#catálogos); controles:
 [catálogos](catalogs.md). El agente principal asume desarrollo, QA y autorrevisión.
 
+La relación única descrita abajo corresponde a la entrega original. La ampliación
+vigente es [clasificaciones múltiples y sinónimos](catalog-metadata.md).
+
 ## Recorrido y reglas
 
 El administrador abre **Usos de ingredientes**, crea una opción con nombre y

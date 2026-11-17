@@ -1,3 +1,4 @@
+import { classificationIds, validateIngredientSynonyms } from './catalog-metadata'
 import { applicationRoute } from './application-routes'
 import { sortNamed } from './list-order.ts'
 import type { CatalogKind, CatalogRecord, WorkspaceData } from './model'
@@ -60,7 +61,16 @@ export function validateCatalogEdit(data: CatalogEditContext, kind: CatalogKind,
   if (kind === 'application_methods' && row.application_route != null && !['foliar', 'irrigation'].includes(row.application_route)) errors.application_route = 'Selecciona Foliar o Riego.'
   if (kind === 'fields') relation('agricultural_units', row.agricultural_unit_id, existing?.agricultural_unit_id, 'agricultural_unit_id', 'una agrícola activa')
   if (kind === 'varieties') relation('crops', row.crop_id, existing?.crop_id, 'crop_id', 'un cultivo activo')
-  if (kind === 'active_ingredients' && row.classification_id) relation('ingredient_classifications', row.classification_id, existing?.classification_id, 'classification_id', 'una clasificación activa')
+  if (kind === 'active_ingredients' || kind === 'products') {
+    const ids = row.classification_ids ?? classificationIds(existing)
+    if (!Array.isArray(ids) || new Set(ids).size !== ids.length) errors.classification_ids = 'Selecciona cada clasificación una sola vez.'
+    else {
+      for (const id of ids) relation('ingredient_classifications', id, classificationIds(existing).includes(id) ? id : null, 'classification_ids', 'una clasificación activa')
+      if (row.classification_id && row.classification_ids !== undefined && !ids.includes(row.classification_id)) errors.classification_id = 'La principal debe estar entre las clasificaciones seleccionadas.'
+      if (row.classification_id) relation('ingredient_classifications', row.classification_id, classificationIds(existing).includes(row.classification_id) ? row.classification_id : null, 'classification_id', 'una clasificación activa')
+    }
+    if (kind === 'active_ingredients') Object.assign(errors, validateIngredientSynonyms(data.catalogs.active_ingredients, row))
+  }
   if (kind === 'products') {
     Object.assign(errors, validateProductSynonyms(data.catalogs.products, row))
     if (!['g', 'ml'].includes(row.unit ?? '')) errors.unit = 'Selecciona gramos o mililitros.'

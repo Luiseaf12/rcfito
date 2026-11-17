@@ -342,3 +342,11 @@ agua es opcional, sin cero artificial. Detalle, lista y PDF identifican la vía;
 la corrección solo ofrece medios de la misma vía. [Contrato y evidencia](flows/application-routes.md).
 Verificación automática y PDF aprobadas; navegador/móvil sin comprobar porque
 el control local está deshabilitado en Work.
+
+
+## Clasificaciones múltiples y sinónimos de ingredientes
+
+Ingredientes y productos comparten el catálogo Clasificaciones de uso, con selección
+propia, principal opcional y búsqueda/filtro por todas. Ingredientes añade sinónimos
+controlados. Validación en servidor y auditoría con autor/fecha; snapshots previos
+conservados. [Contrato, compatibilidad y controles](flows/catalog-metadata.md).

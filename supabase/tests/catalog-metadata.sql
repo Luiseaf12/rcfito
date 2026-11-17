@@ -1,0 +1,46 @@
+-- App fixtures already opened a transaction; all changes roll back.
+select pg_temp.expect_error($q$update public.products set classification_ids=null where code='P1'$q$,'lista','metadatos: lista nula rechazada');
+set local role authenticated;
+set local request.jwt.claim.sub='10000000-0000-4000-8000-000000000001';
+insert into public.ingredient_classifications(id,code,name) values
+ ('b1000000-0000-4000-8000-000000000001','MC1','Uso múltiple uno'),
+ ('b1000000-0000-4000-8000-000000000002','MC2','Uso múltiple dos');
+update public.active_ingredients set classification_ids=array['b1000000-0000-4000-8000-000000000001','b1000000-0000-4000-8000-000000000002']::uuid[],classification_id='b1000000-0000-4000-8000-000000000002',synonyms=array['Alias de prueba'] where code='I';
+select pg_temp.assert_true((select cardinality(classification_ids)=2 and synonyms=array['Alias de prueba'] from public.active_ingredients where code='I'),'metadatos: guarda selección múltiple y alias');
+select pg_temp.assert_true((select count(*)>0 from public.catalog_metadata_changes where kind='active_ingredients' and "after"->'synonyms' ? 'Alias de prueba'),'metadatos: historial con selección y alias');
+update public.active_ingredients set classification_id=null where code='I';
+select pg_temp.assert_true((select cardinality(classification_ids)=2 and classification_id is null from public.active_ingredients where code='I'),'metadatos: principal opcional conserva selección');
+select pg_temp.expect_error($q$update public.active_ingredients set classification_ids=array['b1000000-0000-4000-8000-000000000001']::uuid[],classification_id='b1000000-0000-4000-8000-000000000002' where code='I'$q$,'principal','metadatos: principal debe estar seleccionada');
+select pg_temp.expect_error($q$update public.active_ingredients set classification_ids=array['b1000000-0000-4000-8000-000000000001','b1000000-0000-4000-8000-000000000001']::uuid[] where code='I'$q$,'una sola vez','metadatos: duplicados rechazados');
+select pg_temp.expect_error($q$update public.active_ingredients set classification_ids=array['b1000000-0000-4000-8000-000000000099']::uuid[] where code='I'$q$,'disponible','metadatos: UUID inexistente rechazado');
+update public.ingredient_classifications set active=false where code='MC2';
+update public.active_ingredients set classification_id='b1000000-0000-4000-8000-000000000002' where code='I';
+select pg_temp.assert_true((select classification_id is not null from public.active_ingredients where code='I'),'metadatos: secundaria inactiva retenida puede ser principal');
+select pg_temp.expect_error($q$update public.products set classification_ids=array['b1000000-0000-4000-8000-000000000002']::uuid[] where code='P1'$q$,'activa','metadatos: producto no hereda inactiva del ingrediente');
+select pg_temp.expect_error($q$delete from public.ingredient_classifications where code='MC2'$q$,'relacionada','metadatos: secundaria protege eliminación');
+update public.products set classification_ids=array['b1000000-0000-4000-8000-000000000001']::uuid[] where code='P1';
+select pg_temp.assert_true((select cardinality(classification_ids)=1 and classification_id is null from public.products where code='P1'),'metadatos: producto tiene usos propios sin principal');
+select public.save_product('{"id":"72000000-0000-4000-8000-000000000001","code":"P1","name":"Producto original","unit":"g","default_dose":12,"classification_ids":[],"classification_id":null}', '[{"active_ingredient_id":"70000000-0000-4000-8000-000000000001","concentration":"50 g/L"}]');
+select pg_temp.assert_true((select cardinality(classification_ids)=0 from public.products where code='P1'),'metadatos: RPC guarda y retira usos atómicamente');
+select pg_temp.expect_error($q$select public.save_product('{"id":"72000000-0000-4000-8000-000000000001","code":"P1","name":"Cambio que debe revertirse","unit":"g","default_dose":12,"classification_ids":["b1000000-0000-4000-8000-000000000099"],"synonyms":[]}', '[]')$q$,'disponible','metadatos: RPC inválida rechazada');
+select pg_temp.assert_true((select name='Producto original' from public.products where code='P1') and (select count(*)=1 from public.product_ingredients where product_id='72000000-0000-4000-8000-000000000001'),'metadatos: error revierte nombre, composición y auditoría');
+select pg_temp.expect_error($q$update public.active_ingredients set synonyms=array['Duplicado','Dupli-cádo'] where code='I'$q$,'repetido','metadatos: alias normaliza acentos y separadores');
+select pg_temp.expect_error($q$update public.active_ingredients set synonyms=array['Ingrediente'] where code='I'$q$,'nombre','metadatos: alias no repite nombre propio');
+insert into public.active_ingredients(code,name,active,synonyms) values('MC-I2','Otro ingrediente reservado',false,array['Reservado']);
+select pg_temp.expect_error($q$update public.active_ingredients set synonyms=array['Reser-vádo'] where code='I'$q$,'identifica','metadatos: alias inactivo reservado');
+select pg_temp.expect_error($q$update public.active_ingredients set name='Reservado' where code='I'$q$,'sinónimo','metadatos: nombre no ocupa alias ajeno');
+select pg_temp.expect_error($q$insert into public.catalog_metadata_changes(kind,record_id,changed_by,changed_by_name) values('products',gen_random_uuid(),auth.uid(),'Inventado')$q$,'permission denied','metadatos: historial no falsificable');
+select pg_temp.expect_error($q$delete from public.catalog_metadata_changes$q$,'permission denied','metadatos: historial no eliminable por cliente');
+select pg_temp.assert_true((select bool_and(changed_by=auth.uid()) from public.catalog_metadata_changes),'metadatos: autor procede de sesión');
+set local request.jwt.claim.sub='10000000-0000-4000-8000-000000000002';
+select pg_temp.assert_true((select count(*)=0 from public.catalog_metadata_changes),'metadatos: lector no ve auditoría');
+update public.active_ingredients set synonyms=array['No permitido'] where code='I';
+select pg_temp.assert_true((select synonyms=array['Alias de prueba'] from public.active_ingredients where code='I'),'metadatos: lector no cambia sinónimos');
+set local request.jwt.claim.sub='10000000-0000-4000-8000-000000000001';
+reset role;
+update public.profiles set menu_permissions=array['catalog:active_ingredients'] where id='10000000-0000-4000-8000-000000000002';
+set local role authenticated;
+set local request.jwt.claim.sub='10000000-0000-4000-8000-000000000002';
+select pg_temp.assert_true(jsonb_array_length(public.menu_reference_catalogs()->'ingredient_classifications')=2,'metadatos: referencias mínimas incluyen clasificaciones secundarias');
+reset role;
+rollback;

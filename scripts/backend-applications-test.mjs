@@ -184,6 +184,21 @@ try {
         rollback;
       `);
     }
+    if(file.endsWith('_catalog_classifications_and_ingredient_synonyms.sql')) {
+      sql(`${applicationTests.slice(0,applicationTests.indexOf('-- Captura asistida:'))}
+        select public.create_application_order(pg_temp.order_data(),pg_temp.stages(),pg_temp.mixture());
+        reset role;
+        insert into public.ingredient_classifications(id,code,name) values('b9000000-0000-4000-8000-000000000001','UP-M','Uso existente');
+        update public.active_ingredients set classification_id='b9000000-0000-4000-8000-000000000001' where code='I';
+        create temp table before_metadata_upgrade as select (select jsonb_agg(to_jsonb(o) order by id) from public.application_orders o) orders,(select jsonb_agg(to_jsonb(t) order by id) from public.application_targets t) targets;
+        ${migrationBody(source)}
+        select pg_temp.assert_true((select classification_ids=array[classification_id] and synonyms='{}' from public.active_ingredients where code='I'),'metadatos upgrade: conserva principal existente y no inventa alias');
+        select pg_temp.assert_true((select count(*)=0 from public.catalog_metadata_changes),'metadatos upgrade: no inventa historial');
+        select pg_temp.assert_true((select jsonb_agg(to_jsonb(o) order by id) from public.application_orders o)=(select orders from before_metadata_upgrade),'metadatos upgrade: conserva recetas completas');
+        select pg_temp.assert_true((select jsonb_agg(to_jsonb(t) order by id) from public.application_targets t)=(select targets from before_metadata_upgrade),'metadatos upgrade: conserva destinos e indicaciones');
+        rollback;
+      `);
+    }
     sql(source);
   }
   sql(readFileSync(resolve(root, 'supabase/tests/catalogs-and-sowing.sql'), 'utf8'));
@@ -202,6 +217,7 @@ try {
   sql(applicationTests.slice(0, applicationTests.indexOf('-- Captura asistida:')) + readFileSync(resolve(root, 'supabase/tests/menu-permissions.sql'), 'utf8'));
   sql(applicationTests.slice(0, applicationTests.indexOf('-- Captura asistida:')) + readFileSync(resolve(root, 'supabase/tests/application-routes.sql'), 'utf8'));
   sql(applicationTests.slice(0, applicationTests.indexOf('-- Captura asistida:')) + readFileSync(resolve(root, 'supabase/tests/appearance.sql'), 'utf8'));
+  sql(applicationTests.slice(0, applicationTests.indexOf('-- Captura asistida:')) + readFileSync(resolve(root, 'supabase/tests/catalog-metadata.sql'), 'utf8'));
   console.log(`Backend aplicaciones verificado: ${migrations.length} migración(es), fixtures aislados y controles de RLS/integridad. Auth es un stub de prueba; REST/Auth reales requieren integración aparte.`);
 } finally {
   if (started) removeOwnedContainer();
