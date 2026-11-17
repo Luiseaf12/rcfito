@@ -253,4 +253,4 @@ La evidencia de publicación está en OPERATIONS.
 
 | ID | Trabajo | Estado | Responsable | Próxima acción | Fuente |
 | --- | --- | --- | --- | --- | --- |
-| RCF-047 | Varias clasificaciones para ingredientes/productos, principal opcional, sinónimos de ingredientes e historial. | en desarrollo | Agente principal | Completar QA aislado, respaldo, migración y publicación. | [Contrato y aceptación](flows/catalog-metadata.md) |
+| RCF-047 | Varias clasificaciones para ingredientes/productos, principal opcional, sinónimos de ingredientes e historial. | cerrada | Agente principal | Fuente 573fd41 en GitHub, Docker y Sites 48. 406 pruebas, 574 SQL, 315 HTTP, advisors y QA móvil aprobados; respaldo, ledger 16/0, 88 controles publicados y 20 HTTPS. | [Contrato y aceptación](flows/catalog-metadata.md) |

@@ -885,3 +885,16 @@ once HTTP nuevas con Auth real, RLS y relectura. Advisors sin WARN/ERROR y
 entornos ficticios retirados. No se probaron formularios en navegador porque
 Computer Use está deshabilitado en Work; esa cobertura continúa pendiente.
 [Casos y límites](flows/appearance.md#evidencia-y-límites).
+
+
+## Clasificaciones múltiples y sinónimos — RCF-047
+
+2026-11-17: 406 pruebas cliente, 574 controles SQL y 315 HTTP/Auth/REST/Edge/RLS
+aprobados; tipos/build/checker y advisors sin WARN/ERROR. Incluye actualización de
+principales previas, rollback atómico y concurrencia de alias. QA demo de selección,
+principal opcional, alias/búsqueda tras recarga, filtro secundario, historial,
+error conservando formulario, descarte y móvil 375 px sin overflow; viewport restaurado.
+Autorrevisión. Producción: cero vulnerabilidades npm; cinco altas previas de tooling.
+[Contrato y límites](flows/catalog-metadata.md). Fuente 573fd41 publicada en Docker
+y Sites 48; 88 controles posteriores y 20 HTTPS aprobados. Respaldo validado,
+ledger 16/0 y registros/historial/roles conservados. [Operación](OPERATIONS.md#clasificaciones-múltiples-y-sinónimos--rcf-047).

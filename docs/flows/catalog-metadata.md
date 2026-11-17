@@ -1,6 +1,6 @@
 # Clasificaciones múltiples y sinónimos de ingredientes — RCF-047
 
-Autorizado por el Propietario el 2026-11-17. Estado: implementación verificada; migración/publicación en curso.
+Autorizado por el Propietario el 2026-11-17. Estado: implementado y publicado en Sites 48; Docker actualizado.
 El agente principal asume diseño, desarrollo, QA y autorrevisión.
 
 ## Reglas y recorrido
@@ -70,3 +70,15 @@ alterar recetas/destinos, rollback de nombre/composición ante error y auditorí
 inmutable. 315 comprobaciones Auth/REST/Edge/RLS aprobadas en stack aislado;
 reserva concurrente de sinónimo con exactamente una aceptación. Advisors sin
 WARN/ERROR. El entorno ficticio quedó detenido y sus datos retirados.
+
+
+Cierre: fuente `573fd414a3d065b84ca75206b608d96e791330ef` enviada a GitHub,
+Docker y Sites 48 succeeded. Respaldo privado custom validado (644,583 bytes),
+ledger SHA-256 16/0 y comparación de todas las tablas de negocio y auditoría previa
+idéntica, excluyendo solo las columnas aditivas verificadas. Principales existentes
+conservadas, sinónimos/productos sin inferencias e historial nuevo vacío al migrar.
+37 recursos estáticos exactos por destino, entrada y seis controles de configuración/
+Auth/rechazo anónimo por destino (88 en total); 20 controles HTTPS adicionales.
+Audiencia pública, R2 y entorno revisión 1 conservados. Sin fixtures operativos,
+sin tocar secretos, volúmenes ni el .env preexistente.
+[Publicación y recuperación](../OPERATIONS.md#clasificaciones-múltiples-y-sinónimos--rcf-047).

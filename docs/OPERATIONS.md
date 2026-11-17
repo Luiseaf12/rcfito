@@ -1133,3 +1133,33 @@ Worker y se conserva su configuración gestionada de Sites.
 Revisión visual pendiente: el navegador local está deshabilitado en Work.
 No se atribuyen recorridos UI a las pruebas de API/SQL/contraste. RCF-034 sigue
 en verificación por esa cobertura; sus funciones y publicación están disponibles.
+
+
+## Clasificaciones múltiples y sinónimos — RCF-047
+
+2026-11-17: fuente `573fd414a3d065b84ca75206b608d96e791330ef` en GitHub,
+Docker healthy y Sites 48. [Contrato y evidencia](flows/catalog-metadata.md).
+406 pruebas cliente, 574 SQL y 315 Auth/REST/Edge/RLS aprobados; advisors sin
+WARN/ERROR, tipos/build/checker válidos y QA ficticio escritorio/móvil 375 px.
+Autorrevisión; no se atribuye revisión independiente. Auditoría npm de producción
+sin vulnerabilidades; cinco alertas altas de tooling previo quedan documentadas.
+Se conserva la advertencia previa de chunk principal mayor a 500 kB.
+
+Respaldo PostgreSQL custom privado validado: 644,583 bytes. Migración aditiva
+20261117211922_catalog_classifications_and_ingredient_synonyms.sql aplicada con
+ledger SHA-256: 16 aplicadas/0 pendientes. Comparación de todas las tablas públicas
+y auditoría privada previa idéntica al excluir solo columnas nuevas; backfill
+verificado, sin clasificaciones inferidas, sinónimos inventados ni eventos anteriores
+falsos. Roles y agrícolas intactos; secretos/volúmenes conservados. Sin fixtures
+en operación ni lectura/modificación del .env raíz. El respaldo privado se conserva
+en .artifacts/production-supabase/backups/catalog-metadata-<fecha>/; recuperación
+requiere detener escrituras, restauración en entorno separado y validación previa.
+
+Sites confirmó succeeded para versión
+`appgprj_6ae67ae019e88191a7012093bb19c505~appgver_29c2c79a56e08191b81818c819db8094`,
+despliegue `appgdep_6afcc94b29ac8191a9cf545967ba257b`, en
+[RCFito](https://rcfito.paxxa.chatgpt.site). Audiencia pública, R2 y entorno revisión
+1 conservados. Entrada /assets/index-XQgU5beG.js y 37 recursos exactos por destino;
+configuración del mismo origen, salud Auth 200 y rechazos anónimos 401 del historial,
+ingredientes y RPC válidas: 88 controles. Otros 20 controles HTTPS aprobados sin
+crear cuentas/registros. Evidencia ficticia privada fuera de Git.
