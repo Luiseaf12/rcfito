@@ -260,4 +260,4 @@ La evidencia de publicación está en OPERATIONS.
 
 | ID | Trabajo | Estado | Responsable | Próxima acción | Fuente |
 | --- | --- | --- | --- | --- | --- |
-| RCF-048 | Retirar clasificaciones propias de Productos, heredar de ingredientes y congelar/reconstruir aplicaciones para reportes. | en verificación | Agente principal | 409 pruebas, 601 SQL y 331 HTTP aprobados; advisors y QA escritorio/móvil/PDF válidos. Completar respaldo, migración de operación y publicación autorizada. | [Contrato y aceptación](flows/inherited-classifications.md) |
+| RCF-048 | Retirar clasificaciones propias de Productos, heredar de ingredientes y congelar/reconstruir aplicaciones para reportes. | cerrada | Agente principal | Fuente 149b1e5 en GitHub, Docker y Sites 49. 409 pruebas, 601 SQL, 331 HTTP, advisors y QA escritorio/móvil/PDF aprobados. Respaldo, migración 17/0 y 99 controles publicados válidos; publicador automático reanudado con autorización y renovación comprobada. | [Contrato y aceptación](flows/inherited-classifications.md) |

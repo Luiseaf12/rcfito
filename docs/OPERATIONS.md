@@ -1163,3 +1163,21 @@ despliegue `appgdep_6afcc94b29ac8191a9cf545967ba257b`, en
 configuración del mismo origen, salud Auth 200 y rechazos anónimos 401 del historial,
 ingredientes y RPC válidas: 88 controles. Otros 20 controles HTTPS aprobados sin
 crear cuentas/registros. Evidencia ficticia privada fuera de Git.
+
+## Clasificaciones heredadas y reconstrucción — RCF-048
+
+2026-11-19: fuente `149b1e508789362a277e59b701bbd40803197084` en GitHub, Docker
+healthy y Sites 49. [Contrato, respaldo y evidencia](flows/inherited-classifications.md).
+409 pruebas cliente, 601 SQL y 331 Auth/REST/Edge/RLS, advisors sin WARN/ERROR,
+tipos/build/checker y QA ficticio escritorio/móvil/PDF aprobados. Respaldo custom
+privado validado de 671,097 bytes; ledger 17/0. Capturas anteriores reconstruidas,
+datos originales y permisos conservados; selecciones propias de Productos y sus
+claves obsoletas de metadatos eliminadas sin crear archivo adicional.
+
+Despliegue `appgdep_6aff54c1c75c8191a987b7cce3101fb5` succeeded en
+[RCFito](https://rcfito.paxxa.chatgpt.site), versión 49; audiencia, R2 y entorno 1
+conservados. 37 recursos de aplicación exactos y 90 controles Docker/Sites más 9
+de conexión aprobados. Renovación puntual del túnel realizada sin reinicios.
+La tarea automática se encontró detenida; tras autorización explícita del
+Propietario se inició la tarea existente. Running, heartbeat updated y renovación
+automática confirmados; contenedor de datos conservó arranque y salud. Entrega cerrada.

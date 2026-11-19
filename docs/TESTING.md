@@ -898,3 +898,14 @@ Autorrevisión. Producción: cero vulnerabilidades npm; cinco altas previas de t
 [Contrato y límites](flows/catalog-metadata.md). Fuente 573fd41 publicada en Docker
 y Sites 48; 88 controles posteriores y 20 HTTPS aprobados. Respaldo validado,
 ledger 16/0 y registros/historial/roles conservados. [Operación](OPERATIONS.md#clasificaciones-múltiples-y-sinónimos--rcf-047).
+
+## Clasificaciones heredadas — RCF-048
+
+2026-11-19: 409 pruebas cliente, 601 SQL y 331 Auth/REST/Edge/RLS aislados
+aprobados; advisors sin WARN/ERROR, tipos/build/checker y 38 contrastes válidos.
+QA ficticio de herencia actual, historia congelada, filtro sin duplicar cantidades,
+375 px sin desbordamiento de página y PDF renderizado aprobados. Migración con
+revisiones/correcciones preexistentes conserva originales. Comparación privada
+en operación válida y ledger 17/0. 90 controles publicados más 9 de conexión;
+publicador automático Running y renovación vigente comprobados tras autorización.
+[Evidencia y límites](flows/inherited-classifications.md).
