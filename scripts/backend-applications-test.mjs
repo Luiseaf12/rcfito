@@ -199,6 +199,38 @@ try {
         rollback;
       `);
     }
+    if(file.endsWith('_inherited_application_classifications.sql')) {
+      sql(`${applicationTests.slice(0,applicationTests.indexOf('-- Captura asistida:'))}
+        insert into public.ingredient_classifications(id,code,name) values('c1000000-0000-4000-8000-000000000001','UP-I','Uso ingrediente actual'),('c1000000-0000-4000-8000-000000000002','UP-P','Uso propio descartado');
+        update public.active_ingredients set classification_id='c1000000-0000-4000-8000-000000000001',classification_ids=array['c1000000-0000-4000-8000-000000000001']::uuid[] where code='I';
+        update public.products set classification_id='c1000000-0000-4000-8000-000000000002',classification_ids=array['c1000000-0000-4000-8000-000000000002']::uuid[] where code='P1';
+        select public.create_application_order(pg_temp.order_data(),pg_temp.stages(),pg_temp.mixture());
+        select public.perform_application_targets('90000000-0000-4000-8000-000000000001',array[(pg_temp.target_ids('90000000-0000-4000-8000-000000000001'))[1]],'{"changed":false,"actual_date":"2026-01-06"}');
+        select public.revise_application_order(jsonb_build_object('id','c3000000-0000-4000-8000-000000000001','order_id','90000000-0000-4000-8000-000000000001','expected_revision',0,'target_ids',array[(pg_temp.target_ids('90000000-0000-4000-8000-000000000001'))[2]],'method_id','71000000-0000-4000-8000-000000000001','indicated_date','2026-01-04','scheduled_date','2026-01-07','water_l_ha',100,'observations','Revisión previa','reason','Prueba de migración'),pg_temp.mixture());
+        select public.correct_application_target(jsonb_build_object('id','c3000000-0000-4000-8000-000000000002','target_id',(pg_temp.target_ids('90000000-0000-4000-8000-000000000001'))[1],'expected_version',0,'actual_date','2026-01-06','water_l_ha',110,'equipment','Equipo','applicator','Persona ficticia','observations','Corrección previa','reason','Prueba de migración'),pg_temp.mixture());
+        reset role;
+        create temp table before_inherited_upgrade as select
+         (select jsonb_agg(to_jsonb(o) order by id) from public.application_orders o) orders,
+         (select jsonb_agg(to_jsonb(t) order by id) from public.application_targets t) targets,
+         (select jsonb_agg(to_jsonb(c) order by id) from public.application_changes c) changes,
+         (select jsonb_agg(to_jsonb(c) order by change_id,phase,product_id) from public.application_change_products c) change_products,
+         (select jsonb_agg(to_jsonb(p) order by order_id,product_id) from public.application_order_products p) order_products,
+         (select jsonb_agg(to_jsonb(p) order by target_id,product_id) from public.application_actual_products p) actual_products;
+        ${migrationBody(source)}
+        select pg_temp.assert_true((select jsonb_agg(to_jsonb(o) order by id) from public.application_orders o)=(select orders from before_inherited_upgrade),'herencia upgrade: conserva folios, firmas y numeración');
+        select pg_temp.assert_true((select jsonb_agg(to_jsonb(t) order by id) from public.application_targets t)=(select targets from before_inherited_upgrade),'herencia upgrade: conserva estados, áreas y destinos');
+        select pg_temp.assert_true((select jsonb_agg(to_jsonb(c) order by id) from public.application_changes c)=(select changes from before_inherited_upgrade),'herencia upgrade: no reescribe documentos antes/después ni firmas');
+        select pg_temp.assert_true((select jsonb_agg(to_jsonb(c)-'classification_snapshot' order by change_id,phase,product_id) from public.application_change_products c)=(select change_products from before_inherited_upgrade),'herencia upgrade: conserva cada línea de corrección');
+        select pg_temp.assert_true((select jsonb_agg(to_jsonb(p)-'classification_snapshot' order by order_id,product_id) from public.application_order_products p)=(select order_products from before_inherited_upgrade),'herencia upgrade: conserva productos indicados originales');
+        select pg_temp.assert_true((select jsonb_agg(to_jsonb(p)-'classification_snapshot' order by target_id,product_id) from public.application_actual_products p)=(select actual_products from before_inherited_upgrade),'herencia upgrade: conserva productos realmente aplicados');
+        select pg_temp.assert_true((select bool_and(classification_snapshot->>'origin'='reconstructed') from public.application_order_products),'herencia upgrade: indicaciones anteriores reconstruidas');
+        select pg_temp.assert_true((select bool_and(classification_snapshot->>'origin'='reconstructed') from public.application_actual_products),'herencia upgrade: realizaciones anteriores reconstruidas');
+        select pg_temp.assert_true((select bool_and(classification_snapshot->>'origin'='reconstructed') from public.application_change_products),'herencia upgrade: ambas fases históricas reconstruidas');
+        select pg_temp.assert_true((select bool_and(classification_snapshot->'classifications' @> '[{"id":"c1000000-0000-4000-8000-000000000001"}]') from public.application_change_products where product_id='72000000-0000-4000-8000-000000000001'),'herencia upgrade: utiliza ingredientes actuales en todas las versiones');
+        select pg_temp.assert_true(not exists(select 1 from public.catalog_metadata_changes where kind='products' and ("before" ? 'classifications' or "after" ? 'classifications')),'herencia upgrade: elimina selecciones propias sin archivo adicional');
+        rollback;
+      `);
+    }
     sql(source);
   }
   sql(readFileSync(resolve(root, 'supabase/tests/catalogs-and-sowing.sql'), 'utf8'));
@@ -218,6 +250,7 @@ try {
   sql(applicationTests.slice(0, applicationTests.indexOf('-- Captura asistida:')) + readFileSync(resolve(root, 'supabase/tests/application-routes.sql'), 'utf8'));
   sql(applicationTests.slice(0, applicationTests.indexOf('-- Captura asistida:')) + readFileSync(resolve(root, 'supabase/tests/appearance.sql'), 'utf8'));
   sql(applicationTests.slice(0, applicationTests.indexOf('-- Captura asistida:')) + readFileSync(resolve(root, 'supabase/tests/catalog-metadata.sql'), 'utf8'));
+  sql(applicationTests.slice(0, applicationTests.indexOf('-- Captura asistida:')) + readFileSync(resolve(root, 'supabase/tests/inherited-classifications.sql'), 'utf8'));
   console.log(`Backend aplicaciones verificado: ${migrations.length} migración(es), fixtures aislados y controles de RLS/integridad. Auth es un stub de prueba; REST/Auth reales requieren integración aparte.`);
 } finally {
   if (started) removeOwnedContainer();

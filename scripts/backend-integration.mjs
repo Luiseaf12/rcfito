@@ -1,3 +1,4 @@
+import {verifyInheritedClassifications} from './backend-inherited-http-checks.mjs';
 import { verifyCatalogMetadata } from './backend-metadata-http-checks.mjs';
 import { verifyThemePreferences } from './backend-theme-http-checks.mjs';
 import { verifyApplicationRoutes } from './backend-route-http-checks.mjs';
@@ -587,6 +588,7 @@ try {
   check((await request(`/rest/v1/active_ingredients?id=eq.${classifiedIngredientId}`, adminToken, { classification_id: null, classification_ids: [] }, 'PATCH')).status === 204, 'Clasificaciones: administrador puede retirar relación');
   check((await request(`/rest/v1/ingredient_classifications?id=eq.${classificationId}`, adminToken, undefined, 'DELETE')).status === 204, 'Clasificaciones: eliminación libre confirmada');
 
+  await verifyInheritedClassifications({request,check,adminToken,readerToken,readerId:reader.id});
   await verifyCatalogMetadata({request,check,adminToken,readerToken});
   await verifyLotCorrections({ request, check, adminToken, readerToken, noAccessToken, readerId: reader.id });
   await verifyApplicationImage(adminToken,readerToken,noAccessToken,reader.id);

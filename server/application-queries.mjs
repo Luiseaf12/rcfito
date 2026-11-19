@@ -27,7 +27,7 @@ export function normalizeMallaQuery(query, message, context = {}) {
   const { field: ignoredField, ...rest } = query;
   return { ...rest, lot: malla };
 }
-const queryIds = ['agricultural_unit_id', 'project_id', 'field_id', 'lot_id', 'stage_id', 'product_id', 'order_id'];
+const queryIds = ['agricultural_unit_id', 'project_id', 'field_id', 'lot_id', 'stage_id', 'product_id', 'order_id', 'classification_id'];
 const queryNames = ['agricultural_unit', 'project', 'field', 'lot', 'product', 'folio'];
 const queryKeys = ['operation', ...queryIds, ...queryNames, 'stage_number', 'from', 'to', 'status', 'limit', 'offset'];
 const queryUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;

@@ -1,3 +1,4 @@
+import { classificationText } from '@/domain/inherited-classifications'
 import { useState } from 'react'
 import { reportNumber as number } from '@/lib/report-format'
 import type { ProductUsageSummary } from '@/domain/product-usage'
@@ -5,6 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { formatDate, RecordDialog } from './shared'
+
+export function UsageClassifications({product}:{product:ProductUsageSummary}) { return <p className="record-secondary muted">{product.classifications?.map(item=>item.name).join(' · ') || 'Sin clasificaciones'}{product.reconstructedCount ? ` · ${product.reconstructedCount} registro(s) con clasificación reconstruida` : ''}{product.classificationIncompleteCount ? ' · Incluye clasificación incompleta' : ''}</p> }
 
 export const PAGE_SIZE = 10
 const historyStatusLabels = { indicated: 'Indicada', performed: 'Realizada', cancelled: 'Cancelada' }
@@ -35,10 +38,10 @@ export function ProductHistory({ product, onClose, context }: { product: Product
     </dl>
     <Table>
       <TableCaption>Realizadas: datos y fecha reales. Indicadas y canceladas: datos y fecha de su indicación histórica. Cantidad calculada = dosis × superficie.</TableCaption>
-      <TableHeader><TableRow><TableHead>Fecha del registro</TableHead><TableHead>Estado</TableHead><TableHead>Destino</TableHead><TableHead>Superficie</TableHead><TableHead>Dosis</TableHead><TableHead>Cantidad calculada</TableHead></TableRow></TableHeader>
+      <TableHeader><TableRow><TableHead>Fecha del registro</TableHead><TableHead>Estado</TableHead><TableHead>Clasificaciones históricas</TableHead><TableHead>Destino</TableHead><TableHead>Superficie</TableHead><TableHead>Dosis</TableHead><TableHead>Cantidad calculada</TableHead></TableRow></TableHeader>
       <TableBody>{rows.map(row => <TableRow key={row.targetId}>
         <TableCell>{formatDate(row.recordDate)}<div className="record-secondary muted">{row.folio}</div><div className="record-secondary muted">{row.source === 'actual' ? 'Realización' : 'Indicación'}</div></TableCell><TableCell><Badge variant="secondary">{historyStatusLabels[row.status]}</Badge></TableCell>
-        <TableCell><span className="record-name">{row.lotName} · {row.subdivisionName}</span><div className="record-secondary muted">Etapa {row.stageNumber} · {row.cropName}</div><div className="record-secondary muted">{row.agriculturalUnitName} · {row.fieldName}</div><div className="record-secondary muted">{row.projectName} · {row.season}</div></TableCell>
+        <TableCell>{classificationText(row.classification_snapshot)}</TableCell><TableCell><span className="record-name">{row.lotName} · {row.subdivisionName}</span><div className="record-secondary muted">Etapa {row.stageNumber} · {row.cropName}</div><div className="record-secondary muted">{row.agriculturalUnitName} · {row.fieldName}</div><div className="record-secondary muted">{row.projectName} · {row.season}</div></TableCell>
         <TableCell className="numeric">{number.format(row.areaHa)} ha</TableCell><TableCell className="numeric">{dose(row.dose, product.unit)}</TableCell><TableCell className="numeric">{quantity(row.quantity, product.unit)}</TableCell>
       </TableRow>)}</TableBody>
     </Table>

@@ -8,6 +8,7 @@ export type ApplicationQueryFilters = {
   field_id?: string
   lot_id?: string
   stage_id?: string
+  classification_id?: string
   product_id?: string
   order_id?: string
   agricultural_unit?: string
@@ -64,7 +65,7 @@ export const APPLICATION_AUDIO_MAX_BYTES = 10 * 1024 * 1024
 export const APPLICATION_AUDIO_MAX_SECONDS = 120
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 const stringKeys = ['agricultural_unit', 'project', 'field', 'lot', 'product', 'folio'] as const
-const idKeys = ['agricultural_unit_id', 'project_id', 'field_id', 'lot_id', 'stage_id', 'product_id', 'order_id'] as const
+const idKeys = ['agricultural_unit_id', 'project_id', 'field_id', 'lot_id', 'stage_id', 'product_id', 'order_id', 'classification_id'] as const
 const operations: ApplicationQueryOperation[] = ['pendientes', 'historial', 'uso_producto', 'detalle', 'cambios']
 const object = (value: unknown): value is Record<string, unknown> => Boolean(value) && typeof value === 'object' && !Array.isArray(value)
 const filterSourceLabels: Record<ApplicationQueryFilterSource, string> = {

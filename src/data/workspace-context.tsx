@@ -1,3 +1,4 @@
+import { completeInheritedWorkspace } from '@/domain/inherited-classifications'
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { canViewMenu, type MenuKey } from '@/domain/menu-permissions'
@@ -17,7 +18,9 @@ import { readAppearance, isAppearance, type Appearance } from '@/domain/appearan
 
 const demoKey='rcfito.demo.v1'
 type CreateUserInput={email:string;password:string;display_name:string;role:'viewer'|'admin';agricultural_unit_ids:string[];menu_permissions?:MenuKey[]}
-const initialDemo=()=>{try {const parsed=JSON.parse(localStorage.getItem(demoKey)??'null'); if(parsed?.catalogs&&parsed?.projects&&parsed?.profiles)return {...emptyWorkspace(),...parsed,catalogs:completeCatalogs(parsed.catalogs),applicationOrders:parsed.applicationOrders??[],applicationTargets:parsed.applicationTargets??[],applicationChanges:parsed.applicationChanges??[],sowingGroups:parsed.sowingGroups??[]} as WorkspaceData}catch{/* Start fresh after invalid demo data. */}return createDemoData()}
+const readInitialDemo=()=>{try {const parsed=JSON.parse(localStorage.getItem(demoKey)??'null'); if(parsed?.catalogs&&parsed?.projects&&parsed?.profiles)return {...emptyWorkspace(),...parsed,catalogs:completeCatalogs(parsed.catalogs),applicationOrders:parsed.applicationOrders??[],applicationTargets:parsed.applicationTargets??[],applicationChanges:parsed.applicationChanges??[],sowingGroups:parsed.sowingGroups??[]} as WorkspaceData}catch{/* Start fresh after invalid demo data. */}return createDemoData()}
+const initialDemo=()=>completeInheritedWorkspace(readInitialDemo())
+
 type WorkspaceContextValue={loadAppearance:()=>Promise<Appearance>;saveAppearance:(theme:Appearance)=>Promise<Appearance>;data:WorkspaceData;profile:UserProfile;isAdmin:boolean;mode:'demo'|'supabase';loading:boolean;error:string|null;warning:string|null;authenticated:boolean;connection:Connection|null;mutate:(c:WorkspaceCommand)=>Promise<void>;refresh:()=>Promise<void>;configure:(c:Connection|null)=>void;signIn:(email:string,password:string)=>Promise<void>;signOut:()=>Promise<void>;setDemoRole:(role:'admin'|'reader')=>void;resetDemo:()=>void;createUser:(input:CreateUserInput)=>Promise<void>;interpretApplication:(message:string,signal?:AbortSignal)=>Promise<ExtractedApplication>;interpretImage:(message:string,image:CaptureImage,signal?:AbortSignal)=>Promise<ImageExtraction>;loadAiSettings:(signal?:AbortSignal)=>Promise<AiSettingsStatus>;testAiSettings:(input:AiSettingsInput,signal?:AbortSignal)=>Promise<AiSettingsTestResult>;saveAiSettings:(input:AiSettingsSaveInput,signal?:AbortSignal)=>Promise<AiSettingsStatus>}
 type ChatWorkspaceContextValue = WorkspaceContextValue & {
   queryApplications: (message: string, context?: ApplicationQueryFilters, previousQuery?: ApplicationQueryFilters | null, signal?: AbortSignal) => Promise<ApplicationChatResponse>
@@ -57,14 +60,14 @@ export function WorkspaceProvider({children}:{children:ReactNode}) {
   const mutate=useCallback(async(c:WorkspaceCommand)=>{
     if(profile.role!=='admin'||profile.active===false)throw new Error('Solo la administración puede guardar cambios.')
     setWarning(null)
-    if(!client){const next=applyCommand(dataRef.current,c,profile);localStorage.setItem(demoKey,JSON.stringify(next));dataRef.current=next;setData(next);return}
+    if(!client){const next=completeInheritedWorkspace(applyCommand(dataRef.current,c,profile),dataRef.current);localStorage.setItem(demoKey,JSON.stringify(next));dataRef.current=next;setData(next);return}
     await writeCommand(client,c)
     try{await refresh()}catch{setWarning('El cambio se guardó, pero no se pudo actualizar la vista. Usa Actualizar; no repitas la captura.')}
   },[client,profile,refresh])
   const configure=(c:Connection|null)=>{setConnection(saveConnection(c))}
   const signIn=async(email:string,password:string)=>{if(!client)throw new Error('Primero configura la conexión.');const{error}=await client.auth.signInWithPassword({email,password});if(error)throw error}
   const signOut=async()=>{if(!client)return;const{error}=await client.auth.signOut();if(error)throw error;setData(emptyWorkspace());setSession(null)}
-  const resetDemo=()=>{const next=createDemoData();localStorage.setItem(demoKey,JSON.stringify(next));dataRef.current=next;setData(next);setDemoRole('admin')}
+  const resetDemo=()=>{const next=completeInheritedWorkspace(createDemoData());localStorage.setItem(demoKey,JSON.stringify(next));dataRef.current=next;setData(next);setDemoRole('admin')}
   const createUser=async(input:CreateUserInput)=>{if(!client||profile.role!=='admin')throw new Error('El alta de cuentas requiere conexión real y sesión de administración.');const{data,error}=await client.functions.invoke('admin-create-user',{body:input});if(error)throw error;if(data?.error)throw new Error(data.error);try{await refresh()}catch{setWarning('La cuenta se creó, pero no se pudo actualizar la lista. Actualiza la vista sin repetir el alta.')}}
   const interpretApplication=async(message:string,signal?:AbortSignal)=>{
     if(!client||profile.role!=='admin')throw new Error('La interpretación con IA requiere una sesión real de administración.')

@@ -9,9 +9,9 @@ export async function verifyCatalogMetadata({request,check,adminToken,readerToke
   check(row.classification_ids.length===2&&row.synonyms[0]===alias,'Metadatos HTTP: relectura por lector');
   check(ok(await request(`/rest/v1/active_ingredients?id=eq.${i1}`,adminToken,{classification_id:null},'PATCH')),'Metadatos HTTP: retira principal sin retirar usos');
   check((await request(`/rest/v1/ingredient_classifications?id=eq.${c2}`,adminToken,undefined,'DELETE')).status===409,'Metadatos HTTP: secundaria protege eliminación');
-  const saved=await request('/rest/v1/rpc/save_product',adminToken,{p_data:{code:`MCP-${suffix}`,name:`Producto múltiple ${suffix}`,unit:'ml',classification_ids:[c1],classification_id:c1,synonyms:[]},p_ingredients:[{active_ingredient_id:i1,concentration:'1 g/L'}]}); p=saved.data; check(ok(saved),'Metadatos HTTP: RPC producto con selección propia');
-  row=(await request(`/rest/v1/products?id=eq.${p}`,readerToken)).data[0];
-  check(row.classification_ids.length===1&&row.classification_id===c1,'Metadatos HTTP: no hereda usos de ingrediente');
+  const saved=await request('/rest/v1/rpc/save_product',adminToken,{p_data:{code:`MCP-${suffix}`,name:`Producto múltiple ${suffix}`,unit:'ml',synonyms:[]},p_ingredients:[{active_ingredient_id:i1,concentration:'1 g/L'}]}); p=saved.data; check(ok(saved),'Metadatos HTTP: RPC producto con selección propia');
+  row=(await request('/rest/v1/rpc/catalog_product_classifications',readerToken,{})).data[p];
+  check(row.classifications.length===2,'Metadatos HTTP: hereda ambas clasificaciones del ingrediente');
   check((await request(`/rest/v1/active_ingredients?id=eq.${i1}`,adminToken,{classification_ids:[c1],classification_id:c2},'PATCH')).status>=400,'Metadatos HTTP: principal fuera del conjunto rechazada');
   check(ok(await request('/rest/v1/active_ingredients',adminToken,{id:i2,code:`MCI2-${suffix}`,name:`Segundo ingrediente ${suffix}`})),'Metadatos HTTP: segundo ingrediente');
   check((await request(`/rest/v1/active_ingredients?id=eq.${i2}`,adminToken,{synonyms:[alias.toUpperCase()]},'PATCH')).status>=400,'Metadatos HTTP: alias equivalente de otro ingrediente rechazado');

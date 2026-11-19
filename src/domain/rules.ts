@@ -63,14 +63,14 @@ export function applyCommand(input: WorkspaceData, command: WorkspaceCommand, pr
       }
       const index=d.catalogs[command.kind].findIndex(r=>r.id===row.id)
       const previous = d.catalogs[command.kind][index]
-      if (command.kind === 'products' || command.kind === 'active_ingredients') {
+      if (command.kind === 'active_ingredients') {
         row.classification_ids ??= classificationIds(previous)
         if (row.classification_id && !row.classification_ids.includes(row.classification_id)) row.classification_ids = [...row.classification_ids, row.classification_id]
       }
       const saved = { ...previous, ...row, id: previous?.id ?? uuid() }
       if(index<0) d.catalogs[command.kind].push(saved); else d.catalogs[command.kind][index]=saved
       if (command.kind === 'products' || command.kind === 'active_ingredients') {
-        const before = previous ? metadataSnapshot(previous, d) : null, after = metadataSnapshot(saved, d)
+        const before = previous ? metadataSnapshot(previous, d, command.kind) : null, after = metadataSnapshot(saved, d, command.kind)
         if (JSON.stringify(before) !== JSON.stringify(after)) (d.catalogMetadataChanges ??= []).push({ id: uuid(), kind: command.kind, record_id: saved.id, changed_by_name: profile.full_name, changed_at: new Date().toISOString(), before, after })
       }
       break
@@ -85,12 +85,12 @@ export function applyCommand(input: WorkspaceData, command: WorkspaceCommand, pr
         :kind==='infrastructure_types'?d.lots.some(l=>l.infrastructure_type_id===id)
         :kind==='brands'?d.catalogs.products.some(p=>p.brand_id===id)
         :kind==='product_families'?d.catalogs.products.some(p=>p.family_id===id)
-        :kind==='ingredient_classifications'?[...d.catalogs.active_ingredients,...d.catalogs.products].some(item=>classificationIds(item).includes(id))
+        :kind==='ingredient_classifications'?d.catalogs.active_ingredients.some(item=>classificationIds(item).includes(id))
         :kind==='active_ingredients'?d.catalogs.products.some(p=>p.ingredients?.some(i=>i.ingredient_id===id))
         :kind==='products'?d.applicationOrders.some(o=>o.products.some(p=>p.product_id===id))||d.applicationTargets.some(t=>t.actual_products.some(p=>p.product_id===id))||d.applicationChanges.some(change=>[change.before,change.after].some(snapshot=>snapshot.products.some(product=>product.product_id===id)))
         :kind==='application_methods'?d.applicationOrders.some(o=>o.method_id===id)||d.applicationChanges.some(change=>[change.before,change.after].some(snapshot=>'method_id' in snapshot&&snapshot.method_id===id)):false
       if(referenced) fail('Este registro ya está relacionado. Márcalo como inactivo para conservar su historial.')
-      if (kind === 'products' || kind === 'active_ingredients') { const previous=catalog(kind,id); if(previous) (d.catalogMetadataChanges ??= []).push({id:uuid(),kind,record_id:id,changed_by_name:profile.full_name,changed_at:new Date().toISOString(),before:metadataSnapshot(previous,d),after:null}) }
+      if (kind === 'products' || kind === 'active_ingredients') { const previous=catalog(kind,id); if(previous) (d.catalogMetadataChanges ??= []).push({id:uuid(),kind,record_id:id,changed_by_name:profile.full_name,changed_at:new Date().toISOString(),before:metadataSnapshot(previous,d,kind),after:null}) }
       d.catalogs[kind]=d.catalogs[kind].filter(r=>r.id!==id); break
     }
     case 'save_project': {

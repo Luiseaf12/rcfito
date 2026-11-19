@@ -1,3 +1,4 @@
+import { snapshotForProduct } from './inherited-classifications'
 import { methodRoute, waterInput } from './application-routes.ts'
 import { applicationDraftIssues, type ApplicationDraftForm, type ApplicationDraftIssue, type ApplicationDraftProduct } from './application-draft.ts'
 import { applicationGroupOrigin } from './application-groups.ts'
@@ -22,7 +23,7 @@ export type DraftRecipeDocument = {
   selection: string
   source: { folio: string; revision: number } | null
   targets: { stage_id: string; lot_id: string; lot: string; subdivision: string; stage_number: number; variety: string; area_ha: number }[]
-  products: { product_id: string; code: string; name: string; dose: number; unit: 'g' | 'ml' }[]
+  products: { product_id: string; code: string; name: string; dose: number; unit: 'g' | 'ml'; classification_snapshot?: import('./model').ClassificationSnapshot }[]
 }
 
 export type DraftRecipeDocumentInput = {
@@ -76,7 +77,7 @@ export function snapshotDraftRecipe(data: WorkspaceData, input: DraftRecipeDocum
     targets,
     products: record.products.map(row => {
       const product = data.catalogs.products.find(item => item.id === row.product_id)!
-      return { product_id: product.id, code: product.code ?? '', name: product.name, dose: row.dose, unit: product.unit as 'g' | 'ml' }
+      return { product_id: product.id, code: product.code ?? '', name: product.name, dose: row.dose, unit: product.unit as 'g' | 'ml', classification_snapshot: snapshotForProduct(data,product.id,'draft',input.generated_at) }
     }),
   }
 }

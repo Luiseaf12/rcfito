@@ -1,3 +1,4 @@
+import { classificationText } from '../domain/inherited-classifications'
 import { applicationRoute, routeLabel } from '../domain/application-routes'
 import { draftRecipeReference, type DraftRecipeDocument } from '../domain/application-draft-document.ts'
 import { reportNumber } from '../lib/report-format.ts'
@@ -24,7 +25,7 @@ export async function createDraftRecipePdf(snapshot: DraftRecipeDocument, fonts:
   table({ head: [['Lote', 'Subdivisión', 'Etapa', 'Variedad', 'Superficie (ha)']], columnStyles: { 0: { cellWidth: 105 }, 1: { cellWidth: 144 }, 2: { cellWidth: 43, halign: 'center' }, 3: { cellWidth: 149 }, 4: { cellWidth: 91, halign: 'right' } }, body: snapshot.targets.map(target => [text(target.lot), text(target.subdivision), String(target.stage_number), text(target.variety), reportNumber.format(target.area_ha)]) })
   section('Productos, dosis y agua por hectárea')
   table({ head: [['Código', 'Producto / agua', 'Dosis / gasto', 'Unidad']], columnStyles: { 0: { cellWidth: 78 }, 1: { cellWidth: 284 }, 2: { cellWidth: 98, halign: 'right' }, 3: { cellWidth: 72 } }, body: [
-    ...snapshot.products.map(product => [text(product.code) || '-', text(product.name), dose.format(product.dose), `${product.unit}/ha`]),
+    ...snapshot.products.map(product => [text(product.code) || '-', text(`${product.name}\n${classificationText(product.classification_snapshot)}`), dose.format(product.dose), `${product.unit}/ha`]),
     ['AGUA', 'Gasto de agua', snapshot.water_l_ha == null ? 'No especificado' : water.format(snapshot.water_l_ha), 'L/ha'],
   ] })
   note('Nota de la aplicación', snapshot.observations)

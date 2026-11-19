@@ -1,5 +1,5 @@
 -- App fixtures already opened a transaction; all changes roll back.
-select pg_temp.expect_error($q$update public.products set classification_ids=null where code='P1'$q$,'lista','metadatos: lista nula rechazada');
+select pg_temp.expect_error($q$update public.active_ingredients set classification_ids=null where code='I'$q$,'lista','metadatos: lista nula rechazada');
 set local role authenticated;
 set local request.jwt.claim.sub='10000000-0000-4000-8000-000000000001';
 insert into public.ingredient_classifications(id,code,name) values
@@ -16,13 +16,9 @@ select pg_temp.expect_error($q$update public.active_ingredients set classificati
 update public.ingredient_classifications set active=false where code='MC2';
 update public.active_ingredients set classification_id='b1000000-0000-4000-8000-000000000002' where code='I';
 select pg_temp.assert_true((select classification_id is not null from public.active_ingredients where code='I'),'metadatos: secundaria inactiva retenida puede ser principal');
-select pg_temp.expect_error($q$update public.products set classification_ids=array['b1000000-0000-4000-8000-000000000002']::uuid[] where code='P1'$q$,'activa','metadatos: producto no hereda inactiva del ingrediente');
 select pg_temp.expect_error($q$delete from public.ingredient_classifications where code='MC2'$q$,'relacionada','metadatos: secundaria protege eliminación');
-update public.products set classification_ids=array['b1000000-0000-4000-8000-000000000001']::uuid[] where code='P1';
-select pg_temp.assert_true((select cardinality(classification_ids)=1 and classification_id is null from public.products where code='P1'),'metadatos: producto tiene usos propios sin principal');
-select public.save_product('{"id":"72000000-0000-4000-8000-000000000001","code":"P1","name":"Producto original","unit":"g","default_dose":12,"classification_ids":[],"classification_id":null}', '[{"active_ingredient_id":"70000000-0000-4000-8000-000000000001","concentration":"50 g/L"}]');
-select pg_temp.assert_true((select cardinality(classification_ids)=0 from public.products where code='P1'),'metadatos: RPC guarda y retira usos atómicamente');
-select pg_temp.expect_error($q$select public.save_product('{"id":"72000000-0000-4000-8000-000000000001","code":"P1","name":"Cambio que debe revertirse","unit":"g","default_dose":12,"classification_ids":["b1000000-0000-4000-8000-000000000099"],"synonyms":[]}', '[]')$q$,'disponible','metadatos: RPC inválida rechazada');
+select public.save_product('{"id":"72000000-0000-4000-8000-000000000001","code":"P1","name":"Producto original","unit":"g","default_dose":12}', '[{"active_ingredient_id":"70000000-0000-4000-8000-000000000001","concentration":"50 g/L"}]');
+select pg_temp.expect_error($q$select public.save_product('{"id":"72000000-0000-4000-8000-000000000001","code":"P1","name":"Cambio que debe revertirse","unit":"g","default_dose":12,"classification_ids":["b1000000-0000-4000-8000-000000000099"],"synonyms":[]}', '[]')$q$,'heredan','metadatos: RPC antigua rechazada');
 select pg_temp.assert_true((select name='Producto original' from public.products where code='P1') and (select count(*)=1 from public.product_ingredients where product_id='72000000-0000-4000-8000-000000000001'),'metadatos: error revierte nombre, composición y auditoría');
 select pg_temp.expect_error($q$update public.active_ingredients set synonyms=array['Duplicado','Dupli-cádo'] where code='I'$q$,'repetido','metadatos: alias normaliza acentos y separadores');
 select pg_temp.expect_error($q$update public.active_ingredients set synonyms=array['Ingrediente'] where code='I'$q$,'nombre','metadatos: alias no repite nombre propio');

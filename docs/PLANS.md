@@ -254,3 +254,10 @@ La evidencia de publicación está en OPERATIONS.
 | ID | Trabajo | Estado | Responsable | Próxima acción | Fuente |
 | --- | --- | --- | --- | --- | --- |
 | RCF-047 | Varias clasificaciones para ingredientes/productos, principal opcional, sinónimos de ingredientes e historial. | cerrada | Agente principal | Fuente 573fd41 en GitHub, Docker y Sites 48. 406 pruebas, 574 SQL, 315 HTTP, advisors y QA móvil aprobados; respaldo, ledger 16/0, 88 controles publicados y 20 HTTPS. | [Contrato y aceptación](flows/catalog-metadata.md) |
+
+
+## Clasificaciones heredadas y reconstrucción — RCF-048
+
+| ID | Trabajo | Estado | Responsable | Próxima acción | Fuente |
+| --- | --- | --- | --- | --- | --- |
+| RCF-048 | Retirar clasificaciones propias de Productos, heredar de ingredientes y congelar/reconstruir aplicaciones para reportes. | en verificación | Agente principal | 409 pruebas, 601 SQL y 331 HTTP aprobados; advisors y QA escritorio/móvil/PDF válidos. Completar respaldo, migración de operación y publicación autorizada. | [Contrato y aceptación](flows/inherited-classifications.md) |

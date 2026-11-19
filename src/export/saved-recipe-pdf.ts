@@ -1,3 +1,4 @@
+import { classificationText } from '../domain/inherited-classifications'
 import { applicationRoute, routeLabel } from '../domain/application-routes'
 import { savedRecipeReference, type SavedRecipeDocument } from '../domain/saved-recipe-document.ts'
 import { reportNumber } from '../lib/report-format.ts'
@@ -29,7 +30,7 @@ export async function createSavedRecipePdf(snapshot: SavedRecipeDocument, fonts:
   }
   section(`Mezcla indicada - revisión ${snapshot.revision}`)
   table({ head: [['Producto / agua', 'Dosis / gasto', 'Unidad']], columnStyles: { 0: { cellWidth: 362 }, 1: { cellWidth: 98, halign: 'right' }, 2: { cellWidth: 72 } }, body: [
-    ...snapshot.products.map(product => [text(product.product_name), dose.format(product.dose), `${product.unit}/ha`]),
+    ...snapshot.products.map(product => [text(`${product.product_name}\n${classificationText(product.classification_snapshot)}`), dose.format(product.dose), `${product.unit}/ha`]),
     ['Gasto de agua', snapshot.water_l_ha == null ? 'No especificado' : water.format(snapshot.water_l_ha), 'L/ha'],
   ] })
   note('Nota de la indicación', snapshot.observations)

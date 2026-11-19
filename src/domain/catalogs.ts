@@ -61,7 +61,7 @@ export function validateCatalogEdit(data: CatalogEditContext, kind: CatalogKind,
   if (kind === 'application_methods' && row.application_route != null && !['foliar', 'irrigation'].includes(row.application_route)) errors.application_route = 'Selecciona Foliar o Riego.'
   if (kind === 'fields') relation('agricultural_units', row.agricultural_unit_id, existing?.agricultural_unit_id, 'agricultural_unit_id', 'una agrícola activa')
   if (kind === 'varieties') relation('crops', row.crop_id, existing?.crop_id, 'crop_id', 'un cultivo activo')
-  if (kind === 'active_ingredients' || kind === 'products') {
+  if (kind === 'active_ingredients') {
     const ids = row.classification_ids ?? classificationIds(existing)
     if (!Array.isArray(ids) || new Set(ids).size !== ids.length) errors.classification_ids = 'Selecciona cada clasificación una sola vez.'
     else {
@@ -72,6 +72,7 @@ export function validateCatalogEdit(data: CatalogEditContext, kind: CatalogKind,
     if (kind === 'active_ingredients') Object.assign(errors, validateIngredientSynonyms(data.catalogs.active_ingredients, row))
   }
   if (kind === 'products') {
+    if (row.classification_id !== undefined || row.classification_ids !== undefined) errors.classification_ids = 'Las clasificaciones del producto se heredan de sus ingredientes. Actualiza la vista.'
     Object.assign(errors, validateProductSynonyms(data.catalogs.products, row))
     if (!['g', 'ml'].includes(row.unit ?? '')) errors.unit = 'Selecciona gramos o mililitros.'
     if (!Number.isFinite(row.default_dose) || row.default_dose! < 0) errors.default_dose = 'Captura una dosis válida mayor o igual a cero.'

@@ -3,6 +3,9 @@
 Autorizado por el Propietario el 2026-11-17. Estado: implementado y publicado en Sites 48; Docker actualizado.
 El agente principal asume diseño, desarrollo, QA y autorrevisión.
 
+La entrega siguiente [RCF-048](inherited-classifications.md) sustituye la selección
+propia de Productos por herencia; consultar su estado antes de aplicar esas reglas.
+
 ## Reglas y recorrido
 
 Clasificaciones de uso reemplaza el nombre visible Usos de ingredientes; conserva

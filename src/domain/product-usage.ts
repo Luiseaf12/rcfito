@@ -4,6 +4,7 @@ import { indicationForTarget } from './application-editing'
 import type { ApplicationTarget, ProductLine, WorkspaceData } from './model'
 
 export type ProductUsageFilters = {
+  classificationId?: string
   agriculturalUnitId?: string
   lotId?: string
   cropId?: string
@@ -12,6 +13,7 @@ export type ProductUsageFilters = {
 }
 
 export type ProductUsageHistory = {
+  classification_snapshot?: import('./model').ClassificationSnapshot
   targetId: string
   stageId: string
   productName: string
@@ -34,6 +36,7 @@ export type ProductUsageHistory = {
 }
 
 export type ProductUsageSummary = {
+  classifications?: {id:string;name:string}[]; reconstructedCount?: number; classificationIncompleteCount?: number
   key: string
   productId: string
   name: string
@@ -75,6 +78,9 @@ export function summarizeProductUsage(
   const accumulatedAreaHa = history.reduce((sum, record) => sum + record.areaHa, 0)
   return {
     ...product, name: history[0]?.productName ?? '',
+    classifications: [...new Map([...history].reverse().flatMap(item=>item.classification_snapshot?.classifications ?? []).map(item=>[item.id,item])).values()],
+    reconstructedCount: history.filter(item=>item.classification_snapshot?.origin==='reconstructed').length,
+    classificationIncompleteCount: history.filter(item=>!item.classification_snapshot?.complete).length,
     applicationCount: new Set(history.map(record => record.targetId)).size,
     totalQuantity, accumulatedAreaHa, averageDose: accumulatedAreaHa ? totalQuantity / accumulatedAreaHa : 0,
     lastRecordedDate: history[0]?.recordDate ?? '',
@@ -152,6 +158,8 @@ export function buildProductUsage(data: WorkspaceData, filters: ProductUsageFilt
       continue
     }
 
+    products=products.filter(product=>!filters.classificationId || product.classification_snapshot?.classifications.some(item=>item.id===filters.classificationId))
+    if(!products.length)continue
     countedTargets.add(target.id)
     for (const product of products) {
       const key = productKey(product)
@@ -168,7 +176,7 @@ export function buildProductUsage(data: WorkspaceData, filters: ProductUsageFilt
         fieldName: order.field_name ?? fields.get(order.field_id) ?? 'Campo no disponible',
         lotName: target.lot_name, subdivisionName: target.subdivision_name, stageNumber: target.stage_number,
         cropName: target.crop_name, areaHa: target.area_ha, dose: product.dose,
-        quantity: product.dose * target.area_ha,
+        quantity: product.dose * target.area_ha, classification_snapshot: product.classification_snapshot,
       }
       group.history.push(history)
     }

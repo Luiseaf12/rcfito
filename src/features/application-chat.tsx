@@ -1,3 +1,5 @@
+import { classificationText } from '@/domain/inherited-classifications'
+import type { ClassificationSnapshot } from '@/domain/model'
 import { sortDisplay, sortNamed } from '@/domain/list-order'
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
@@ -40,7 +42,7 @@ function SnapshotDetails({ snapshot }: { snapshot: Record<string, unknown> }) {
   const products = Array.isArray(snapshot.products) ? sortDisplay(snapshot.products.filter(recordObject), product => recordText(product.product_name), product => recordText(product.product_id)).slice(0, 40) : []
   return <div className="flex flex-col gap-3">
     {fields.length > 0 && <dl className="chat-result-fields">{fields.map(field => <div key={field.label}><dt>{field.label}</dt><dd>{field.value}</dd></div>)}</dl>}
-    {products.length > 0 && <div><p className="muted">Productos y dosis registradas</p><ul className="chat-product-lines">{products.map((product, index) => <li key={index}>{recordText(product.product_name) || 'Producto registrado'}{typeof product.dose === 'number' && Number.isFinite(product.dose) ? ` · ${number(product.dose, 6)} ${product.unit === 'g' || product.unit === 'ml' ? product.unit : '(unidad no disponible)'}/ha` : ''}</li>)}</ul></div>}
+    {products.length > 0 && <div><p className="muted">Productos y dosis registradas</p><ul className="chat-product-lines">{products.map((product, index) => <li key={index}>{recordText(product.product_name) || 'Producto registrado'}{typeof product.dose === 'number' && Number.isFinite(product.dose) ? ` · ${number(product.dose, 6)} ${product.unit === 'g' || product.unit === 'ml' ? product.unit : '(unidad no disponible)'}/ha` : ''}<p className="muted">{classificationText(product.classification_snapshot as ClassificationSnapshot | undefined)}</p></li>)}</ul></div>}
   </div>
 }
 
@@ -78,7 +80,7 @@ function ProductUsageTable({ response }: { response: ApplicationChatResponse }) 
   const result = response.result
   if (!result || result.query.operation !== 'uso_producto' || result.clarification) return null
   const heading = result.query.status === 'performed' ? 'Total aplicado' : result.query.status === 'indicated' ? 'Cantidad indicada' : result.query.status === 'cancelled' ? 'Cantidad cancelada' : 'Cantidad calculada'
-  return <Table className="chat-data-table chat-product-table" aria-label="Cantidades por producto" tabIndex={0}><TableCaption className="caption-top">Productos y cantidades{result.truncated ? ' · Resultado parcial' : ''}</TableCaption><TableHeader><TableRow><TableHead scope="col">Producto</TableHead><TableHead scope="col" className="text-right">{heading}</TableHead></TableRow></TableHeader><TableBody>{result.rows.length === 0 ? <TableRow><TableCell colSpan={2}>No hay cantidades válidas para mostrar con estos filtros.</TableCell></TableRow> : result.rows.map((row, index) => <TableRow key={`${recordText(row.product_id)}:${recordText(row.unit)}:${index}`}><TableCell>{recordText(row.product_name) || recordText(row.name) || 'Producto registrado'}</TableCell><TableCell className="text-right tabular-nums">{formatApplicationProductTotal(row.quantity, row.unit)}</TableCell></TableRow>)}</TableBody></Table>
+  return <Table className="chat-data-table chat-product-table" aria-label="Cantidades por producto" tabIndex={0}><TableCaption className="caption-top">Productos y cantidades{result.truncated ? ' · Resultado parcial' : ''}</TableCaption><TableHeader><TableRow><TableHead scope="col">Producto</TableHead><TableHead scope="col" className="text-right">{heading}</TableHead></TableRow></TableHeader><TableBody>{result.rows.length === 0 ? <TableRow><TableCell colSpan={2}>No hay cantidades válidas para mostrar con estos filtros.</TableCell></TableRow> : result.rows.map((row, index) => <TableRow key={`${recordText(row.product_id)}:${recordText(row.unit)}:${index}`}><TableCell>{recordText(row.product_name) || recordText(row.name) || 'Producto registrado'}<p className="muted">{Array.isArray(row.classifications) ? row.classifications.map(item=>recordText((item as Record<string,unknown>).name)).join(' · ') : ''}{Number(row.reconstructed_count)>0 ? ' · Incluye clasificaciones reconstruidas' : ''}</p></TableCell><TableCell className="text-right tabular-nums">{formatApplicationProductTotal(row.quantity, row.unit)}</TableCell></TableRow>)}</TableBody></Table>
 }
 
 function ResponseEvidence({ response, choiceDisabled, onChoose, onIndicated }: { response: ApplicationChatResponse; choiceDisabled: boolean; onChoose: (query: ApplicationQueryFilters, choice: ApplicationQueryChoice, options: ApplicationQueryOptions) => void; onIndicated: (query: ApplicationQueryFilters, options: ApplicationQueryOptions) => void }) {

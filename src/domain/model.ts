@@ -6,7 +6,7 @@ export type CatalogRecord = {
   id: string; name: string; code?: string; active: boolean; application_route?: ApplicationRoute;
   agricultural_unit_id?: string; crop_id?: string; brand_id?: string | null;
   classification_ids?: string[]; classification_id?: string | null; family_id?: string | null; unit?: 'g' | 'ml'; default_dose?: number;
-  ingredients?: ProductIngredient[]; created_at?: string; unit_locked?: boolean; synonyms?: string[];
+  inherited_classifications?: Pick<ClassificationSnapshot,'classifications'|'complete'>; ingredients?: ProductIngredient[]; created_at?: string; unit_locked?: boolean; synonyms?: string[];
 }
 export type SowingProject = { id: string; agricultural_unit_id: string; name: string; season: string; start_date?: string; status: 'draft' | 'active' | 'closed'; created_at?: string }
 export type ProjectLot = { id: string; project_id: string; field_id: string; name: string; code?: string; area_ha: number; infrastructure_type_id: string; active?: boolean; created_at?: string; field_name_snapshot?: string; infrastructure_name_snapshot?: string; correction_version?: number }
@@ -14,7 +14,8 @@ export type LotSubdivision = { id: string; lot_id: string; name: string; area_ha
 export type SowingStage = { id: string; subdivision_id: string; stage_number: number; crop_id: string; variety_id: string; area_ha: number; planned_sowing_date: string; actual_sowing_date: string | null; closed_at: string | null; status: 'planned' | 'planted' | 'closed'; crop_name_snapshot?: string; variety_name_snapshot?: string }
 export type UserProfile = { id: string; full_name: string; email?: string; role: 'admin' | 'reader'; active?: boolean; menu_permissions?: MenuKey[]; access_version?: number }
 export type UserAssignment = { user_id: string; agricultural_unit_id: string }
-export type ProductLine = { product_id: string; dose: number; product_name: string; unit: 'g' | 'ml' }
+export type ClassificationSnapshot = { origin: 'recorded' | 'reconstructed' | 'draft'; captured_at: string; complete: boolean; classifications: {id:string;name:string}[]; ingredients: {id:string;name:string;classification_id:string|null;classifications:{id:string;name:string}[]}[] }
+export type ProductLine = { classification_snapshot?: ClassificationSnapshot; product_id: string; dose: number; product_name: string; unit: 'g' | 'ml' }
 export type ApplicationProductInput = Pick<ProductLine, 'product_id' | 'dose'>
 export type ApplicationGroupSnapshot = { id: string; name: string }
 export type ApplicationSelectionOrigin = 'group' | 'individual' | 'manual' | 'unknown'
@@ -61,7 +62,7 @@ export type LotCorrectionSnapshot = {
 export type LotCorrection = { id: string; lot_id: string; version: number; reason: string; changed_by: string; changed_by_name: string; changed_at: string; before: LotCorrectionSnapshot; after: LotCorrectionSnapshot; request?: LotCorrectionInput }
 export type UserAccessChange = { id: string; user_id: string | null; changed_by_name: string; changed_at: string; before: { role: string; menus: string[]; agricultural_unit_ids: string[] }; after: { role: string; menus: string[]; agricultural_unit_ids: string[] } }
 export type CatalogMetadataChange = { id: string; kind: 'products' | 'active_ingredients'; record_id: string; changed_by_name: string; changed_at: string; before: CatalogMetadataSnapshot | null; after: CatalogMetadataSnapshot | null }
-export type CatalogMetadataSnapshot = { name: string; active: boolean; classification_id: string | null; classifications: { id: string; name: string }[]; synonyms: string[] }
+export type CatalogMetadataSnapshot = { name: string; active: boolean; classification_id?: string | null; classifications?: { id: string; name: string }[]; synonyms: string[] }
 export type WorkspaceData = { catalogMetadataChanges?: CatalogMetadataChange[]; catalogs: Record<CatalogKind, CatalogRecord[]>; projects: SowingProject[]; lots: ProjectLot[]; subdivisions: LotSubdivision[]; stages: SowingStage[]; profiles: UserProfile[]; assignments: UserAssignment[]; applicationOrders: ApplicationOrder[]; applicationTargets: ApplicationTarget[]; applicationChanges: ApplicationChange[]; sowingGroups: SowingGroup[]; lotCorrections?: LotCorrection[]; userAccessChanges?: UserAccessChange[] }
 export type WorkspaceCommand =
   | { type: 'save_catalog'; kind: CatalogKind; record: Partial<CatalogRecord> & Pick<CatalogRecord, 'name' | 'active'> }

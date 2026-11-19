@@ -382,3 +382,12 @@ Ingredientes conserva REST con `synonyms` text[] y validación por trigger.
 `catalog_metadata_changes` es de lectura admin, sin DML de clientes ni acceso
 anónimo. Los triggers y la RPC escriben eventos antes/después por transacción;
 las funciones internas de auditoría no tienen EXECUTE para clientes.
+
+
+## Herencia y reconstrucción de clasificaciones — RCF-048
+
+El contrato nuevo retira selecciones propias de Productos y usa la unión de
+clasificaciones de ingredientes. Las aplicaciones guardan copias históricas; las
+anteriores se reconstruyen con catálogo actual y marca explícita. Reportes,
+filtros y PDF usan estas copias sin duplicar cantidades.
+[Reglas, migración y estado de entrega](flows/inherited-classifications.md).

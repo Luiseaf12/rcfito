@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { EmptyState, formatDate } from './shared'
-import { PAGE_SIZE, number, quantity, dose, PageControls, ProductHistory } from './product-usage-shared'
+import { PAGE_SIZE, number, quantity, dose, PageControls, ProductHistory, UsageClassifications } from './product-usage-shared'
 
 function LotProducts({ lot, id, onClose }: { lot: LotUsageSummary; id: string; onClose: () => void }) {
   const heading = useRef<HTMLHeadingElement>(null)
@@ -32,7 +32,7 @@ function LotProducts({ lot, id, onClose }: { lot: LotUsageSummary; id: string; o
         <TableCaption>Cantidad registrada calculada con dosis × superficie. Cada fila conserva su unidad. El historial se limita a este lote y a los filtros seleccionados.</TableCaption>
         <TableHeader><TableRow><TableHead>Producto</TableHead><TableHead>Aplicaciones</TableHead><TableHead aria-sort="descending">Cantidad calculada ↓</TableHead><TableHead>Dosis promedio</TableHead><TableHead>Última fecha</TableHead><TableHead><span className="sr-only">Historial</span></TableHead></TableRow></TableHeader>
         <TableBody>{products.map(product => <TableRow key={product.key}>
-          <TableCell><span className="record-name">{product.name}</span><div className="record-secondary muted">{product.unit} · {product.destinationCount} {product.destinationCount === 1 ? 'etapa distinta' : 'etapas distintas'}</div></TableCell>
+          <TableCell><span className="record-name">{product.name}</span><UsageClassifications product={product} /><div className="record-secondary muted">{product.unit} · {product.destinationCount} {product.destinationCount === 1 ? 'etapa distinta' : 'etapas distintas'}</div></TableCell>
           <TableCell className="usage-numeric">{product.applicationCount}</TableCell>
           <TableCell className="usage-numeric">{quantity(product.totalQuantity, product.unit)}</TableCell>
           <TableCell className="usage-numeric">{dose(product.averageDose, product.unit)}</TableCell>
@@ -46,8 +46,8 @@ function LotProducts({ lot, id, onClose }: { lot: LotUsageSummary; id: string; o
   </Card>
 }
 
-export function LotUsagePanel({ data, agriculturalUnitId, lotId, cropId, stageNumber, status }: { data: WorkspaceData } & ProductUsageFilters) {
-  const result = useMemo(() => buildLotUsage(data, { agriculturalUnitId, lotId, cropId, stageNumber, status }), [data, agriculturalUnitId, lotId, cropId, stageNumber, status])
+export function LotUsagePanel({ data, agriculturalUnitId, lotId, cropId, stageNumber, status, classificationId }: { data: WorkspaceData } & ProductUsageFilters) {
+  const result = useMemo(() => buildLotUsage(data, { agriculturalUnitId, lotId, cropId, stageNumber, status, classificationId }), [data, agriculturalUnitId, lotId, cropId, stageNumber, status, classificationId])
   const [requestedPage, setPage] = useState(1)
   const [selectedLotKey, setSelectedLotKey] = useState<string | null>(null)
   const opener = useRef<HTMLButtonElement | null>(null)

@@ -1,3 +1,4 @@
+import { classificationText } from '@/domain/inherited-classifications'
 import { sortDisplay } from '@/domain/list-order'
 import { useId } from 'react'
 import { Droplets, Plus, X } from 'lucide-react'
@@ -87,7 +88,7 @@ export function MixtureReadOnly({ products, water, title = 'Mezcla indicada' }: 
       <div className="table-wrap">
         <Table>
           <TableHeader><TableRow><TableHead>Producto</TableHead><TableHead>Dosis por hectárea</TableHead></TableRow></TableHeader>
-          <TableBody>{sortDisplay(products, product => product.product_name ?? '', product => product.product_id).map((product, index) => <TableRow key={`${product.product_id}-${index}`}><TableCell>{product.product_name}</TableCell><TableCell>{dosage(product.dose)} {product.unit}/ha</TableCell></TableRow>)}</TableBody>
+          <TableBody>{sortDisplay(products, product => product.product_name ?? '', product => product.product_id).map((product, index) => <TableRow key={`${product.product_id}-${index}`}><TableCell>{product.product_name}<p className="muted">{classificationText(product.classification_snapshot)}</p></TableCell><TableCell>{dosage(product.dose)} {product.unit}/ha</TableCell></TableRow>)}</TableBody>
         </Table>
       </div>
       <p className="application-water"><Droplets aria-hidden="true" /><strong>Gasto de agua: {water == null ? 'No especificado' : `${dosage(water)} L/ha`}</strong></p>

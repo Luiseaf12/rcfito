@@ -14,7 +14,7 @@ function fixture() {
 test('varias clasificaciones y principal opcional en ambos catálogos, sin herencia', () => {
   const { data, admin } = fixture()
   let next = data
-  for (const kind of ['active_ingredients', 'products'] as const) {
+  for (const kind of ['active_ingredients'] as const) {
     const row = data.catalogs[kind][0]
     next = applyCommand(next, { type: 'save_catalog', kind, record: { ...row, classification_ids: ['c1', 'c2'], classification_id: 'c2' } }, admin)
     assert.match(classificationLabel(next.catalogs[kind][0], data.catalogs.ingredient_classifications), /Acaricida \(principal\)/)
@@ -23,8 +23,8 @@ test('varias clasificaciones y principal opcional en ambos catálogos, sin heren
   }
   assert.deepEqual(next.applicationOrders, data.applicationOrders)
   assert.deepEqual(next.applicationChanges, data.applicationChanges)
-  assert.equal(next.catalogMetadataChanges?.length, 4)
-  assert.equal(next.catalogMetadataChanges?.[0].after?.classifications[0].name, 'Insecticida')
+  assert.equal(next.catalogMetadataChanges?.length, 2)
+  assert.equal(next.catalogMetadataChanges?.[0].after?.classifications?.[0].name, 'Insecticida')
   assert.deepEqual(scopeWorkspace(next, fixture().reader).catalogMetadataChanges, [])
 })
 test('principal fuera de selección, duplicados e inactivos nuevos rechazados', () => {
@@ -38,7 +38,7 @@ test('principal fuera de selección, duplicados e inactivos nuevos rechazados', 
 })
 test('clasificación secundaria protege eliminación y principal anterior sigue disponible', () => {
   const { data, admin } = fixture()
-  data.catalogs.products[0].classification_ids = ['c2']
+  data.catalogs.active_ingredients[0].classification_ids = ['c2']
   assert.throws(() => applyCommand(data, { type: 'delete_catalog', kind: 'ingredient_classifications', id: 'c2' }, admin), /relacionado/)
   assert.deepEqual(classificationIds({ classification_id: 'c1' }), ['c1'])
 })

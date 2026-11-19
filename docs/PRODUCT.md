@@ -555,3 +555,12 @@ Ingredientes y productos comparten el catálogo Clasificaciones de uso, con sele
 propia, principal opcional y búsqueda/filtro por todas. Ingredientes añade sinónimos
 controlados. Validación en servidor y auditoría con autor/fecha; snapshots previos
 conservados. [Contrato, compatibilidad y controles](flows/catalog-metadata.md).
+
+
+## Herencia y reconstrucción de clasificaciones — RCF-048
+
+El contrato nuevo retira selecciones propias de Productos y usa la unión de
+clasificaciones de ingredientes. Las aplicaciones guardan copias históricas; las
+anteriores se reconstruyen con catálogo actual y marca explícita. Reportes,
+filtros y PDF usan estas copias sin duplicar cantidades.
+[Reglas, migración y estado de entrega](flows/inherited-classifications.md).

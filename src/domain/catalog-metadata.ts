@@ -26,6 +26,6 @@ export function validateIngredientSynonyms(records: CatalogRecord[], row: Catalo
   }
   return {}
 }
-export function metadataSnapshot(record: CatalogRecord, data: WorkspaceData) {
-  return { name: record.name, active: record.active, classification_id: record.classification_id ?? null, classifications: classificationIds(record).slice().sort().map(id => ({ id, name: data.catalogs.ingredient_classifications.find(item => item.id === id)?.name ?? id })), synonyms: [...(record.synonyms ?? [])].sort() }
+export function metadataSnapshot(record: CatalogRecord, data: WorkspaceData, kind = 'active_ingredients') {
+  return { name: record.name, active: record.active, ...(kind === 'active_ingredients' ? {classification_id: record.classification_id ?? null, classifications: classificationIds(record).slice().sort().map(id => ({ id, name: data.catalogs.ingredient_classifications.find(item => item.id === id)?.name ?? id }))} : {}), synonyms: [...(record.synonyms ?? [])].sort() }
 }
